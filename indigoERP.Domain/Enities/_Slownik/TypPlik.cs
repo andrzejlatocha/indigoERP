@@ -1,0 +1,21 @@
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+#nullable disable
+
+namespace indigoERP.Domain.Entities._Slownik
+{
+    public partial class TypPlik
+    {
+        public TypPlik()
+        {
+        }
+
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int tpkID { get; set; }
+        public string tpkNazwa { get; set; }
+        public string tpkStatus { get; set; }
+    }
+}

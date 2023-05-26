@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using indigoERP.Api.Data;
+using indigoERP.Domain.Entities._Wspolne;
+using Microsoft.AspNetCore.Authorization;
+
+namespace indigoERP.Api.Controllers._Wspolne
+{
+    [AllowAnonymous]
+    [Route("api/[controller]/[action]")]
+    [ApiController]
+    public class KontaktController : ControllerBase
+    {
+        private readonly indigoERPContext _context;
+
+        public KontaktController(indigoERPContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/Kontakt/5
+        [HttpGet("{kntID}")]
+        public async Task<ActionResult<Kontakt>> Get(int kntID)
+        {
+          if (_context.Kontakt == null)
+          {
+              return NotFound();
+          }
+            var kontakt = await _context.Kontakt.FindAsync(kntID);
+
+            if (kontakt == null)
+            {
+                return NotFound();
+            }
+
+            return kontakt;
+        }
+
+        // PUT: api/Kontakt/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
+        [HttpPut("{kntID}")]
+        public async Task<IActionResult> Update(int kntID, Kontakt kontakt)
+        {
+            if (kntID != kontakt.kntID)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(kontakt).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!KontaktExists(kntID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/Kontakt
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult<Kontakt>> Insert(Kontakt kontakt)
+        {
+          if (_context.Kontakt == null)
+          {
+              return Problem("Entity set 'indigoERPContext.Kontakt' is null.");
+          }
+            _context.Kontakt.Add(kontakt);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("Get", new { kntID = kontakt.kntID }, kontakt);
+        }
+
+        // DELETE: api/Kontakt/5
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int kntID)
+        {
+            if (_context.Kontakt == null)
+            {
+                return NotFound();
+            }
+            var kontakt = await _context.Kontakt.FindAsync(kntID);
+            if (kontakt == null)
+            {
+                return NotFound();
+            }
+
+            _context.Kontakt.Remove(kontakt);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool KontaktExists(int id)
+        {
+            return (_context.Kontakt?.Any(e => e.kntID == id)).GetValueOrDefault();
+        }
+    }
+}

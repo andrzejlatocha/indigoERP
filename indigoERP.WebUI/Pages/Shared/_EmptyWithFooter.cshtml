@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>epicaHR - @ViewData["Title"]</title>
+    <link href="~/Images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    @RenderSection("Styles", false)
+    @RenderSection("Scripts", false)
+
+    <link rel="stylesheet" href="~/css/fontawesome.min.css" />
+    <link href="~/css/devextreme/bootstrap.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container-fluid">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <partial name="_FooterPartial.cshtml" />
+</body>
+
+</html>

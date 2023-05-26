@@ -1,0 +1,45 @@
+﻿@page
+@using DevExtreme.AspNet.Mvc;
+@using indigoERP.WebUI.Pages
+@model IndexModel
+
+@{
+    ViewData["Title"] = "Główna";
+    Layout = "_LayoutFull";
+}
+
+<div class="pt-5">
+    <div class="row mt-5">
+        <div class="col-2">
+            @(Html.DevExtreme().Accordion()
+                .ID("accordion")
+                .DataSource(d => d.WebApi()
+                    .Controller("UzytkownikAplikacja")
+                    .LoadAction("Select")
+                    .Key("appID")
+                 )
+                .AnimationDuration(300)
+                .Collapsible(false)
+                .Multiple(false)
+                .ItemTitleTemplate(@<text>
+                                        <div class="p-2">
+                                            <img src="<%- appIkona %>" />
+                                            <b class="ms-2"><%- appNazwa %></b>
+                                        </div>
+                                   </text>)
+                .ItemTemplate(@<text>
+                                    <p>
+                                        <%- appOpis %>
+                                    </p>
+                                    <p class ="d-flex flex-row-reverse">
+                                        <a class="btn btn-primary" href="<%- appLink %>">Wejdź</a>
+                                    </p>
+                              </text>
+                )
+            )
+        </div>
+        <div class="col-10">
+
+        </div>
+    </div>
+</div>

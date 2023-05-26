@@ -1,0 +1,34 @@
+﻿@page
+
+@using indigoERP.WebUI.Pages._Autoryzacja;
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Logowanie";
+    Layout = "_Empty";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+}
+
+<div class="box">
+    <h2>Logowanie</h2>
+    <form method="post">
+        <div class="inputBox">
+            <input type="text" name="usrNazwa" required="">
+            <label>Użytkownik</label>
+        </div>
+        <div class="inputBox">
+            <input type="password" name="usrHaslo" required="">
+            <label>Hasło</label>
+        </div>
+        <div class="button-row">
+            <input type="submit" name="" value="Zaloguj">
+            <a asp-page="./Index">Anuluj</a>
+        </div>
+        <div class="restore">
+            <a asp-page="Restore">Odzyskaj hasło</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,20 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using indigoERP.Domain.Data
+
+<ul class="navbar-nav me-auto">
+    @if (User.IsInRole("Administrator"))
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-page="/_Administracja/Index" class="nav-link active">Administrator</a>
+        </li>
+    }
+    @if (User.Identity.IsAuthenticated)
+    {
+        <li class="nav-item ps-3">
+            <a class="nav-link" asp-page="/_Administracja/Uzytkownik">
+                <img class="rounded-circle" src="~/images/user.png" />
+                @User.FindFirst("usrImie").Value @User.FindFirst("usrNazwisko").Value
+            </a>
+        </li>
+    }
+</ul>
