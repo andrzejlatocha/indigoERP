@@ -13,7 +13,7 @@ body {
     background-size: cover;
 }
 
-.container {
+.card-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -26,20 +26,20 @@ body {
     gap: 60px;
 }
 
-    .container .box {
+    .card-container .box {
         position: relative;
-        width: 300px;
-        height: 350px;
+        width: 200px;
+        height: 250px;
         background: #2e2e2e;
         display: flex;
         justify-content: center;
         align-items: center;
     }
 
-        .container .box::before {
+        .card-container .box::before {
             content: '';
             position: absolute;
-            inset: -10px 50px;
+            inset: -5px 20px;
             border-top: 4px solid var(--clr);
             border-bottom: 4px solid var(--clr);
             z-index: -1;
@@ -47,15 +47,15 @@ body {
             transition: 0.5s ease-in-out;
         }
 
-        .container .box:hover::before {
+        .card-container .box:hover::before {
             transform: skewY(0deg);
-            inset: -10px 40px;
+            inset: -5px 15px;
         }
 
-        .container .box::after {
+        .card-container .box::after {
             content: '';
             position: absolute;
-            inset: 60px -10px;
+            inset: 20px -5px;
             border-left: 4px solid var(--clr);
             border-right: 4px solid var(--clr);
             z-index: -1;
@@ -63,26 +63,26 @@ body {
             transition: 0.5s ease-in-out;
         }
 
-        .container .box:hover::after {
+        .card-container .box:hover::after {
             transform: skew(0deg);
-            inset: 40px -10px;
+            inset: 15px -5px;
         }
 
-        .container .box .content {
+        .card-container .box .content {
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             text-align: center;
-            gap: 20px;
-            padding: 0 20px;
+            gap: 5px;
+            padding: 0 10px;
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
 
-            .container .box .content .icon {
+            .card-container .box .content .icon {
                 color: var(--clr);
                 width: 80px;
                 height: 80px;
@@ -95,31 +95,32 @@ body {
                 transition: 0.5s ease-in-out;
             }
 
-        .container .box:hover .content .icon {
+        .card-container .box:hover .content .icon {
             box-shadow: 0 0 0 4px #2e2e2e, 0 0 0 300px var(--clr);
         }
 
-        .container .box .content .text h3 {
+        .card-container .box .content .text h3 {
             font-size: 1.5em;
             color: #fff;
             font-weight: 500;
             transition: 0.5s ease-in-out;
         }
 
-        .container .box:hover .content .text h3 {
+        .card-container .box:hover .content .text h3 {
             color: #2e2e2e;
         }
 
-        .container .box .content .text p {
+        .card-container .box .content .text p {
             color: #999;
             transition: 0.5s ease-in-out;
+            margin-top: 10px;
         }
 
-        .container .box:hover .content .text p {
+        .card-container .box:hover .content .text p {
             color: #2e2e2e;
         }
 
-        .container .box .content .text a {
+        .card-container .box .content .text a {
             position: relative;
             background: var(--clr);
             color: #2e2e2e;
@@ -131,7 +132,7 @@ body {
             transition: 0.5s ease-in-out;
         }
 
-        .container .box:hover .content .text a {
+        .card-container .box:hover .content .text a {
             background: #2e2e2e;
             color: var(--clr);
         }

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
-    [AllowAnonymous]
+    [Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class KontaktController : ControllerBase
@@ -43,7 +43,6 @@ namespace indigoERP.Api.Controllers._Wspolne
 
         // PUT: api/Kontakt/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
         [HttpPut("{kntID}")]
         public async Task<IActionResult> Update(int kntID, Kontakt kontakt)
         {
@@ -75,7 +74,6 @@ namespace indigoERP.Api.Controllers._Wspolne
 
         // POST: api/Kontakt
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Kontakt>> Insert(Kontakt kontakt)
         {
@@ -90,7 +88,6 @@ namespace indigoERP.Api.Controllers._Wspolne
         }
 
         // DELETE: api/Kontakt/5
-        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int kntID)
         {

@@ -9,8 +9,7 @@ namespace indigoERP.Domain.Entities._Slownik
 	{
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int badID { get; set; }
-		public int badBankID { get; set; }
+		public string badBankKOD { get; set; }
 		public int badAdresID { get; set; }
 		public string? badStatus { get; set; }
 	}

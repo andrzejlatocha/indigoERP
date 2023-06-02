@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [AllowAnonymous]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class RodzajDokumentTozsamoscController : ControllerBase
@@ -24,6 +23,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/RodzajDokumentTozsamosc
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RodzajDokumentTozsamosc>>> Select()
         {
@@ -35,6 +35,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/RodzajDokumentTozsamosc/5
+        [AllowAnonymous]
         [HttpGet("{dtyID}")]
         public async Task<ActionResult<RodzajDokumentTozsamosc>> Get(int dtyID)
         {
@@ -54,6 +55,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/RodzajDokumentTozsamosc/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{dtyID}")]
         public async Task<IActionResult> Update(int dtyID, RodzajDokumentTozsamosc rodzajDokumentTozsamosc)
         {
@@ -85,6 +87,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/RodzajDokumentTozsamosc
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<RodzajDokumentTozsamosc>> Insert(RodzajDokumentTozsamosc rodzajDokumentTozsamosc)
         {
@@ -99,6 +102,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/RodzajDokumentTozsamosc/5
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

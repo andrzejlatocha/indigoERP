@@ -34,6 +34,46 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.ToListAsync();
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByKraj(int kraID)
+        {
+            if (_context.MiejscowoscViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.MiejscowoscViewModel.Where(w => w.kraID == kraID).ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByWojewodztwo(int wojID)
+        {
+            if (_context.MiejscowoscViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.MiejscowoscViewModel.Where(w => w.wojID == wojID).ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByPowiat(int powID)
+        {
+            if (_context.MiejscowoscViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.MiejscowoscViewModel.Where(w => w.powID == powID).ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByGmina(int gmiID)
+        {
+            if (_context.MiejscowoscViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.MiejscowoscViewModel.Where(w => w.gmiID == gmiID).ToListAsync();
+        }
+
         // GET: api/MiejscowoscViewModel/5
         [HttpGet("{mscID}")]
         public async Task<ActionResult<MiejscowoscViewModel>> Get(int mscID)

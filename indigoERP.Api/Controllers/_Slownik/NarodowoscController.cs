@@ -24,6 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Narodowosc
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Narodowosc>>> Select(string narStatus)
         {
@@ -36,6 +37,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Narodowosc/5
+        [AllowAnonymous]
         [HttpGet("{narID}")]
         public async Task<ActionResult<Narodowosc>> Get(int narID)
         {
@@ -55,6 +57,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Narodowosc/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{narID}")]
         public async Task<IActionResult> Update(int narID, Narodowosc narodowosc)
         {
@@ -86,6 +89,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Narodowosc
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Narodowosc>> Insert(Narodowosc narodowosc)
         {
@@ -100,6 +104,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Narodowosc/5
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{narID}")]
         public async Task<IActionResult> Delete(int id)
         {

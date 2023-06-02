@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace indigoERP.Api.Controllers._Slownik
-{
-    [AllowAnonymous]
+{    
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class TypPlikController : ControllerBase
@@ -19,6 +18,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/TypPlik
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TypPlik>>> Select(string tpkStatus)
         {
@@ -30,6 +30,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/TypPlik/5
+        [AllowAnonymous]
         [HttpGet("{tpkID}")]
         public async Task<ActionResult<TypPlik>> Get(int tpkID)
         {
@@ -49,6 +50,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/TypPlik/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{tpkID}")]
         public async Task<IActionResult> Update(int tpkID, TypPlik typPlik)
         {
@@ -80,6 +82,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/TypPlik
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<TypPlik>> Insert(TypPlik typPlik)
         {
@@ -94,6 +97,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/TypPlik/5
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{tpkID}")]
         public async Task<IActionResult> Delete(int tpkID)
         {

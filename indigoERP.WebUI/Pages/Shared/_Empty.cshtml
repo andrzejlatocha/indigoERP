@@ -14,27 +14,30 @@
     @RenderSection("Styles", false)
     @RenderSection("Scripts", false)
 
+    <link href="~/css/devextreme/bootstrap.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/fontawesome.min.css" />    
-    <link rel="stylesheet" href="~/css/topbar.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
 </head>
 
 <body>
-    <header class="navbar-header">
-        <a asp-area="" asp-page ="Index">
-            <img class="logo" src="~/images/logo_white.png" />
-        </a>
-        <nav>
-            <ul class="topbar-link">
-                <li><a asp-page="Kartoteka/Index">Kartoteka</a></li>
-                <li><a asp-page="Kadry/Index">Kadry</a></li>
-                <li><a href="#">Płace</a></li>
-                <li><a href="#">Socjalny</a></li>
-                <li><a href="#">Szkolenia</a></li>
-            </ul>
-        </nav>
-    </header>
-    <div>
-        @RenderBody()
+    <nav class="navbar navbar-dark liberty-bg fixed-top navbar-expand-md">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="~/images/logo_white.png" />
+            </a>
+            <div id="navbar" class="collapse navbar-collapse">
+                <partial name="_MenuPartial.cshtml" />
+                <p class="nav navbar-text">@User.Identity?.Name</p>
+            </div>
+            <div class="text-white pe-3">
+                <partial name="_LoginPartial.cshtml" />
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <main role="main" class="pb-3 pt-5 mt-5">
+            @RenderBody()
+        </main>
     </div>
 </body>
 

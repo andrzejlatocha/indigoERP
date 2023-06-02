@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [AllowAnonymous]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class PlecController : ControllerBase
@@ -24,6 +23,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Plec
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Plec>>> Select(string pleStatus)
         {
@@ -35,6 +35,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Plec/5
+        [AllowAnonymous]
         [HttpGet("{pleKOD}")]
         public async Task<ActionResult<Plec>> GetPlec(string pleKOD)
         {
@@ -54,6 +55,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Plec/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{pleKOD}")]
         public async Task<IActionResult> Update(string pleKOD, Plec plec)
         {
@@ -85,6 +87,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Plec
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Plec>> Insert(Plec plec)
         {
@@ -113,6 +116,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Plec/5
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{pleKOD}")]
         public async Task<IActionResult> Delete(string pleKOD)
         {

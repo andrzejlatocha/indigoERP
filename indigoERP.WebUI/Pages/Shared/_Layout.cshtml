@@ -68,9 +68,7 @@
                 <img src="~/images/logo_black.png" />
             </a>
             <div id="navbar" class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a href="#" class="nav-link active">Główna</a></li>
-                </ul>
+                <partial name="_MenuPartial.cshtml" />
                 <p class="nav navbar-text">@User.Identity?.Name</p>
             </div>
             <div class="text-white pe-3">
@@ -80,7 +78,7 @@
     </nav>
 
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-3 pt-5 mt-5">
             @RenderBody()
         </main>
     </div>

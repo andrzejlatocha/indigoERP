@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
-    [AllowAnonymous]
+    [Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class PlikController : ControllerBase
@@ -36,7 +36,7 @@ namespace indigoERP.Api.Controllers._Wspolne
             if (plik == null)
             {
                 return NotFound();
-            }
+            }            
 
             return plik;
         }

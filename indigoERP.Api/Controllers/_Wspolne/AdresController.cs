@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
-    [AllowAnonymous]
+    [Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class AdresController : ControllerBase

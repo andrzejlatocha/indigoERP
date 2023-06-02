@@ -12,7 +12,6 @@ using System.Security.Cryptography;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [AllowAnonymous]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class ObywatelstwoController : ControllerBase
@@ -25,6 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Obywatelstwo
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Obywatelstwo>>> Select(string obyStatus)
         {
@@ -37,6 +37,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Obywatelstwo/5
+        [AllowAnonymous]
         [HttpGet("{obyID}")]
         public async Task<ActionResult<Obywatelstwo>> Get(int obyID)
         {
@@ -56,6 +57,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Obywatelstwo/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{obyID}")]
         public async Task<IActionResult> Update(int obyID, Obywatelstwo obywatelstwo)
         {
@@ -87,6 +89,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Obywatelstwo
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Obywatelstwo>> Insert(Obywatelstwo obywatelstwo)
         {
@@ -101,6 +104,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Obywatelstwo/5
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{obyID}")]
         public async Task<IActionResult> Delete(int obyID)
         {

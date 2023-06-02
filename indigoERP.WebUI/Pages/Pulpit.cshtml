@@ -1,7 +1,168 @@
 ﻿@page
 @using indigoERP.WebUI.Pages
+@using Microsoft.AspNetCore.Identity
 @model PulpitModel
 
 @{
     ViewData["Title"] = "Pulpit";
+    Layout = "_Empty";
 }
+
+@section Styles { <link rel="stylesheet" href="~/css/card.css" /> }
+
+<div class=card-container>
+    <div class="box" style="--clr:#89ec56">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-solid fa-calendar-image">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Karta urlopowa
+                </p>
+                <a asp-page="_Pulpit/Urlop">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#eb5ae5">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-solid fa-key">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Uprawnienia
+                </p>
+                <a asp-page="_Pulpit/Uprawnienie">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#d0ff00">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-solid fa-notes-medical">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Badania okresowe
+                </p>
+                <a asp-page="_Pulpit/Badanie">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#5b98eb">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-solid fa-bomb">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Zgłoś usterkę
+                </p>
+                <a asp-page="_Pulpit/Usterka">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#e5d25a">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-solid fa-file-spreadsheet">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Wniosek o zaliczkę
+                </p>
+                <a asp-page="_Pulpit/Zaliczka">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#4b5dff">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-solid fa-screwdriver-wrench">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Narzędziownia
+                </p>
+                <a asp-page="_Pulpit/Narzedzie">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#ff4b6c">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-solid fa-helmet-safety">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Ochrona osobista
+                </p>
+                <a asp-page="_Pulpit/Ochrona">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#0fffe7">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-regular fa-boot">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Odzież ochronna
+                </p>
+                <a asp-page="_Pulpit/Odziez">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#d9ffd2">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-regular fa-soap">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Środki czystości
+                </p>
+                <a asp-page="_Pulpit/Czystosc">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#ff8214">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-regular fa-car">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Rozlicz delegację
+                </p>
+                <a asp-page="_Pulpit/Delegacja">Wejdź</a>
+            </div>
+        </div>
+    </div>
+    <div class="box" style="--clr:#9900ff">
+        <div class=content>
+            <div class="icon">
+                <i class="fa-regular fa-users">
+                </i>
+            </div>
+            <div class="text">
+                <p>
+                    Pracownicy
+                </p>
+                <a asp-page="_Pulpit/Pracownik">Wejdź</a>
+            </div>
+        </div>
+    </div>
+</div>

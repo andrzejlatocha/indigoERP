@@ -10,8 +10,10 @@ using indigoERP.Domain.Entities._Slownik;
 using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
-{
-    [AllowAnonymous]
+{    
+    /// <summary>
+    /// Pobieranie i aktualizacja listy banków, domyślnie tabela zawieraa wszystkie polskie banki 
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class BankController : ControllerBase
@@ -23,7 +25,15 @@ namespace indigoERP.Api.Controllers._Slownik
             _context = context;
         }
 
-        // GET: api/Bank
+        /// <summary>
+        /// Pobieranie listy banków
+        /// </summary>
+        /// <param name="lbaStatus">
+        /// </param>
+        /// <returns>
+        /// Lista banków
+        /// </returns>
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Bank>>> Select(string lbaStatus)
         {
@@ -34,7 +44,14 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.Bank.Where(w => w.lbaStatus == lbaStatus || lbaStatus == "*").ToListAsync();
         }
 
-        // GET: api/Bank/5
+        /// <summary>
+        /// Pobranie danych banku
+        /// </summary>
+        /// <param name="lbaID"></param>
+        /// <returns>
+        /// Bank
+        /// </returns>
+        [AllowAnonymous]
         [HttpGet("{lbaID}")]
         public async Task<ActionResult<Bank>> Get(int lbaID)
         {
@@ -52,12 +69,18 @@ namespace indigoERP.Api.Controllers._Slownik
             return bank;
         }
 
-        // PUT: api/Bank/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{lbaID}")]
-        public async Task<IActionResult> Update(int lbaID, Bank bank)
+        /// <summary>
+        /// Aktualizacja danych banku
+        /// </summary>
+        /// <param name="lbaKOD"></param>
+        /// <param name="bank"></param>
+        /// <returns>
+        /// </returns>
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [HttpPut("{lbaKOD}")]
+        public async Task<IActionResult> Update(string lbaKOD, Bank bank)
         {
-            if (lbaID != bank.lbaID)
+            if (lbaKOD != bank.lbaKOD)
             {
                 return BadRequest();
             }
@@ -70,7 +93,7 @@ namespace indigoERP.Api.Controllers._Slownik
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BankExists(lbaID))
+                if (!BankExists(lbaKOD))
                 {
                     return NotFound();
                 }
@@ -83,8 +106,12 @@ namespace indigoERP.Api.Controllers._Slownik
             return NoContent();
         }
 
-        // POST: api/Bank
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Dodanie banku
+        /// </summary>
+        /// <param name="bank"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Bank>> Insert(Bank bank)
         {
@@ -95,10 +122,15 @@ namespace indigoERP.Api.Controllers._Slownik
             _context.Bank.Add(bank);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { lbaID = bank.lbaID }, bank);
+            return CreatedAtAction("Get", new { lbaID = bank.lbaKOD }, bank);
         }
 
-        // DELETE: api/Bank/5
+        /// <summary>
+        /// Usunięcie banku o oknkretny ID
+        /// </summary>
+        /// <param name="lbaID"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{lbaID}")]
         public async Task<IActionResult> Delete(int lbaID)
         {
@@ -118,9 +150,9 @@ namespace indigoERP.Api.Controllers._Slownik
             return NoContent();
         }
 
-        private bool BankExists(int lbaID)
+        private bool BankExists(string lbaKOD)
         {
-            return (_context.Bank?.Any(e => e.lbaID == lbaID)).GetValueOrDefault();
+            return (_context.Bank?.Any(e => e.lbaKOD == lbaKOD)).GetValueOrDefault();
         }
     }
 }

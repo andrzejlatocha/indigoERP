@@ -18,11 +18,11 @@ int serverVersion = configuration.GetSection("appSettings").GetValue<int>(key: "
 
 if (serverVersion > 2008)
 {
-    services.AddDbContextPool<indigoERPContext>(options => options.UseSqlServer(connectionString));
+    services.AddDbContext<indigoERPContext>(options => options.UseSqlServer(connectionString));
 }
 else
 {
-    services.AddDbContextPool<indigoERPContext>(options => options.UseSqlServer(connectionString, o => o.UseRowNumberForPaging()));
+    services.AddDbContext<indigoERPContext>(options => options.UseSqlServer(connectionString, o => o.UseRowNumberForPaging()));
 }
 
 services.AddAuthentication(options =>

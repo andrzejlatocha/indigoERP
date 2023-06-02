@@ -58,10 +58,10 @@ namespace indigoERP.Controllers
             return NotFound("Błędne hasło lub nazwa użytkownika.");
         }
 
-        private object GenerateToken(UzytkownikViewModel uzytkownikViewModel)
+        private object? GenerateToken(UzytkownikViewModel uzytkownikViewModel)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            SymmetricSecurityKey? securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt:Key"]));
+            SigningCredentials credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>();
             claims.Add(new Claim("usrID", uzytkownikViewModel.usrID.ToString()));
@@ -96,7 +96,7 @@ namespace indigoERP.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private UzytkownikViewModel Authenticate(string usrNazwa, string usrHaslo)
+        private UzytkownikViewModel? Authenticate(string usrNazwa, string usrHaslo)
         {
             var usrComputer = "WebBrowser";
             var appID = _configuration["appSettings:appID"];

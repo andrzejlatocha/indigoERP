@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [AllowAnonymous]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class NowoscController : ControllerBase
@@ -24,6 +23,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Nowosc
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Nowosc>>> Select(int appID)
         {
@@ -35,6 +35,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Nowosc/5
+        [AllowAnonymous]
         [HttpGet("{newID}")]
         public async Task<ActionResult<Nowosc>> Get(int newID)
         {
@@ -54,6 +55,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Nowosc/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{newID}")]
         public async Task<IActionResult> Update(int newID, Nowosc nowosc)
         {
@@ -85,6 +87,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Nowosc
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Nowosc>> Insert(Nowosc nowosc)
         {
@@ -99,6 +102,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Nowosc/5
+        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{newID}")]
         public async Task<IActionResult> Delete(int newID)
         {

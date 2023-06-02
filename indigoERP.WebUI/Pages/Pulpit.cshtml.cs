@@ -7,6 +7,10 @@ namespace indigoERP.WebUI.Pages
     {
         public void OnGet()
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                Response.Redirect("Denied");
+            }
         }
     }
 }

@@ -24,6 +24,7 @@ namespace indigoERP.Api.Data
         }
 
         //Entities
+        public virtual DbSet<Adres> Adres { get; set; }   
         public virtual DbSet<Aplikacja> Aplikacja { get; set; }
         public virtual DbSet<AplikacjaDostep> AplikacjaDostep { get; set; }
         public virtual DbSet<Bank> Bank { get; set; }
@@ -40,6 +41,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Grupa> Grupa { get; set; }
         public virtual DbSet<GrupaCzlonkowie> GrupaCzlonkowie { get; set; }
         public virtual DbSet<Kraj> Kraj { get; set; }
+        public virtual DbSet<Kontakt> Kontakt { get; set; }
         public virtual DbSet<Menu> Menu { get; set; }
         public virtual DbSet<Miejscowosc> Miejscowosc { get; set; }
         public virtual DbSet<Modul> Modul { get; set; }
@@ -50,6 +52,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Rola> Rola { get; set; }
         public virtual DbSet<Obywatelstwo> Obywatelstwo { get; set; }
         public virtual DbSet<Plec> Plec { get; set; }
+        public virtual DbSet<Plik> Plik { get; set; }
         public virtual DbSet<Poczta> Poczta { get; set; }
         public virtual DbSet<Powiat> Powiat { get; set; }
         public virtual DbSet<RodzajDokumentTozsamosc> RodzajDokumentTozsamosc { get; set; }
@@ -65,10 +68,15 @@ namespace indigoERP.Api.Data
 
         //Models
 
+
         //ViewModels
+        public virtual DbSet<GminaViewModel> GminaViewModel { get; set; }
+        public virtual DbSet<KrajViewModel> KrajViewModel { get; set; }
         public virtual DbSet<MiejscowoscViewModel> MiejscowoscViewModel { get; set; }
+        public virtual DbSet<PowiatViewModel> PowiatViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<UzytkownikAplikacjaViewModel> UzytkownikAplikacjaViewModel { get; set; }
+        public virtual DbSet<WojewodztwoViewModel> WojewodztwoViewModel { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -86,11 +94,5 @@ namespace indigoERP.Api.Data
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
-
-        public DbSet<indigoERP.Domain.Entities._Wspolne.Adres> Adres { get; set; } = default!;
-
-        public DbSet<indigoERP.Domain.Entities._Wspolne.Kontakt> Kontakt { get; set; } = default!;
-
-        public DbSet<indigoERP.Domain.Entities._Wspolne.Plik> Plik { get; set; } = default!;
     }
 }
