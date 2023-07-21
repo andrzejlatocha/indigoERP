@@ -1,0 +1,54 @@
+﻿.navigation {
+    position: fixed;
+    inset: 80px 0 90px 20px;
+    background: #00194F;
+    width: 75px;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    transition: 0.5s;
+    border-radius: 5px;
+    padding-top: 5px;
+    width: 23%;
+}
+    .navigation a {
+        text-decoration: none;
+    }
+
+    .navigation .box {
+        border: 1px solid dimgray;
+        border-radius: 5px;
+        margin: 6px;
+        min-height: 60px;
+        background: #013473;
+        width: 97%;
+        display: flex;
+    }
+
+        .navigation .box:hover {
+            border: 1px solid white;
+            background: #03479b;
+        }
+
+        .navigation .box .image {
+            margin: 0;
+            padding: 4px;
+            justify-content: center;
+            align-content: center;
+        }
+         
+        .navigation .box .title {
+            text-align: left;
+            color: white;
+            font-size: 1.2em;
+            margin-left: 10px;
+            padding-top: 3px;
+        }
+
+        .navigation .box .text {
+            text-align: left;
+            color: white;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }

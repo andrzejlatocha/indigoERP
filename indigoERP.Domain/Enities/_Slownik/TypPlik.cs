@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace indigoERP.Domain.Entities._Slownik
 {
+    [Table("TypPlik", Schema = "dic")]
     public partial class TypPlik
     {
         public TypPlik()

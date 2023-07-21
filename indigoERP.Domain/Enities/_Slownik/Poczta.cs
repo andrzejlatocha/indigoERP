@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace epicaHR.Domain.Entities._Slownik
 {
+	[Table("Poczta", Schema = "dic")]
     public class Poczta
     {
         public Poczta()

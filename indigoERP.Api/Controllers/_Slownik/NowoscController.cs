@@ -25,13 +25,13 @@ namespace indigoERP.Api.Controllers._Slownik
         // GET: api/Nowosc
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Nowosc>>> Select(int appID)
+        public async Task<ActionResult<IEnumerable<Nowosc>>> Select(int appID, string newStatus)
         {
           if (_context.Nowosc == null)
           {
               return NotFound();
           }
-            return await _context.Nowosc.Where(w => w.newAplikacjaID == appID).ToListAsync();
+            return await _context.Nowosc.Where(w => w.newAplikacjaID == appID && (w.newStatus == newStatus || newStatus == "*")).ToListAsync();
         }
 
         // GET: api/Nowosc/5

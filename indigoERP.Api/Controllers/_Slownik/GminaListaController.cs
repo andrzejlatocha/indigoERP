@@ -23,13 +23,13 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/GminaViewModel
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GminaViewModel>>> Select()
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> Select(string gmiStatus)
         {
           if (_context.GminaViewModel == null)
           {
               return NotFound();
           }
-            return await _context.GminaViewModel.ToListAsync();
+            return await _context.GminaViewModel.Where(w => w.gmiStatus == gmiStatus || gmiStatus == "*").ToListAsync();
         }
 
         [HttpGet]

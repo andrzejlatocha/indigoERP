@@ -25,33 +25,33 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/PowiatViewModel
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> Select()
+        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> Select(string powStatus)
         {
           if (_context.PowiatViewModel == null)
           {
               return NotFound();
           }
-            return await _context.PowiatViewModel.ToListAsync();
+            return await _context.PowiatViewModel.Where(w => w.powStatus == powStatus || powStatus == "*").ToListAsync();
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByKraj(int kraID)
+        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByKraj(int kraID, string powStatus)
         {
             if (_context.PowiatViewModel == null)
             {
                 return NotFound();
             }
-            return await _context.PowiatViewModel.Where(w => w.kraID == kraID).ToListAsync();
+            return await _context.PowiatViewModel.Where(w => w.kraID == kraID && (w.powStatus == powStatus || powStatus == "*")).ToListAsync();
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByWojewodztwo(int wojID)
+        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByWojewodztwo(int wojID, string powStatus)
         {
             if (_context.PowiatViewModel == null)
             {
                 return NotFound();
             }
-            return await _context.PowiatViewModel.Where(w => w.wojID == wojID).ToListAsync();
+            return await _context.PowiatViewModel.Where(w => w.wojID == wojID && (w.powStatus == powStatus || powStatus == "*")).ToListAsync();
         }
 
         // GET: api/PowiatViewModel/5

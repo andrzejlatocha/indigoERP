@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.es.js)
-* Version: 23.1.2
-* Build date: Wed May 17 2023
+* Version: 23.1.3
+* Build date: Fri Jun 09 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -70,10 +70,12 @@
             "dxDateBox-simulatedDataPickerTitleDate": "Seleccione fecha",
             "dxDateBox-simulatedDataPickerTitleDateTime": "Seleccione fecha y hora",
             "dxDateBox-validation-datetime": "Valor debe ser una fecha u hora",
-            "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-            "dxDateBox-invalidEndDateMessage": "End value must be a date",
-            "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-            "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+            "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+            "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+            "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-startDateLabel": "Fecha inicial",
+            "dxDateRangeBox-endDateLabel": "Fecha final",
             "dxFileUploader-selectFile": "Seleccionar archivo",
             "dxFileUploader-dropFile": "o arrastre un archivo aqu\xed",
             "dxFileUploader-bytes": "bytes",

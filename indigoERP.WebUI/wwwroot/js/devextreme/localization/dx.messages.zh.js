@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.zh.js)
-* Version: 23.1.2
-* Build date: Wed May 17 2023
+* Version: 23.1.3
+* Build date: Fri Jun 09 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -70,10 +70,12 @@
             "dxDateBox-simulatedDataPickerTitleDate": "\u9009\u62e9\u65e5\u671f",
             "dxDateBox-simulatedDataPickerTitleDateTime": "\u9009\u62e9\u65e5\u671f\u548c\u65f6\u95f4",
             "dxDateBox-validation-datetime": "\u503c\u5fc5\u987b\u662f\u65e5\u671f\u6216\u65f6\u95f4",
-            "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-            "dxDateBox-invalidEndDateMessage": "End value must be a date",
-            "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-            "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+            "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+            "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+            "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-startDateLabel": "\u5f00\u59cb\u65e5\u671f",
+            "dxDateRangeBox-endDateLabel": "\u7ed3\u675f\u65e5\u671f",
             "dxFileUploader-selectFile": "\u9009\u62e9\u6587\u4ef6",
             "dxFileUploader-dropFile": "\u6216\u8005\u628a\u6587\u4ef6\u653e\u5728\u6b64\u5904",
             "dxFileUploader-bytes": "bytes",

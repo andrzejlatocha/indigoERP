@@ -1,6 +1,5 @@
 using indigoERP.Domain.Models._Autoryzacja;
 using indigoERP.Service.Interfaces._Autoryzacja;
-using indigoERP.Service.Services._Autoryzacja;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -8,9 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
-using System.Text;
 
-namespace indigoERP.WebUI.Pages._Autoryzacja
+namespace epicaHR.Desktop.WebUI.Pages._Autoryzacja
 {
     [AllowAnonymous]
     public class LoginModel : PageModel
@@ -24,7 +22,7 @@ namespace indigoERP.WebUI.Pages._Autoryzacja
         }
 
         [BindProperty]
-        public UzytkownikModel uzytkownikModel { get; set; }
+        public UzytkownikLoginModel uzytkownikModel { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
         {
@@ -34,7 +32,7 @@ namespace indigoERP.WebUI.Pages._Autoryzacja
 
             if (!user.IsNullOrEmpty())
             {
-                var uzytkownikModel = new UzytkownikModel();
+                var uzytkownikModel = new UzytkownikLoginModel();
                 uzytkownikModel.usrNazwa = user;
                 uzytkownikModel.usrHaslo = "masterKEY1";
 
@@ -68,7 +66,7 @@ namespace indigoERP.WebUI.Pages._Autoryzacja
             return NotFound("B³êdne has³o lub nazwa u¿ytkownika.");
         }
 
-        public async Task<bool> GetUser(UzytkownikModel uzytkownikModel)
+        public async Task<bool> GetUser(UzytkownikLoginModel uzytkownikModel)
         {
             if (uzytkownikModel != null)
             {

@@ -79,7 +79,7 @@ namespace indigoERP.Api.Controllers._Wspolne
         {
           if (_context.Plik == null)
           {
-              return Problem("Entity set 'indigoERPContext.Plik'  is null.");
+              return Problem("Entity set 'indigoERPContext.Plik' is null.");
           }
             _context.Plik.Add(plik);
             await _context.SaveChangesAsync();

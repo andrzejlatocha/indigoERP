@@ -5,6 +5,6 @@ namespace indigoERP.Service.Interfaces._Autoryzacja
 {
     public interface ILoginService
     {
-        Task<UzytkownikViewModel> Get(UzytkownikModel uzytkownikModel);
+        Task<UzytkownikViewModel> Get(UzytkownikLoginModel uzytkownikModel);
     }
 }

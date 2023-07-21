@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace indigoERP.Domain.Entities._Slownik
 {
+	[Table("Gmina", Schema = "dic")]
     public partial class Gmina
     {
         public Gmina()

@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>epicaHR - @ViewData["Title"]</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    @RenderSection("Styles", false)
+    @RenderSection("Scripts", false)
+
+    <link rel="stylesheet" href="~/css/fontawesome.min.css" />    
+    <link href="~/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header class="navbar-header">
+        <a asp-area="" asp-page ="Index">
+            <img class="logo" src="~/images/logo_white.png" />
+        </a>
+        <nav>
+            <ul class="topbar-link">
+                <li><a asp-area="Kartoteka" asp-page="Index">Kartoteka</a></li>
+                <li><a asp-area="Kadry" asp-page="Index">Kadry</a></li>
+                <li><a href="#">Płace</a></li>
+                <li><a href="#">Socjalny</a></li>
+                <li><a href="#">Szkolenia</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div>
+        @RenderBody()
+    </div>
+</body>
+
+</html>

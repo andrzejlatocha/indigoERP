@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.ru.js)
-* Version: 23.1.2
-* Build date: Wed May 17 2023
+* Version: 23.1.3
+* Build date: Fri Jun 09 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -70,10 +70,12 @@
             "dxDateBox-simulatedDataPickerTitleDate": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443",
             "dxDateBox-simulatedDataPickerTitleDateTime": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443 \u0438 \u0432\u0440\u0435\u043c\u044f",
             "dxDateBox-validation-datetime": "\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u0434\u0430\u0442\u043e\u0439/\u0432\u0440\u0435\u043c\u0435\u043d\u0435\u043c",
-            "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-            "dxDateBox-invalidEndDateMessage": "End value must be a date",
-            "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-            "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+            "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+            "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+            "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-startDateLabel": "\u0414\u0430\u0442\u0430 \u043d\u0430\u0447\u0430\u043b\u0430",
+            "dxDateRangeBox-endDateLabel": "\u0414\u0430\u0442\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u044f",
             "dxFileUploader-selectFile": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0444\u0430\u0439\u043b",
             "dxFileUploader-dropFile": "\u0438\u043b\u0438 \u041f\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u0444\u0430\u0439\u043b \u0441\u044e\u0434\u0430",
             "dxFileUploader-bytes": "\u0431\u0430\u0439\u0442",

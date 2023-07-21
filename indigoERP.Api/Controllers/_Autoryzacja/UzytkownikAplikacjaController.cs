@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.ViewModels._Autoryzacja;
 
-namespace indigoERP.Api.Controllers
+namespace indigoERP.Api.Controllers._Autoryzacja
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -25,12 +25,12 @@ namespace indigoERP.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UzytkownikAplikacjaViewModel>>> Select(int usrID)
         {
-           if (_context.UzytkownikAplikacjaViewModel == null)
-           {
-              return NotFound();
-           }
+            if (_context.UzytkownikAplikacjaViewModel == null)
+            {
+                return NotFound();
+            }
 
-           return await _context.UzytkownikAplikacjaViewModel.Where(w => w.usrID == usrID).ToListAsync(); ;
+            return await _context.UzytkownikAplikacjaViewModel.Where(w => w.usrID == usrID).ToListAsync(); ;
         }
     }
 }

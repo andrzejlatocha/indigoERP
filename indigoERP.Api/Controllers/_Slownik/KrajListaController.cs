@@ -23,13 +23,13 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/KrajViewModel
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<KrajViewModel>>> Select()
+        public async Task<ActionResult<IEnumerable<KrajViewModel>>> Select(string kraStatus)
         {
           if (_context.KrajViewModel == null)
           {
               return NotFound();
           }
-            return await _context.KrajViewModel.ToListAsync();
+            return await _context.KrajViewModel.Where(w => w.kraStatus == kraStatus || kraStatus == "*").ToListAsync();
         }
 
         // GET: api/KrajViewModel/5

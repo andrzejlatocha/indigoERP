@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.ar.js)
-* Version: 23.1.2
-* Build date: Wed May 17 2023
+* Version: 23.1.3
+* Build date: Fri Jun 09 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -70,10 +70,12 @@
             "dxDateBox-simulatedDataPickerTitleDate": "\u0627\u062e\u062a\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e",
             "dxDateBox-simulatedDataPickerTitleDateTime": "\u062d\u062f\u062f \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648\u0627\u0644\u0648\u0642\u062a",
             "dxDateBox-validation-datetime": "\u064a\u062c\u0628 \u0623\u0646 \u062a\u0643\u0648\u0646 \u0627\u0644\u0642\u064a\u0645\u0629 \u062a\u0627\u0631\u064a\u062e\u064b\u0627 \u0623\u0648 \u0648\u0642\u062a\u064b\u0627",
-            "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-            "dxDateBox-invalidEndDateMessage": "End value must be a date",
-            "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-            "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+            "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+            "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+            "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-startDateLabel": "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0628\u062f\u0621",
+            "dxDateRangeBox-endDateLabel": "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0646\u062a\u0647\u0627\u0621",
             "dxFileUploader-selectFile": "\u062d\u062f\u062f \u0627\u0644\u0645\u0644\u0641",
             "dxFileUploader-dropFile": "\u0623\u0648 \u0625\u0641\u0644\u0627\u062a \u0627\u0644\u0645\u0644\u0641 \u0647\u0646\u0627",
             "dxFileUploader-bytes": "\u0628\u0627\u064a\u062a",

@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.it.js)
-* Version: 23.1.2
-* Build date: Wed May 17 2023
+* Version: 23.1.3
+* Build date: Fri Jun 09 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -70,10 +70,12 @@
             "dxDateBox-simulatedDataPickerTitleDate": "Seleziona data",
             "dxDateBox-simulatedDataPickerTitleDateTime": "Seleziona data e ora",
             "dxDateBox-validation-datetime": "Il valore deve essere una data o un orario",
-            "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-            "dxDateBox-invalidEndDateMessage": "End value must be a date",
-            "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-            "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+            "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+            "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+            "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-startDateLabel": "Data inizio",
+            "dxDateRangeBox-endDateLabel": "Data fine",
             "dxFileUploader-selectFile": "Seleziona file",
             "dxFileUploader-dropFile": "o trascina il file qui",
             "dxFileUploader-bytes": "bytes",
@@ -397,8 +399,8 @@
             "dxFileManager-commandRename": "Rename",
             "dxFileManager-commandMove": "Move to",
             "dxFileManager-commandCopy": "Copy to",
-            "dxFileManager-commandDelete": "Delete",
-            "dxFileManager-commandDownload": "Download",
+            "dxFileManager-commandDelete": "Cancellare",
+            "dxFileManager-commandDownload": "Scaricare",
             "dxFileManager-commandUpload": "Upload files",
             "dxFileManager-commandRefresh": "Refresh",
             "dxFileManager-commandThumbnails": "Thumbnails View",
@@ -413,11 +415,11 @@
             "dxFileManager-dialogRenameItemButtonText": "Save",
             "dxFileManager-dialogCreateDirectoryTitle": "New directory",
             "dxFileManager-dialogCreateDirectoryButtonText": "Create",
-            "dxFileManager-dialogDeleteItemTitle": "Delete",
-            "dxFileManager-dialogDeleteItemButtonText": "Delete",
-            "dxFileManager-dialogDeleteItemSingleItemConfirmation": "Are you sure you want to delete {0}?",
+            "dxFileManager-dialogDeleteItemTitle": "Cancellare",
+            "dxFileManager-dialogDeleteItemButtonText": "Cancellare",
+            "dxFileManager-dialogDeleteItemSingleItemConfirmation": "\xc8 sicuro di voler cancellare {0}?",
             "dxFileManager-dialogDeleteItemMultipleItemsConfirmation": "Are you sure you want to delete {0} items?",
-            "dxFileManager-dialogButtonCancel": "Cancel",
+            "dxFileManager-dialogButtonCancel": "Annulla",
             "dxFileManager-editingCreateSingleItemProcessingMessage": "Creating a directory inside {0}",
             "dxFileManager-editingCreateSingleItemSuccessMessage": "Created a directory inside {0}",
             "dxFileManager-editingCreateSingleItemErrorMessage": "Directory was not created",

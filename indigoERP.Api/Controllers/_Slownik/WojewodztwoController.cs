@@ -23,24 +23,24 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/Wojewodztwo
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Wojewodztwo>>> GetWojewodztwo()
+        public async Task<ActionResult<IEnumerable<Wojewodztwo>>> GetWojewodztwo(string wojStatus)
         {
           if (_context.Wojewodztwo == null)
           {
               return NotFound();
           }
-            return await _context.Wojewodztwo.ToListAsync();
+            return await _context.Wojewodztwo.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
         }
 
         // GET: api/Wojewodztwo/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Wojewodztwo>> GetWojewodztwo(int id)
+        [HttpGet("{wojID}")]
+        public async Task<ActionResult<Wojewodztwo>> GetWojewodztwo(int wojID)
         {
           if (_context.Wojewodztwo == null)
           {
               return NotFound();
           }
-            var wojewodztwo = await _context.Wojewodztwo.FindAsync(id);
+            var wojewodztwo = await _context.Wojewodztwo.FindAsync(wojID);
 
             if (wojewodztwo == null)
             {
@@ -52,10 +52,10 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Wojewodztwo/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutWojewodztwo(int id, Wojewodztwo wojewodztwo)
+        [HttpPut("{wojID}")]
+        public async Task<IActionResult> PutWojewodztwo(int wojID, Wojewodztwo wojewodztwo)
         {
-            if (id != wojewodztwo.wojID)
+            if (wojID != wojewodztwo.wojID)
             {
                 return BadRequest();
             }
@@ -68,7 +68,7 @@ namespace indigoERP.Api.Controllers._Slownik
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!WojewodztwoExists(id))
+                if (!WojewodztwoExists(wojID))
                 {
                     return NotFound();
                 }
@@ -93,18 +93,18 @@ namespace indigoERP.Api.Controllers._Slownik
             _context.Wojewodztwo.Add(wojewodztwo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetWojewodztwo", new { id = wojewodztwo.wojID }, wojewodztwo);
+            return CreatedAtAction("GetWojewodztwo", new { wojID = wojewodztwo.wojID }, wojewodztwo);
         }
 
         // DELETE: api/Wojewodztwo/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteWojewodztwo(int id)
+        [HttpDelete("{wojID}")]
+        public async Task<IActionResult> DeleteWojewodztwo(int wojID)
         {
             if (_context.Wojewodztwo == null)
             {
                 return NotFound();
             }
-            var wojewodztwo = await _context.Wojewodztwo.FindAsync(id);
+            var wojewodztwo = await _context.Wojewodztwo.FindAsync(wojID);
             if (wojewodztwo == null)
             {
                 return NotFound();
@@ -116,9 +116,9 @@ namespace indigoERP.Api.Controllers._Slownik
             return NoContent();
         }
 
-        private bool WojewodztwoExists(int id)
+        private bool WojewodztwoExists(int wojID)
         {
-            return (_context.Wojewodztwo?.Any(e => e.wojID == id)).GetValueOrDefault();
+            return (_context.Wojewodztwo?.Any(e => e.wojID == wojID)).GetValueOrDefault();
         }
     }
 }

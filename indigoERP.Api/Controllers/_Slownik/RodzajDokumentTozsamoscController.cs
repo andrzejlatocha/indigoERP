@@ -25,13 +25,13 @@ namespace indigoERP.Api.Controllers._Slownik
         // GET: api/RodzajDokumentTozsamosc
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RodzajDokumentTozsamosc>>> Select()
+        public async Task<ActionResult<IEnumerable<RodzajDokumentTozsamosc>>> Select(string dtyStatus)
         {
           if (_context.RodzajDokumentTozsamosc == null)
           {
               return NotFound();
           }
-            return await _context.RodzajDokumentTozsamosc.ToListAsync();
+            return await _context.RodzajDokumentTozsamosc.Where(w => w.dtyStatus == dtyStatus || dtyStatus == "*").ToListAsync();
         }
 
         // GET: api/RodzajDokumentTozsamosc/5

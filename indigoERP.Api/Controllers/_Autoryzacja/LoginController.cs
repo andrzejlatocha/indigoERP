@@ -76,6 +76,7 @@ namespace indigoERP.Controllers
             claims.Add(new Claim("wdzNazwa", uzytkownikViewModel.wdzNazwa));
             claims.Add(new Claim("stnKod", uzytkownikViewModel.stnKod));
             claims.Add(new Claim("stnNazwa", uzytkownikViewModel.stnNazwa));
+            claims.Add(new Claim("usrGuid", uzytkownikViewModel.usrGuid.ToString().ToLower()));
             claims.Add(new Claim(ClaimTypes.NameIdentifier, uzytkownikViewModel.usrNazwa));
             claims.Add(new Claim(ClaimTypes.Email, uzytkownikViewModel.usrEmail));
             //claims.Add(new Claim(ClaimTypes.Role, uzytkownikViewModel.srlNazwa));

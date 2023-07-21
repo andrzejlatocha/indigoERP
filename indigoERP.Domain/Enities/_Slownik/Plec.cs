@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace epicaHR.Domain.Entities._Slownik
 {
+	[Table("Plec", Schema = "dic")]
     public partial class Plec
     {
         public Plec()

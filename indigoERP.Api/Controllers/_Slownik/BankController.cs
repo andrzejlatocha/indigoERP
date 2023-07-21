@@ -52,14 +52,14 @@ namespace indigoERP.Api.Controllers._Slownik
         /// Bank
         /// </returns>
         [AllowAnonymous]
-        [HttpGet("{lbaID}")]
-        public async Task<ActionResult<Bank>> Get(int lbaID)
+        [HttpGet("{lbaKOD}")]
+        public async Task<ActionResult<Bank>> Get(string lbaKOD)
         {
           if (_context.Bank == null)
           {
               return NotFound();
           }
-            var bank = await _context.Bank.FindAsync(lbaID);
+            var bank = await _context.Bank.FindAsync(lbaKOD);
 
             if (bank == null)
             {
@@ -122,23 +122,23 @@ namespace indigoERP.Api.Controllers._Slownik
             _context.Bank.Add(bank);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { lbaID = bank.lbaKOD }, bank);
+            return CreatedAtAction("Get", new { lbaKOD = bank.lbaKOD }, bank);
         }
 
         /// <summary>
         /// Usunięcie banku o oknkretny ID
         /// </summary>
-        /// <param name="lbaID"></param>
+        /// <param name="lbaKOD"></param>
         /// <returns></returns>
         [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
-        [HttpDelete("{lbaID}")]
-        public async Task<IActionResult> Delete(int lbaID)
+        [HttpDelete("{lbaKOD}")]
+        public async Task<IActionResult> Delete(int lbaKOD)
         {
             if (_context.Bank == null)
             {
                 return NotFound();
             }
-            var bank = await _context.Bank.FindAsync(lbaID);
+            var bank = await _context.Bank.FindAsync(lbaKOD);
             if (bank == null)
             {
                 return NotFound();

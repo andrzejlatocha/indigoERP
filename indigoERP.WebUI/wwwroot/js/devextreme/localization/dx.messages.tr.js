@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.tr.js)
-* Version: 23.1.2
-* Build date: Wed May 17 2023
+* Version: 23.1.3
+* Build date: Fri Jun 09 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -70,10 +70,12 @@
             "dxDateBox-simulatedDataPickerTitleDate": "Tarih se\xe7",
             "dxDateBox-simulatedDataPickerTitleDateTime": "Tarih ve saati se\xe7in",
             "dxDateBox-validation-datetime": "De\u011fer bir tarih veya saat olmal\u0131d\u0131r",
-            "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-            "dxDateBox-invalidEndDateMessage": "End value must be a date",
-            "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-            "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+            "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+            "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+            "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-startDateLabel": "Ba\u015flang\u0131\xe7 Tarihi",
+            "dxDateRangeBox-endDateLabel": "Biti\u015f Tarihi",
             "dxFileUploader-selectFile": "Dosya se\xe7",
             "dxFileUploader-dropFile": "veya Dosyay\u0131 buraya b\u0131rak\u0131n",
             "dxFileUploader-bytes": "bytes",

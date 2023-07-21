@@ -42,6 +42,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<GrupaCzlonkowie> GrupaCzlonkowie { get; set; }
         public virtual DbSet<Kraj> Kraj { get; set; }
         public virtual DbSet<Kontakt> Kontakt { get; set; }
+        public virtual DbSet<MarkaPojazd> MarkaPojazd { get; set; }
         public virtual DbSet<Menu> Menu { get; set; }
         public virtual DbSet<Miejscowosc> Miejscowosc { get; set; }
         public virtual DbSet<Modul> Modul { get; set; }
@@ -70,8 +71,11 @@ namespace indigoERP.Api.Data
 
 
         //ViewModels
+        public virtual DbSet<DaneFirmaAdresViewModel> DaneFirmaAdresViewModel { get; set; }
+        public virtual DbSet<DaneFirmaKontaktViewModel> DaneFirmaKontaktViewModel { get; set; }
         public virtual DbSet<GminaViewModel> GminaViewModel { get; set; }
         public virtual DbSet<KrajViewModel> KrajViewModel { get; set; }
+        public virtual DbSet<MarkaPojazdViewModel> MarkaPojazdViewModel { get; set; }
         public virtual DbSet<MiejscowoscViewModel> MiejscowoscViewModel { get; set; }
         public virtual DbSet<PowiatViewModel> PowiatViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }

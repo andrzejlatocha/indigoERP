@@ -1,7 +1,7 @@
 /*!
  * DevExtreme (dx.viz.debug.js)
- * Version: 23.1.2
- * Build date: Wed May 17 2023
+ * Version: 23.1.3
+ * Build date: Fri Jun 09 2023
  *
  * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
  * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -1459,6 +1459,7 @@
                 var _translator = __webpack_require__( /*! ./translator */ 31648);
                 var _support = __webpack_require__( /*! ../core/utils/support */ 60137);
                 var _devices = _interopRequireDefault(__webpack_require__( /*! ../core/devices */ 20530));
+                var _style = __webpack_require__( /*! ../core/utils/style */ 80968);
 
                 function _interopRequireDefault(obj) {
                     return obj && obj.__esModule ? obj : {
@@ -1758,29 +1759,31 @@
                     });
                     return result
                 };
-                var setScaleProperty = function(element, scale, transformProp, styleAttr, isEmpty) {
+                var setScaleProperty = function(element, scale, styleAttr, isEmpty) {
                     var stylePropIsValid = (0, _type.isDefined)(element.style) && !_dom_adapter.default.isNode(element.style);
+                    var newStyleValue = isEmpty ? styleAttr.replace(scale, "") : styleAttr;
                     if (stylePropIsValid) {
-                        element.style.transform = isEmpty ? transformProp.replace(scale, "") : transformProp
+                        (0, _style.setStyle)(element, newStyleValue, false)
                     } else {
-                        element.setAttribute("style", isEmpty ? styleAttr.replace(scale, "") : styleAttr)
+                        var styleAttributeNode = _dom_adapter.default.createAttribute("style");
+                        styleAttributeNode.value = newStyleValue;
+                        element.setAttributeNode(styleAttributeNode)
                     }
                 };
                 var getOffsetWithoutScale = function getOffsetWithoutScale($startElement) {
-                    var _currentElement$getAt, _currentElement$style, _style$match;
+                    var _currentElement$getAt, _style$match;
                     var $currentElement = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : $startElement;
                     var currentElement = $currentElement.get(0);
                     if (!currentElement) {
                         return $startElement.offset()
                     }
                     var style = (null === (_currentElement$getAt = currentElement.getAttribute) || void 0 === _currentElement$getAt ? void 0 : _currentElement$getAt.call(currentElement, "style")) || "";
-                    var transform = null === (_currentElement$style = currentElement.style) || void 0 === _currentElement$style ? void 0 : _currentElement$style.transform;
                     var scale = null === (_style$match = style.match(scaleRe)) || void 0 === _style$match ? void 0 : _style$match[0];
                     var offset;
                     if (scale) {
-                        setScaleProperty(currentElement, scale, transform, style, true);
+                        setScaleProperty(currentElement, scale, style, true);
                         offset = getOffsetWithoutScale($startElement, $currentElement.parent());
-                        setScaleProperty(currentElement, scale, transform, style, false)
+                        setScaleProperty(currentElement, scale, style, false)
                     } else {
                         offset = getOffsetWithoutScale($startElement, $currentElement.parent())
                     }
@@ -4394,6 +4397,10 @@
                     createTextNode: function(text, context) {
                         context = context || this._document;
                         return context.createTextNode(text)
+                    },
+                    createAttribute: function(text, context) {
+                        context = context || this._document;
+                        return context.createAttribute(text)
                     },
                     isNode: function(element) {
                         return element && "object" === _typeof(element) && "nodeType" in element && "nodeName" in element
@@ -11215,6 +11222,73 @@
                         default: obj
                     }
                 }
+
+                function _slicedToArray(arr, i) {
+                    return function(arr) {
+                        if (Array.isArray(arr)) {
+                            return arr
+                        }
+                    }(arr) || function(arr, i) {
+                        var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"];
+                        if (null != _i) {
+                            var _s, _e, _x, _r, _arr = [],
+                                _n = !0,
+                                _d = !1;
+                            try {
+                                if (_x = (_i = _i.call(arr)).next, 0 === i) {
+                                    if (Object(_i) !== _i) {
+                                        return
+                                    }
+                                    _n = !1
+                                } else {
+                                    for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0) {}
+                                }
+                            } catch (err) {
+                                _d = !0, _e = err
+                            } finally {
+                                try {
+                                    if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) {
+                                        return
+                                    }
+                                } finally {
+                                    if (_d) {
+                                        throw _e
+                                    }
+                                }
+                            }
+                            return _arr
+                        }
+                    }(arr, i) || function(o, minLen) {
+                        if (!o) {
+                            return
+                        }
+                        if ("string" === typeof o) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                        var n = Object.prototype.toString.call(o).slice(8, -1);
+                        if ("Object" === n && o.constructor) {
+                            n = o.constructor.name
+                        }
+                        if ("Map" === n || "Set" === n) {
+                            return Array.from(o)
+                        }
+                        if ("Arguments" === n || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) {
+                            return _arrayLikeToArray(o, minLen)
+                        }
+                    }(arr, i) || function() {
+                        throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")
+                    }()
+                }
+
+                function _arrayLikeToArray(arr, len) {
+                    if (null == len || len > arr.length) {
+                        len = arr.length
+                    }
+                    for (var i = 0, arr2 = new Array(len); i < len; i++) {
+                        arr2[i] = arr[i]
+                    }
+                    return arr2
+                }
                 var jsPrefixes = ["", "Webkit", "Moz", "O", "Ms"];
                 var cssPrefixes = {
                     "": "",
@@ -11292,8 +11366,25 @@
                 exports.setHeight = function(elements, value) {
                     setDimensionProperty(elements, "height", value)
                 };
-                exports.setStyle = function(element, value) {
-                    element.style.cssText = value
+                exports.setStyle = function(element, styleString) {
+                    var resetStyle = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : true;
+                    if (resetStyle) {
+                        var styleList = [].slice.call(element.style);
+                        styleList.forEach((function(propertyName) {
+                            element.style.removeProperty(propertyName)
+                        }))
+                    }
+                    styleString.split(";").forEach((function(style) {
+                        var parts = style.split(":").map((function(stylePart) {
+                            return stylePart.trim()
+                        }));
+                        if (2 === parts.length) {
+                            var _parts = _slicedToArray(parts, 2),
+                                property = _parts[0],
+                                value = _parts[1];
+                            element.style[property] = value
+                        }
+                    }))
                 }
             },
         60137:
@@ -11606,6 +11697,9 @@
                         return false
                     }
                     var proto = Object.getPrototypeOf(object);
+                    if (!proto) {
+                        return true
+                    }
                     var ctor = Object.hasOwnProperty.call(proto, "constructor") && proto.constructor;
                     return "function" === typeof ctor && Object.toString.call(ctor) === Object.toString.call(Object)
                 };
@@ -11797,7 +11891,7 @@
               \*************************************************************/
             function(__unused_webpack_module, exports) {
                 exports.version = void 0;
-                exports.version = "23.1.2"
+                exports.version = "23.1.3"
             },
         67403:
             /*!********************************************************************!*\
@@ -21226,8 +21320,9 @@
                     var tagName = element.tagName;
                     var isText = "text" === tagName || "tspan" === tagName || void 0 === tagName;
                     var isImage = "image" === tagName;
+                    var isComment = 8 === element.nodeType;
                     var options = (0, _extend.extend)({}, parentOptions, getElementOptions(element, shared.rootAppended));
-                    if ("hidden" === options.visibility || options[_svg.HIDDEN_FOR_EXPORT]) {
+                    if ("hidden" === options.visibility || options[_svg.HIDDEN_FOR_EXPORT] || isComment) {
                         return
                     }
                     context.save();
@@ -35172,10 +35267,12 @@
                         "dxDateBox-simulatedDataPickerTitleDate": "Select date",
                         "dxDateBox-simulatedDataPickerTitleDateTime": "Select date and time",
                         "dxDateBox-validation-datetime": "Value must be a date or time",
-                        "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-                        "dxDateBox-invalidEndDateMessage": "End value must be a date",
-                        "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-                        "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+                        "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+                        "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+                        "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+                        "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+                        "dxDateRangeBox-startDateLabel": "Start Date",
+                        "dxDateRangeBox-endDateLabel": "End Date",
                         "dxFileUploader-selectFile": "Select a file",
                         "dxFileUploader-dropFile": "or Drop a file here",
                         "dxFileUploader-bytes": "bytes",
@@ -40713,22 +40810,26 @@
                         this._attachHoldEvent();
                         this._attachContextMenuEvent()
                     },
+                    _getPointerEvent: function() {
+                        return _pointer.default.down
+                    },
                     _attachClickEvent: function() {
+                        var _this2 = this;
                         var itemSelector = this._itemSelector();
+                        var pointerEvent = this._getPointerEvent();
                         var clickEventNamespace = (0, _index.addNamespace)(_click.name, this.NAME);
-                        var pointerUpEventNamespace = (0, _index.addNamespace)(_pointer.default.up, this.NAME);
-                        var that = this;
-                        var pointerUpAction = new _action.default((function(args) {
+                        var pointerEventNamespace = (0, _index.addNamespace)(pointerEvent, this.NAME);
+                        var pointerAction = new _action.default((function(args) {
                             var event = args.event;
-                            that._itemPointerDownHandler(event)
+                            _this2._itemPointerDownHandler(event)
                         }));
                         _events_engine.default.off(this._itemContainer(), clickEventNamespace, itemSelector);
-                        _events_engine.default.off(this._itemContainer(), pointerUpEventNamespace, itemSelector);
-                        _events_engine.default.on(this._itemContainer(), clickEventNamespace, itemSelector, function(e) {
-                            this._itemClickHandler(e)
-                        }.bind(this));
-                        _events_engine.default.on(this._itemContainer(), pointerUpEventNamespace, itemSelector, (function(e) {
-                            pointerUpAction.execute({
+                        _events_engine.default.off(this._itemContainer(), pointerEventNamespace, itemSelector);
+                        _events_engine.default.on(this._itemContainer(), clickEventNamespace, itemSelector, (function(e) {
+                            return _this2._itemClickHandler(e)
+                        }));
+                        _events_engine.default.on(this._itemContainer(), pointerEventNamespace, itemSelector, (function(e) {
+                            pointerAction.execute({
                                 element: (0, _renderer.default)(e.target),
                                 event: e
                             })
@@ -43995,6 +44096,7 @@
                             copyRootClassesToWrapper: false,
                             _ignoreCopyRootClassesToWrapperDeprecation: false,
                             _ignoreElementAttrDeprecation: false,
+                            _ignorePreventScrollEventsDeprecation: false,
                             onShowing: null,
                             onShown: null,
                             onHiding: null,
@@ -44065,7 +44167,7 @@
                                     message: 'Use the "wrapperAttr" option instead'
                                 })
                             }
-                            if ("preventScrollEvents" in options) {
+                            if ("preventScrollEvents" in options && !options._ignorePreventScrollEventsDeprecation) {
                                 this._logDeprecatedPreventScrollEventsInfo()
                             }
                         }
@@ -51407,7 +51509,6 @@
               \***********************************************************************/
             function(module, exports, __webpack_require__) {
                 exports.default = void 0;
-                var _class = _interopRequireDefault(__webpack_require__( /*! ../../core/class */ 38377));
                 var _selectionStrategy = _interopRequireDefault(__webpack_require__( /*! ./selection.strategy.deferred */ 83014));
                 var _selectionStrategy2 = _interopRequireDefault(__webpack_require__( /*! ./selection.strategy.standard */ 78600));
                 var _extend = __webpack_require__( /*! ../../core/utils/extend */ 13306);
@@ -51420,8 +51521,8 @@
                         default: obj
                     }
                 }
-                var _default = _class.default.inherit({
-                    ctor: function(options) {
+                var Selection = function() {
+                    function Selection(options) {
                         this.options = (0, _extend.extend)(this._getDefaultOptions(), options, {
                             selectedItemKeys: options.selectedKeys || []
                         });
@@ -51430,8 +51531,9 @@
                         if (!this.options.equalByReference) {
                             this._selectionStrategy.updateSelectedItemKeyHash(this.options.selectedItemKeys)
                         }
-                    },
-                    _getDefaultOptions: function() {
+                    }
+                    var _proto = Selection.prototype;
+                    _proto._getDefaultOptions = function() {
                         return {
                             allowNullValue: false,
                             deferred: false,
@@ -51463,56 +51565,56 @@
                             dataFields: _common.noop,
                             filter: _common.noop
                         }
-                    },
-                    validate: function() {
+                    };
+                    _proto.validate = function() {
                         this._selectionStrategy.validate()
-                    },
-                    getSelectedItemKeys: function() {
+                    };
+                    _proto.getSelectedItemKeys = function() {
                         return this._selectionStrategy.getSelectedItemKeys()
-                    },
-                    getSelectedItems: function() {
+                    };
+                    _proto.getSelectedItems = function() {
                         return this._selectionStrategy.getSelectedItems()
-                    },
-                    selectionFilter: function(value) {
+                    };
+                    _proto.selectionFilter = function(value) {
                         if (void 0 === value) {
                             return this.options.selectionFilter
                         }
                         var filterIsChanged = this.options.selectionFilter !== value && JSON.stringify(this.options.selectionFilter) !== JSON.stringify(value);
                         this.options.selectionFilter = value;
                         filterIsChanged && this.onSelectionChanged()
-                    },
-                    setSelection: function(keys, updatedKeys) {
+                    };
+                    _proto.setSelection = function(keys, updatedKeys) {
                         return this.selectedItemKeys(keys, false, false, false, updatedKeys)
-                    },
-                    select: function(keys) {
+                    };
+                    _proto.select = function(keys) {
                         return this.selectedItemKeys(keys, true)
-                    },
-                    deselect: function(keys) {
+                    };
+                    _proto.deselect = function(keys) {
                         return this.selectedItemKeys(keys, true, true)
-                    },
-                    selectedItemKeys: function(keys, preserve, isDeselect, isSelectAll, updatedKeys) {
+                    };
+                    _proto.selectedItemKeys = function(keys, preserve, isDeselect, isSelectAll, updatedKeys) {
                         var _keys;
                         keys = null !== (_keys = keys) && void 0 !== _keys ? _keys : [];
                         keys = Array.isArray(keys) ? keys : [keys];
                         this.validate();
                         return this._selectionStrategy.selectedItemKeys(keys, preserve, isDeselect, isSelectAll, updatedKeys)
-                    },
-                    clearSelection: function() {
+                    };
+                    _proto.clearSelection = function() {
                         return this.selectedItemKeys([])
-                    },
-                    _addSelectedItem: function(itemData, key) {
+                    };
+                    _proto._addSelectedItem = function(itemData, key) {
                         this._selectionStrategy.addSelectedItem(key, itemData)
-                    },
-                    _removeSelectedItem: function(key) {
+                    };
+                    _proto._removeSelectedItem = function(key) {
                         this._selectionStrategy.removeSelectedItem(key)
-                    },
-                    _setSelectedItems: function(keys, items) {
+                    };
+                    _proto._setSelectedItems = function(keys, items) {
                         this._selectionStrategy.setSelectedItems(keys, items)
-                    },
-                    onSelectionChanged: function() {
+                    };
+                    _proto.onSelectionChanged = function() {
                         this._selectionStrategy.onSelectionChanged()
-                    },
-                    changeItemSelection: function(itemIndex, keys, setFocusOnly) {
+                    };
+                    _proto.changeItemSelection = function(itemIndex, keys, setFocusOnly) {
                         var _this$options$allowLo, _this$options, _this = this;
                         var isSelectedItemsChanged;
                         var items = this.options.plainItems();
@@ -51579,28 +51681,28 @@
                             }));
                             return true
                         }
-                    },
-                    isDataItem: function(item) {
+                    };
+                    _proto.isDataItem = function(item) {
                         return this.options.isSelectableItem(item)
-                    },
-                    isSelectable: function() {
+                    };
+                    _proto.isSelectable = function() {
                         return "single" === this.options.mode || "multiple" === this.options.mode
-                    },
-                    isItemDataSelected: function(data) {
+                    };
+                    _proto.isItemDataSelected = function(data) {
                         return this._selectionStrategy.isItemDataSelected(data, {
                             checkPending: true
                         })
-                    },
-                    isItemSelected: function(arg, options) {
+                    };
+                    _proto.isItemSelected = function(arg, options) {
                         return this._selectionStrategy.isItemKeySelected(arg, options)
-                    },
-                    _resetItemSelectionWhenShiftKeyPressed: function() {
+                    };
+                    _proto._resetItemSelectionWhenShiftKeyPressed = function() {
                         delete this._shiftFocusedItemIndex
-                    },
-                    _resetFocusedItemIndex: function() {
+                    };
+                    _proto._resetFocusedItemIndex = function() {
                         this._focusedItemIndex = -1
-                    },
-                    changeItemSelectionWhenShiftKeyInVirtualPaging: function(loadIndex) {
+                    };
+                    _proto.changeItemSelectionWhenShiftKeyInVirtualPaging = function(loadIndex) {
                         var _this2 = this;
                         var loadOptions = this.options.getLoadOptions(loadIndex, this._focusedItemIndex, this._shiftFocusedItemIndex);
                         var deferred = new _deferred.Deferred;
@@ -51610,8 +51712,8 @@
                             deferred.resolve()
                         }));
                         return deferred.promise()
-                    },
-                    changeItemSelectionWhenShiftKeyPressed: function(itemIndex, items, indexOffset) {
+                    };
+                    _proto.changeItemSelectionWhenShiftKeyPressed = function(itemIndex, items, indexOffset) {
                         var isSelectedItemsChanged = false;
                         var itemIndexStep;
                         var indexOffsetDefined = (0, _type.isDefined)(indexOffset);
@@ -51658,27 +51760,27 @@
                             isSelectedItemsChanged = true
                         }
                         return isSelectedItemsChanged
-                    },
-                    clearSelectedItems: function() {
+                    };
+                    _proto.clearSelectedItems = function() {
                         this._setSelectedItems([], [])
-                    },
-                    selectAll: function(isOnePage) {
+                    };
+                    _proto.selectAll = function(isOnePage) {
                         this._resetFocusedItemIndex();
                         if (isOnePage) {
                             return this._onePageSelectAll(false)
                         } else {
                             return this.selectedItemKeys([], true, false, true)
                         }
-                    },
-                    deselectAll: function(isOnePage) {
+                    };
+                    _proto.deselectAll = function(isOnePage) {
                         this._resetFocusedItemIndex();
                         if (isOnePage) {
                             return this._onePageSelectAll(true)
                         } else {
                             return this.selectedItemKeys([], true, true, true)
                         }
-                    },
-                    _onePageSelectAll: function(isDeselect) {
+                    };
+                    _proto._onePageSelectAll = function(isDeselect) {
                         var items = this._selectionStrategy.getSelectableItems(this.options.plainItems());
                         for (var i = 0; i < items.length; i++) {
                             var item = items[i];
@@ -51696,12 +51798,13 @@
                         }
                         this.onSelectionChanged();
                         return (new _deferred.Deferred).resolve()
-                    },
-                    getSelectAllState: function(visibleOnly) {
+                    };
+                    _proto.getSelectAllState = function(visibleOnly) {
                         return this._selectionStrategy.getSelectAllState(visibleOnly)
-                    }
-                });
-                exports.default = _default;
+                    };
+                    return Selection
+                }();
+                exports.default = Selection;
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
@@ -51722,11 +51825,29 @@
                         default: obj
                     }
                 }
-                var _default = _selection.default.inherit({
-                    getSelectedItems: function() {
+
+                function _setPrototypeOf(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
+                        o.__proto__ = p;
+                        return o
+                    };
+                    return _setPrototypeOf(o, p)
+                }
+                var DeferredStrategy = function(_SelectionStrategy) {
+                    ! function(subClass, superClass) {
+                        subClass.prototype = Object.create(superClass.prototype);
+                        subClass.prototype.constructor = subClass;
+                        _setPrototypeOf(subClass, superClass)
+                    }(DeferredStrategy, _SelectionStrategy);
+
+                    function DeferredStrategy() {
+                        return _SelectionStrategy.apply(this, arguments) || this
+                    }
+                    var _proto = DeferredStrategy.prototype;
+                    _proto.getSelectedItems = function() {
                         return this._loadFilteredData(this.options.selectionFilter)
-                    },
-                    getSelectedItemKeys: function() {
+                    };
+                    _proto.getSelectedItemKeys = function() {
                         var d = new _deferred.Deferred;
                         var that = this;
                         var key = this.options.key();
@@ -51738,8 +51859,8 @@
                             d.resolve(keys)
                         })).fail(d.reject);
                         return d.promise()
-                    },
-                    selectedItemKeys: function(keys, preserve, isDeselect, isSelectAll) {
+                    };
+                    _proto.selectedItemKeys = function(keys, preserve, isDeselect, isSelectAll) {
                         if (isSelectAll) {
                             var filter = this.options.filter();
                             var needResetSelectionFilter = !filter || JSON.stringify(filter) === JSON.stringify(this.options.selectionFilter) && isDeselect;
@@ -51762,38 +51883,38 @@
                         }
                         this.onSelectionChanged();
                         return (new _deferred.Deferred).resolve()
-                    },
-                    setSelectedItems: function(keys) {
+                    };
+                    _proto.setSelectedItems = function(keys) {
                         this._setOption("selectionFilter", null);
                         for (var i = 0; i < keys.length; i++) {
                             this.addSelectedItem(keys[i])
                         }
-                    },
-                    isItemDataSelected: function(itemData) {
+                    };
+                    _proto.isItemDataSelected = function(itemData) {
                         return this.isItemKeySelected(itemData)
-                    },
-                    isItemKeySelected: function(itemData) {
+                    };
+                    _proto.isItemKeySelected = function(itemData) {
                         var selectionFilter = this.options.selectionFilter;
                         if (!selectionFilter) {
                             return true
                         }
                         return !!(0, _query.default)([itemData]).filter(selectionFilter).toArray().length
-                    },
-                    _getKeyExpr: function() {
+                    };
+                    _proto._getKeyExpr = function() {
                         var keyField = this.options.key();
                         if (Array.isArray(keyField) && 1 === keyField.length) {
                             return keyField[0]
                         }
                         return keyField
-                    },
-                    _normalizeKey: function(key) {
+                    };
+                    _proto._normalizeKey = function(key) {
                         var keyExpr = this.options.key();
                         if (Array.isArray(keyExpr) && 1 === keyExpr.length) {
                             return key[keyExpr[0]]
                         }
                         return key
-                    },
-                    _getFilterByKey: function(key) {
+                    };
+                    _proto._getFilterByKey = function(key) {
                         var keyField = this._getKeyExpr();
                         var filter = [keyField, "=", this._normalizeKey(key)];
                         if (Array.isArray(keyField)) {
@@ -51806,22 +51927,22 @@
                             }
                         }
                         return filter
-                    },
-                    addSelectedItem: function(key, isSelectAll, skipFilter) {
+                    };
+                    _proto.addSelectedItem = function(key, isSelectAll, skipFilter) {
                         var filter = this._getFilterByKey(key);
                         this._addSelectionFilter(false, filter, isSelectAll, skipFilter)
-                    },
-                    removeSelectedItem: function(key) {
+                    };
+                    _proto.removeSelectedItem = function(key) {
                         var filter = this._getFilterByKey(key);
                         this._addSelectionFilter(true, filter)
-                    },
-                    validate: function() {
+                    };
+                    _proto.validate = function() {
                         var key = this.options.key;
                         if (key && void 0 === key()) {
                             throw _ui.default.Error("E1042", "Deferred selection")
                         }
-                    },
-                    _findSubFilter: function(selectionFilter, filter) {
+                    };
+                    _proto._findSubFilter = function(selectionFilter, filter) {
                         if (!selectionFilter) {
                             return -1
                         }
@@ -51833,14 +51954,14 @@
                             }
                         }
                         return -1
-                    },
-                    _isLastSubFilter: function(selectionFilter, filter) {
+                    };
+                    _proto._isLastSubFilter = function(selectionFilter, filter) {
                         if (selectionFilter && filter) {
                             return this._findSubFilter(selectionFilter, filter) === selectionFilter.length - 1 || 0 === this._findSubFilter([selectionFilter], filter)
                         }
                         return false
-                    },
-                    _addFilterOperator: function(selectionFilter, filterOperator) {
+                    };
+                    _proto._addFilterOperator = function(selectionFilter, filterOperator) {
                         if (selectionFilter.length > 1 && (0, _type.isString)(selectionFilter[1]) && selectionFilter[1] !== filterOperator) {
                             selectionFilter = [selectionFilter]
                         }
@@ -51848,14 +51969,14 @@
                             selectionFilter.push(filterOperator)
                         }
                         return selectionFilter
-                    },
-                    _denormalizeFilter: function(filter) {
+                    };
+                    _proto._denormalizeFilter = function(filter) {
                         if (filter && (0, _type.isString)(filter[0])) {
                             filter = [filter]
                         }
                         return filter
-                    },
-                    _isOnlyNegativeFiltersLeft: function(filters) {
+                    };
+                    _proto._isOnlyNegativeFiltersLeft = function(filters) {
                         return filters.every((function(filterItem, i) {
                             if (i % 2 === 0) {
                                 return Array.isArray(filterItem) && "!" === filterItem[0]
@@ -51863,8 +51984,8 @@
                                 return "and" === filterItem
                             }
                         }))
-                    },
-                    _addSelectionFilter: function(isDeselect, filter, isSelectAll, skipFilter) {
+                    };
+                    _proto._addSelectionFilter = function(isDeselect, filter, isSelectAll, skipFilter) {
                         var _selectionFilter;
                         var currentFilter = isDeselect ? ["!", filter] : filter;
                         var currentOperation = isDeselect ? "and" : "or";
@@ -51887,14 +52008,14 @@
                         }
                         selectionFilter = this._normalizeFilter(selectionFilter);
                         this._setOption("selectionFilter", !isDeselect && !selectionFilter.length ? null : selectionFilter)
-                    },
-                    _normalizeFilter: function(filter) {
+                    };
+                    _proto._normalizeFilter = function(filter) {
                         if (filter && 1 === filter.length) {
                             filter = filter[0]
                         }
                         return filter
-                    },
-                    _removeFilterByIndex: function(filter, filterIndex, isSelectAll) {
+                    };
+                    _proto._removeFilterByIndex = function(filter, filterIndex, isSelectAll) {
                         var operation = filter[1];
                         if (filterIndex > 0) {
                             filter.splice(filterIndex - 1, 2)
@@ -51904,11 +52025,11 @@
                         if (isSelectAll && "and" === operation) {
                             filter.splice(0, filter.length)
                         }
-                    },
-                    _isSimpleKeyFilter: function(filter, key) {
+                    };
+                    _proto._isSimpleKeyFilter = function(filter, key) {
                         return 3 === filter.length && filter[0] === key && "=" === filter[1]
-                    },
-                    _isKeyFilter: function(filter) {
+                    };
+                    _proto._isKeyFilter = function(filter) {
                         if (2 === filter.length && "!" === filter[0]) {
                             return this._isKeyFilter(filter[1])
                         }
@@ -51928,8 +52049,8 @@
                             return true
                         }
                         return this._isSimpleKeyFilter(filter, keyField)
-                    },
-                    _hasKeyFiltersOnlyStartingFromIndex: function(selectionFilter, filterIndex) {
+                    };
+                    _proto._hasKeyFiltersOnlyStartingFromIndex = function(selectionFilter, filterIndex) {
                         if (filterIndex >= 0) {
                             for (var i = filterIndex; i < selectionFilter.length; i++) {
                                 if ("string" !== typeof selectionFilter[i] && !this._isKeyFilter(selectionFilter[i])) {
@@ -51939,8 +52060,8 @@
                             return true
                         }
                         return false
-                    },
-                    _removeSameFilter: function(selectionFilter, filter, inverted, isSelectAll) {
+                    };
+                    _proto._removeSameFilter = function(selectionFilter, filter, inverted, isSelectAll) {
                         filter = inverted ? ["!", filter] : filter;
                         if (JSON.stringify(filter) === JSON.stringify(selectionFilter)) {
                             selectionFilter.splice(0, selectionFilter.length);
@@ -51966,8 +52087,8 @@
                             }
                             return -1
                         }
-                    },
-                    getSelectAllState: function() {
+                    };
+                    _proto.getSelectAllState = function() {
                         var filter = this.options.filter();
                         var selectionFilter = this.options.selectionFilter;
                         if (!selectionFilter) {
@@ -51987,9 +52108,10 @@
                             return false
                         }
                         return
-                    }
-                });
-                exports.default = _default;
+                    };
+                    return DeferredStrategy
+                }(_selection.default);
+                exports.default = DeferredStrategy;
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
@@ -51999,34 +52121,31 @@
               \********************************************************************************/
             function(module, exports, __webpack_require__) {
                 exports.default = void 0;
-                var _query = _interopRequireDefault(__webpack_require__( /*! ../../data/query */ 96687));
+                var _query = (obj = __webpack_require__( /*! ../../data/query */ 96687), obj && obj.__esModule ? obj : {
+                    default: obj
+                });
+                var obj;
                 var _common = __webpack_require__( /*! ../../core/utils/common */ 20576);
                 var _type = __webpack_require__( /*! ../../core/utils/type */ 35922);
-                var _class = _interopRequireDefault(__webpack_require__( /*! ../../core/class */ 38377));
                 var _deferred = __webpack_require__( /*! ../../core/utils/deferred */ 62754);
-
-                function _interopRequireDefault(obj) {
-                    return obj && obj.__esModule ? obj : {
-                        default: obj
-                    }
-                }
-                var _default = _class.default.inherit({
-                    ctor: function(options) {
+                var SelectionStrategy = function() {
+                    function SelectionStrategy(options) {
                         this.options = options;
                         this._setOption("disabledItemKeys", []);
                         this._clearItemKeys()
-                    },
-                    _clearItemKeys: function() {
+                    }
+                    var _proto = SelectionStrategy.prototype;
+                    _proto._clearItemKeys = function() {
                         this._setOption("addedItemKeys", []);
                         this._setOption("removedItemKeys", []);
                         this._setOption("removedItems", []);
                         this._setOption("addedItems", [])
-                    },
-                    validate: _common.noop,
-                    _setOption: function(name, value) {
+                    };
+                    _proto.validate = function() {};
+                    _proto._setOption = function(name, value) {
                         this.options[name] = value
-                    },
-                    onSelectionChanged: function() {
+                    };
+                    _proto.onSelectionChanged = function() {
                         var addedItemKeys = this.options.addedItemKeys;
                         var removedItemKeys = this.options.removedItemKeys;
                         var addedItems = this.options.addedItems;
@@ -52043,27 +52162,27 @@
                             addedItems: addedItems,
                             removedItems: removedItems
                         })
-                    },
-                    equalKeys: function(key1, key2) {
+                    };
+                    _proto.equalKeys = function(key1, key2) {
                         if (this.options.equalByReference) {
                             if ((0, _type.isObject)(key1) && (0, _type.isObject)(key2)) {
                                 return key1 === key2
                             }
                         }
                         return (0, _common.equalByValue)(key1, key2)
-                    },
-                    getSelectableItems: function(items) {
+                    };
+                    _proto.getSelectableItems = function(items) {
                         return items.filter((function(item) {
                             return !(null !== item && void 0 !== item && item.disabled)
                         }))
-                    },
-                    _clearSelection: function(keys, preserve, isDeselect, isSelectAll) {
+                    };
+                    _proto._clearSelection = function(keys, preserve, isDeselect, isSelectAll) {
                         keys = keys || [];
                         keys = Array.isArray(keys) ? keys : [keys];
                         this.validate();
                         return this.selectedItemKeys(keys, preserve, isDeselect, isSelectAll)
-                    },
-                    _removeTemplateProperty: function(remoteFilter) {
+                    };
+                    _proto._removeTemplateProperty = function(remoteFilter) {
                         var _this = this;
                         if (Array.isArray(remoteFilter)) {
                             return remoteFilter.map((function(f) {
@@ -52074,8 +52193,8 @@
                             delete remoteFilter.template
                         }
                         return remoteFilter
-                    },
-                    _loadFilteredData: function(remoteFilter, localFilter, select, isSelectAll) {
+                    };
+                    _proto._loadFilteredData = function(remoteFilter, localFilter, select, isSelectAll) {
                         var filterLength = encodeURI(JSON.stringify(this._removeTemplateProperty(remoteFilter))).length;
                         var needLoadAllData = this.options.maxFilterLengthInRequest && filterLength > this.options.maxFilterLengthInRequest;
                         var deferred = new _deferred.Deferred;
@@ -52097,8 +52216,8 @@
                             })).fail(deferred.reject.bind(deferred))
                         }
                         return deferred
-                    },
-                    updateSelectedItemKeyHash: function(keys) {
+                    };
+                    _proto.updateSelectedItemKeyHash = function(keys) {
                         for (var i = 0; i < keys.length; i++) {
                             var keyHash = (0, _common.getKeyHash)(keys[i]);
                             if (!(0, _type.isObject)(keyHash)) {
@@ -52107,16 +52226,16 @@
                                 keyIndices.push(i)
                             }
                         }
-                    },
-                    _isAnyItemSelected: function(items) {
+                    };
+                    _proto._isAnyItemSelected = function(items) {
                         for (var i = 0; i < items.length; i++) {
                             if (this.options.isItemSelected(items[i])) {
                                 return
                             }
                         }
                         return false
-                    },
-                    _getFullSelectAllState: function() {
+                    };
+                    _proto._getFullSelectAllState = function() {
                         var items = this.options.plainItems();
                         var dataFilter = this.options.filter();
                         var selectedItems = this.options.ignoreDisabledItems ? this.options.selectedItems : this.options.selectedItems.filter((function(item) {
@@ -52134,8 +52253,8 @@
                             return true
                         }
                         return
-                    },
-                    _getVisibleSelectAllState: function() {
+                    };
+                    _proto._getVisibleSelectAllState = function() {
                         var items = this.getSelectableItems(this.options.plainItems());
                         var hasSelectedItems = false;
                         var hasUnselectedItems = false;
@@ -52156,9 +52275,10 @@
                         } else {
                             return false
                         }
-                    }
-                });
-                exports.default = _default;
+                    };
+                    return SelectionStrategy
+                }();
+                exports.default = SelectionStrategy;
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
@@ -52183,21 +52303,38 @@
                         default: obj
                     }
                 }
-                var _default = _selection.default.inherit({
-                    ctor: function(options) {
-                        this.callBase(options);
-                        this._initSelectedItemKeyHash()
-                    },
-                    _initSelectedItemKeyHash: function() {
+
+                function _setPrototypeOf(o, p) {
+                    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(o, p) {
+                        o.__proto__ = p;
+                        return o
+                    };
+                    return _setPrototypeOf(o, p)
+                }
+                var StandardStrategy = function(_SelectionStrategy) {
+                    ! function(subClass, superClass) {
+                        subClass.prototype = Object.create(superClass.prototype);
+                        subClass.prototype.constructor = subClass;
+                        _setPrototypeOf(subClass, superClass)
+                    }(StandardStrategy, _SelectionStrategy);
+
+                    function StandardStrategy(options) {
+                        var _this;
+                        _this = _SelectionStrategy.call(this, options) || this;
+                        _this._initSelectedItemKeyHash();
+                        return _this
+                    }
+                    var _proto = StandardStrategy.prototype;
+                    _proto._initSelectedItemKeyHash = function() {
                         this._setOption("keyHashIndices", this.options.equalByReference ? null : {})
-                    },
-                    getSelectedItemKeys: function() {
+                    };
+                    _proto.getSelectedItemKeys = function() {
                         return this.options.selectedItemKeys.slice(0)
-                    },
-                    getSelectedItems: function() {
+                    };
+                    _proto.getSelectedItems = function() {
                         return this.options.selectedItems.slice(0)
-                    },
-                    _preserveSelectionUpdate: function(items, isDeselect) {
+                    };
+                    _proto._preserveSelectionUpdate = function(items, isDeselect) {
                         var keyOf = this.options.keyOf;
                         var keyIndicesToRemoveMap;
                         var keyIndex;
@@ -52224,8 +52361,8 @@
                         if (isBatchDeselect) {
                             this._batchRemoveSelectedItems(keyIndicesToRemoveMap)
                         }
-                    },
-                    _batchRemoveSelectedItems: function(keyIndicesToRemoveMap) {
+                    };
+                    _proto._batchRemoveSelectedItems = function(keyIndicesToRemoveMap) {
                         var selectedItemKeys = this.options.selectedItemKeys.slice(0);
                         var selectedItems = this.options.selectedItems.slice(0);
                         this.options.selectedItemKeys.length = 0;
@@ -52238,8 +52375,8 @@
                         }
                         this._initSelectedItemKeyHash();
                         this.updateSelectedItemKeyHash(this.options.selectedItemKeys)
-                    },
-                    _loadSelectedItemsCore: function(keys, isDeselect, isSelectAll, filter) {
+                    };
+                    _proto._loadSelectedItemsCore = function(keys, isDeselect, isSelectAll, filter) {
                         var deferred = new _deferred.Deferred;
                         var key = this.options.key();
                         if (!keys.length && !isSelectAll) {
@@ -52266,8 +52403,8 @@
                             deferred = this._loadFilteredData(combinedFilter, localFilter, null, isSelectAll)
                         }
                         return deferred
-                    },
-                    _replaceSelectionUpdate: function(items) {
+                    };
+                    _proto._replaceSelectionUpdate = function(items) {
                         var internalKeys = [];
                         var keyOf = this.options.keyOf;
                         if (!keyOf) {
@@ -52279,8 +52416,8 @@
                             internalKeys.push(key)
                         }
                         this.setSelectedItems(internalKeys, items)
-                    },
-                    _warnOnIncorrectKeys: function(keys) {
+                    };
+                    _proto._warnOnIncorrectKeys = function(keys) {
                         var allowNullValue = this.options.allowNullValue;
                         for (var i = 0; i < keys.length; i++) {
                             var key = keys[i];
@@ -52288,16 +52425,16 @@
                                 _ui.default.log("W1002", key)
                             }
                         }
-                    },
-                    _isMultiSelectEnabled: function() {
+                    };
+                    _proto._isMultiSelectEnabled = function() {
                         var mode = this.options.mode;
                         return "all" === mode || "multiple" === mode
-                    },
-                    _requestInProgress: function() {
+                    };
+                    _proto._requestInProgress = function() {
                         var _this$_lastLoadDeferr;
                         return "pending" === (null === (_this$_lastLoadDeferr = this._lastLoadDeferred) || void 0 === _this$_lastLoadDeferr ? void 0 : _this$_lastLoadDeferr.state())
-                    },
-                    _concatRequestsItems: function(keys, isDeselect, oldRequestItems, updatedKeys) {
+                    };
+                    _proto._concatRequestsItems = function(keys, isDeselect, oldRequestItems, updatedKeys) {
                         var selectedItems;
                         var deselectedItems = isDeselect ? keys : [];
                         if (updatedKeys) {
@@ -52310,8 +52447,8 @@
                             removedItems: oldRequestItems.removed.concat(deselectedItems),
                             keys: keys
                         }
-                    },
-                    _collectLastRequestData: function(keys, isDeselect, isSelectAll, updatedKeys) {
+                    };
+                    _proto._collectLastRequestData = function(keys, isDeselect, isSelectAll, updatedKeys) {
                         var isDeselectAll = isDeselect && isSelectAll;
                         var oldRequestItems = {
                             added: [],
@@ -52335,8 +52472,8 @@
                             lastRequestData = this._concatRequestsItems(keys, isDeselect, oldRequestItems, this._shouldMergeWithLastRequest ? void 0 : updatedKeys)
                         }
                         return lastRequestData
-                    },
-                    _updateKeysByLastRequestData: function(keys, isDeselect, isSelectAll) {
+                    };
+                    _proto._updateKeysByLastRequestData = function(keys, isDeselect, isSelectAll) {
                         var currentKeys = keys;
                         if (this._isMultiSelectEnabled() && this._shouldMergeWithLastRequest && !isDeselect && !isSelectAll) {
                             var _this$_lastRequestDat, _this$_lastRequestDat2;
@@ -52344,8 +52481,8 @@
                             currentKeys = (0, _array.getUniqueValues)(currentKeys)
                         }
                         return currentKeys
-                    },
-                    _loadSelectedItems: function(keys, isDeselect, isSelectAll, updatedKeys) {
+                    };
+                    _proto._loadSelectedItems = function(keys, isDeselect, isSelectAll, updatedKeys) {
                         var that = this;
                         var deferred = new _deferred.Deferred;
                         var filter = that.options.filter();
@@ -52358,8 +52495,8 @@
                         }));
                         that._lastLoadDeferred = deferred;
                         return deferred
-                    },
-                    selectedItemKeys: function(keys, preserve, isDeselect, isSelectAll, updatedKeys) {
+                    };
+                    _proto.selectedItemKeys = function(keys, preserve, isDeselect, isSelectAll, updatedKeys) {
                         var that = this;
                         var deferred = that._loadSelectedItems(keys, isDeselect, isSelectAll, updatedKeys);
                         deferred.done((function(items) {
@@ -52371,8 +52508,8 @@
                             that.onSelectionChanged()
                         }));
                         return deferred
-                    },
-                    addSelectedItem: function(key, itemData) {
+                    };
+                    _proto.addSelectedItem = function(key, itemData) {
                         if ((0, _type.isDefined)(itemData) && !this.options.ignoreDisabledItems && itemData.disabled) {
                             if (-1 === this.options.disabledItemKeys.indexOf(key)) {
                                 this.options.disabledItemKeys.push(key)
@@ -52389,8 +52526,8 @@
                             this.options.addedItems.push(itemData);
                             this.options.selectedItems.push(itemData)
                         }
-                    },
-                    _getSelectedIndexByKey: function(key, ignoreIndicesMap) {
+                    };
+                    _proto._getSelectedIndexByKey = function(key, ignoreIndicesMap) {
                         var selectedItemKeys = this.options.selectedItemKeys;
                         for (var index = 0; index < selectedItemKeys.length; index++) {
                             if ((!ignoreIndicesMap || !ignoreIndicesMap[index]) && this.equalKeys(selectedItemKeys[index], key)) {
@@ -52398,8 +52535,8 @@
                             }
                         }
                         return -1
-                    },
-                    _getSelectedIndexByHash: function(key, ignoreIndicesMap) {
+                    };
+                    _proto._getSelectedIndexByHash = function(key, ignoreIndicesMap) {
                         var indices = this.options.keyHashIndices[key];
                         if (indices && indices.length > 1 && ignoreIndicesMap) {
                             indices = indices.filter((function(index) {
@@ -52407,8 +52544,8 @@
                             }))
                         }
                         return indices && indices[0] >= 0 ? indices[0] : -1
-                    },
-                    _indexOfSelectedItemKey: function(key, ignoreIndicesMap) {
+                    };
+                    _proto._indexOfSelectedItemKey = function(key, ignoreIndicesMap) {
                         var selectedIndex;
                         if (this.options.equalByReference) {
                             selectedIndex = this.options.selectedItemKeys.indexOf(key)
@@ -52418,8 +52555,8 @@
                             selectedIndex = this._getSelectedIndexByHash(key, ignoreIndicesMap)
                         }
                         return selectedIndex
-                    },
-                    _shiftSelectedKeyIndices: function(keyIndex) {
+                    };
+                    _proto._shiftSelectedKeyIndices = function(keyIndex) {
                         for (var currentKeyIndex = keyIndex; currentKeyIndex < this.options.selectedItemKeys.length; currentKeyIndex++) {
                             var currentKey = this.options.selectedItemKeys[currentKeyIndex];
                             var currentKeyHash = (0, _common.getKeyHash)(currentKey);
@@ -52433,8 +52570,8 @@
                                 }
                             }
                         }
-                    },
-                    removeSelectedItem: function(key, keyIndicesToRemoveMap, isDisabled) {
+                    };
+                    _proto.removeSelectedItem = function(key, keyIndicesToRemoveMap, isDisabled) {
                         if (!this.options.ignoreDisabledItems && isDisabled) {
                             return
                         }
@@ -52464,24 +52601,24 @@
                         }
                         this._shiftSelectedKeyIndices(keyIndex);
                         return keyIndex
-                    },
-                    _updateAddedItemKeys: function(keys, items) {
+                    };
+                    _proto._updateAddedItemKeys = function(keys, items) {
                         for (var i = 0; i < keys.length; i++) {
                             if (!this.isItemKeySelected(keys[i])) {
                                 this.options.addedItemKeys.push(keys[i]);
                                 this.options.addedItems.push(items[i])
                             }
                         }
-                    },
-                    _updateRemovedItemKeys: function(keys, oldSelectedKeys, oldSelectedItems) {
+                    };
+                    _proto._updateRemovedItemKeys = function(keys, oldSelectedKeys, oldSelectedItems) {
                         for (var i = 0; i < oldSelectedKeys.length; i++) {
                             if (!this.isItemKeySelected(oldSelectedKeys[i])) {
                                 this.options.removedItemKeys.push(oldSelectedKeys[i]);
                                 this.options.removedItems.push(oldSelectedItems[i])
                             }
                         }
-                    },
-                    _isItemSelectionInProgress: function(key, checkPending) {
+                    };
+                    _proto._isItemSelectionInProgress = function(key, checkPending) {
                         var shouldCheckPending = checkPending && this._lastRequestData && this._requestInProgress();
                         if (shouldCheckPending) {
                             var _this$_lastRequestDat3;
@@ -52490,11 +52627,11 @@
                         } else {
                             return false
                         }
-                    },
-                    _getKeyHash: function(key) {
+                    };
+                    _proto._getKeyHash = function(key) {
                         return this.options.equalByReference ? key : (0, _common.getKeyHash)(key)
-                    },
-                    setSelectedItems: function(keys, items) {
+                    };
+                    _proto.setSelectedItems = function(keys, items) {
                         this._updateAddedItemKeys(keys, items);
                         var oldSelectedKeys = this.options.selectedItemKeys;
                         var oldSelectedItems = this.options.selectedItems;
@@ -52505,13 +52642,13 @@
                         this._setOption("selectedItemKeys", keys);
                         this._setOption("selectedItems", items);
                         this._updateRemovedItemKeys(keys, oldSelectedKeys, oldSelectedItems)
-                    },
-                    isItemDataSelected: function(itemData) {
+                    };
+                    _proto.isItemDataSelected = function(itemData) {
                         var options = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
                         var key = this.options.keyOf(itemData);
                         return this.isItemKeySelected(key, options)
-                    },
-                    isItemKeySelected: function(key) {
+                    };
+                    _proto.isItemKeySelected = function(key) {
                         var options = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
                         var result = this._isItemSelectionInProgress(key, options.checkPending);
                         if (!result) {
@@ -52520,16 +52657,17 @@
                             result = -1 !== index
                         }
                         return result
-                    },
-                    getSelectAllState: function(visibleOnly) {
+                    };
+                    _proto.getSelectAllState = function(visibleOnly) {
                         if (visibleOnly) {
                             return this._getVisibleSelectAllState()
                         } else {
                             return this._getFullSelectAllState()
                         }
-                    }
-                });
-                exports.default = _default;
+                    };
+                    return StandardStrategy
+                }(_selection.default);
+                exports.default = StandardStrategy;
                 module.exports = exports.default;
                 module.exports.default = exports.default
             },
@@ -55072,6 +55210,7 @@
                 var _range = __webpack_require__( /*! ../translators/range */ 21177);
                 var _tick = __webpack_require__( /*! ./tick */ 41013);
                 var _math2 = __webpack_require__( /*! ../../core/utils/math */ 60810);
+                var _errors = _interopRequireDefault(__webpack_require__( /*! ../../core/errors */ 17381));
                 var _date = _interopRequireDefault(__webpack_require__( /*! ../../core/utils/date */ 91198));
                 var _common = __webpack_require__( /*! ../../core/utils/common */ 20576);
                 var _xy_axes = _interopRequireDefault(__webpack_require__( /*! ./xy_axes */ 99415));
@@ -55912,6 +56051,11 @@
                             options.argumentType && (options.argumentType = options.argumentType.toLowerCase());
                             options.valueType && (options.valueType = options.valueType.toLowerCase())
                         }(options);
+                        ! function(isValueAxis, options) {
+                            if (isValueAxis && "shift" === options.visualRangeUpdateMode) {
+                                _errors.default.log("W0016", "valueAxis.visualRangeUpdateMode", "shift", "23.1", "Specify another value")
+                            }
+                        }(!that.isArgumentAxis, options);
                         that._options = options;
                         options.tick = options.tick || {};
                         options.minorTick = options.minorTick || {};

@@ -25,6 +25,7 @@ namespace indigoERP.Domain.ViewModels._Autoryzacja
         public string? stnNazwa { get; set; }
         public DateTime usrDataWaznoscHaslo { get; set; }
         public string? srlNazwa { get; set; }
+        public Guid usrGuid { get; set; }
         public string? usrToken { get; set; }
     }
 }

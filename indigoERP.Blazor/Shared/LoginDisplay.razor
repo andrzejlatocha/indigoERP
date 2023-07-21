@@ -1,0 +1,19 @@
+﻿@inject DialogService _dialogService
+
+<AuthorizeView>
+    <RadzenButton Text=@(context.User.FindFirst("usrNazwa").Value) Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" 
+        Click=@WyswietlUzytkownik />   
+</AuthorizeView>
+
+
+
+@code{
+    //string uzytkownik = _accessor.HttpContext.User.FindFirst("usrImie").Value; // + " " + context.User.FindFirst("usrNazwisko").Value;
+
+    public async Task WyswietlUzytkownik()
+    {
+        await _dialogService.OpenAsync<UzytkownikShow>("Dane użytkownika",
+             new Dictionary<string, object>() { },
+             new DialogOptions() { Width = "700px", Height = "512px", Resizable = false, Draggable = true });
+    }
+}

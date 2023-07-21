@@ -24,7 +24,7 @@ namespace indigoERP.Api.Controllers._Wspolne
         }
 
         // GET: api/Adres/5
-        [HttpGet("{id}")]
+        [HttpGet("{adrID}")]
         public async Task<ActionResult<Adres>> Get(int adrID)
         {
           if (_context.Adres == null)

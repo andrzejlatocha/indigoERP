@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.vi.js)
-* Version: 23.1.2
-* Build date: Wed May 17 2023
+* Version: 23.1.3
+* Build date: Fri Jun 09 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -70,10 +70,12 @@
             "dxDateBox-simulatedDataPickerTitleDate": "L\u1ef1a ch\u1ecdn ng\xe0y",
             "dxDateBox-simulatedDataPickerTitleDateTime": "Ch\u1ecdn ng\xe0y v\xe0 gi\u1edd",
             "dxDateBox-validation-datetime": "Gi\xe1 tr\u1ecb ph\u1ea3i l\xe0 ng\xe0y ho\u1eb7c gi\u1edd",
-            "dxDateBox-invalidStartDateMessage": "Start value must be a date",
-            "dxDateBox-invalidEndDateMessage": "End value must be a date",
-            "dxDateBox-startDateOutOfRangeMessage": "Start date is out of range",
-            "dxDateBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-invalidStartDateMessage": "Start value must be a date",
+            "dxDateRangeBox-invalidEndDateMessage": "End value must be a date",
+            "dxDateRangeBox-startDateOutOfRangeMessage": "Start date is out of range",
+            "dxDateRangeBox-endDateOutOfRangeMessage": "End date is out of range",
+            "dxDateRangeBox-startDateLabel": "Ng\xe0y b\u1eaft \u0111\u1ea7u",
+            "dxDateRangeBox-endDateLabel": "Ng\xe0y k\u1ebft th\xfac",
             "dxFileUploader-selectFile": "Ch\u1ecdn t\u1eadp tin",
             "dxFileUploader-dropFile": "ho\u1eb7c Th\u1ea3 t\u1eadp tin v\xe0o \u0111\xe2y",
             "dxFileUploader-bytes": "byte",

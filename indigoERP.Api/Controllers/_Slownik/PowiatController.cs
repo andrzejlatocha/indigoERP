@@ -23,13 +23,13 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/Powiat
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Powiat>>> Select()
+        public async Task<ActionResult<IEnumerable<Powiat>>> Select(string powStatus)
         {
           if (_context.Powiat == null)
           {
               return NotFound();
           }
-            return await _context.Powiat.ToListAsync();
+            return await _context.Powiat.Where(w => w.powStatus == powStatus || powStatus == "*").ToListAsync();
         }
 
         // GET: api/Powiat/5

@@ -19,6 +19,6 @@ namespace indigoERP.Domain.ViewModels._Slownik
         public string? kraNazwa { get; set; }
         public int wojID { get; set; }
         public string? wojNazwa { get; set; }
-        public string? gmiStatus { get; set; }
+        public string? powStatus { get; set; }
     }
 }

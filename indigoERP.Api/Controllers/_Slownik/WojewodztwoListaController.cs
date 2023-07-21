@@ -25,24 +25,24 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/WojewodztwoViewModel
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> Select()
+        public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> Select(string wojStatus)
         {
           if (_context.WojewodztwoViewModel == null)
           {
               return NotFound();
           }
-            return await _context.WojewodztwoViewModel.ToListAsync();
+            return await _context.WojewodztwoViewModel.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
         }
 
         // GET: api/WojewodztwoViewModel
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> SelectByKraj(int kraID)
+        public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> SelectByKraj(int kraID, string wojStatus)
         {
             if (_context.WojewodztwoViewModel == null)
             {
                 return NotFound();
             }
-            return await _context.WojewodztwoViewModel.Where(w => w.kraID == kraID).ToListAsync();
+            return await _context.WojewodztwoViewModel.Where(w => w.kraID == kraID && (w.wojStatus == wojStatus || wojStatus == "*")).ToListAsync();
         }
 
         // GET: api/WojewodztwoViewModel/5
