@@ -1,4 +1,3 @@
-using indigoERP.Blazor.Data;
 using indigoERP.Blazor.Utils;
 using indigoERP.Service.Interfaces._Autoryzacja;
 using indigoERP.Service.Services._Autoryzacja;
@@ -18,7 +17,6 @@ services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate(
 
 builder.Services.AddAuthorization(options =>
 {
-    // By default, all incoming requests will be authorized according to the default policy.
     options.FallbackPolicy = options.DefaultPolicy;
 });
 

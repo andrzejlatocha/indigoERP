@@ -1,0 +1,121 @@
+﻿@page "/support"
+
+@using System.Net.Mail;
+@using System.Net;
+@using indigoERP.Domain.Enities
+
+@inject ILogger<SupportMessage> _logger
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+@inject DialogService _dialogService
+
+@if (supportMessage == null)
+{
+    <Load />
+}
+else
+{
+    <div class="row w-100 mt-2">
+        <div class="col-6 offset-3">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">Zgłoszenie do IT Support</h3>
+                    <RadzenTemplateForm Data="@supportMessage" Submit="@((SupportMessage args) => { Submit(args); })" Class="w-100">
+                        <RadzenRow Gap="2rem" Class="w-100">
+                            <RadzenFieldset Text="Wiadomość" Class="w-100">
+                                <RadzenStack Gap="1rem">
+                                    <RadzenRow AlignItems="AlignItems.Start">
+                                        <RadzenColumn Size="12" SizeMD="2">
+                                            <RadzenLabel Text="Temat" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="10">
+                                            <RadzenTextBox @bind-Value="supportMessage.msgTemat" AllowClear="true" Placeholder="Temat" Name="Temat" Class="w-100">
+                                            </RadzenTextBox>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="2">
+                                            <RadzenLabel Text="Wiadomość" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="10">
+                                            <RadzenTextArea @bind-Value="supportMessage.msgWiadomosc" AllowClear="true" Placeholder="Wiadomość" Name="Wiadomość" Class="w-100 h-25">
+                                            </RadzenTextArea>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenRow>
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
+                            <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon="send" Text="Wyślij" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Anuluj" Click="@Cancel" />
+                        </RadzenStack>
+                    </RadzenTemplateForm>
+                </div>
+            </div>               
+        </div>
+    </div>
+}
+
+@code {
+    private SupportMessage supportMessage = new SupportMessage();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var uzytkownik = authState.User;
+
+        if (uzytkownik.Identity.IsAuthenticated)
+        {
+            supportMessage.msgImie = uzytkownik.FindFirst("usrImie").Value;
+            supportMessage.msgNazwisko = uzytkownik.FindFirst("usrNazwisko").Value;
+            supportMessage.msgAdresEmailOd = uzytkownik.FindFirst("usrEmail").Value;
+        }
+    }
+
+    private async void Submit(SupportMessage supportMessage)
+    {
+        _logger.LogInformation("onValidHandleSubmit called");
+
+        string wiadomosc = File.ReadAllText(@"d:\mail.html");
+        wiadomosc = wiadomosc.Replace("{FirstName}", supportMessage.msgImie);
+        wiadomosc = wiadomosc.Replace("{LastName}", supportMessage.msgNazwisko);
+        wiadomosc = wiadomosc.Replace("{EmailAddress}", supportMessage.msgAdresEmailOd);
+        wiadomosc = wiadomosc.Replace("{Message}", supportMessage.msgWiadomosc);
+
+
+    // supportMessage.msgImie + " " + supportMessage.msgNazwisko + " (" + supportMessage.msgAdresEmailOd + ")" +
+        //     Environment.NewLine + Environment.NewLine + supportMessage.msgWiadomosc;
+
+        using (MailMessage mailMessage = new MailMessage { From = new MailAddress("support@libertyczestochowa.pl") })
+        {
+            MailAddress addTo = new MailAddress(supportMessage.msgAdresEmailDo);
+
+            mailMessage.To.Add(addTo);
+            mailMessage.Subject = supportMessage.msgTemat;
+            mailMessage.Body = wiadomosc;
+            mailMessage.IsBodyHtml = true;
+            try
+            {
+                using (SmtpClient clientSMTP = new SmtpClient("poczta.hcz.com.pl", 25) { Credentials = new NetworkCredential("support", "Sup@0928") })
+                {
+                    clientSMTP.Send(mailMessage);
+                }
+            }
+            catch (SmtpException ex)
+            {
+                throw new ApplicationException(String.Format("Klient SMTP wywołał wyjątek {0}", ex.Message));
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        await _dialogService.Alert("Twoja wiadomość została wysłana poprawnie.", "Informacja", new AlertOptions() { OkButtonText = "OK" });
+
+        _navigationManager.NavigateTo("/");
+    }
+
+    void Cancel()
+    {        
+        _navigationManager.NavigateTo("/");
+    }
+}

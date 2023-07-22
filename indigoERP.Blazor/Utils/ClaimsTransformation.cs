@@ -44,8 +44,8 @@ namespace indigoERP.Blazor.Utils
                 new Claim("wdzNazwa", uzytkownik.wdzNazwa.ToString()),
                 new Claim("stnKod", uzytkownik.stnKod.ToString()),
                 new Claim("stnNazwa", uzytkownik.stnNazwa.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, uzytkownik.usrNazwa.ToString()),
-                new Claim(ClaimTypes.Email, uzytkownik.usrEmail.ToString()),
+                new Claim("usrNazwa", uzytkownik.usrNazwa.ToString()),
+                new Claim("usrEmail", uzytkownik.usrEmail.ToString()),
                 new Claim("accessToken", uzytkownik.usrToken.ToString())
             };
 
