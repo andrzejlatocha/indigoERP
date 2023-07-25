@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.en.js)
-* Version: 23.1.3
-* Build date: Fri Jun 09 2023
+* Version: 23.1.4
+* Build date: Fri Jul 14 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -176,7 +176,7 @@
             "dxDataGrid-ariaFilterCell": "Filter cell",
             "dxDataGrid-ariaCollapse": "Collapse",
             "dxDataGrid-ariaExpand": "Expand",
-            "dxDataGrid-ariaDataGrid": "Data grid",
+            "dxDataGrid-ariaDataGrid": "Data grid with {0} rows and {1} columns",
             "dxDataGrid-ariaSearchInGrid": "Search in the data grid",
             "dxDataGrid-ariaSelectAll": "Select all",
             "dxDataGrid-ariaSelectRow": "Select row",

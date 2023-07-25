@@ -21,6 +21,7 @@ else
                 <div class="card-body">
                     <h3 class="card-title">Zgłoszenie do IT Support</h3>
                     <RadzenTemplateForm Data="@supportMessage" Submit="@((SupportMessage args) => { Submit(args); })" Class="w-100">
+                        <DataAnnotationsValidator />
                         <RadzenRow Gap="2rem" Class="w-100">
                             <RadzenFieldset Text="Wiadomość" Class="w-100">
                                 <RadzenStack Gap="1rem">
@@ -31,6 +32,7 @@ else
                                         <RadzenColumn Size="12" SizeMD="10">
                                             <RadzenTextBox @bind-Value="supportMessage.msgTemat" AllowClear="true" Placeholder="Temat" Name="Temat" Class="w-100">
                                             </RadzenTextBox>
+                                            <ValidationMessage For="() => supportMessage.msgTemat" />
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="2">
                                             <RadzenLabel Text="Wiadomość" />
@@ -38,6 +40,7 @@ else
                                         <RadzenColumn Size="12" SizeMD="10">
                                             <RadzenTextArea @bind-Value="supportMessage.msgWiadomosc" AllowClear="true" Placeholder="Wiadomość" Name="Wiadomość" Class="w-100 h-25">
                                             </RadzenTextArea>
+                                            <ValidationMessage For="() => supportMessage.msgWiadomosc" />
                                         </RadzenColumn>
                                     </RadzenRow>
                                 </RadzenStack>

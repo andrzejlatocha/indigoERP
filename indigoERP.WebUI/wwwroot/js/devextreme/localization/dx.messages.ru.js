@@ -1,7 +1,7 @@
 /*!
 * DevExtreme (dx.messages.ru.js)
-* Version: 23.1.3
-* Build date: Fri Jun 09 2023
+* Version: 23.1.4
+* Build date: Fri Jul 14 2023
 *
 * Copyright (c) 2012 - 2023 Developer Express Inc. ALL RIGHTS RESERVED
 * Read about DevExtreme licensing here: https://js.devexpress.com/Licensing/
@@ -176,7 +176,7 @@
             "dxDataGrid-ariaFilterCell": "\u0424\u0438\u043b\u044c\u0442\u0440",
             "dxDataGrid-ariaCollapse": "\u0421\u0432\u0435\u0440\u043d\u0443\u0442\u044c",
             "dxDataGrid-ariaExpand": "\u0420\u0430\u0437\u0432\u0435\u0440\u043d\u0443\u0442\u044c",
-            "dxDataGrid-ariaDataGrid": "\u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u0434\u0430\u043d\u043d\u044b\u0445",
+            "dxDataGrid-ariaDataGrid": "\u0422\u0430\u0431\u043b\u0438\u0446\u0430 \u0434\u0430\u043d\u043d\u044b\u0445 \u0441 {0} \u0441\u0442\u0440\u043e\u043a\u0430\u043c\u0438 \u0438 {1} \u043a\u043e\u043b\u043e\u043d\u043a\u0430\u043c\u0438",
             "dxDataGrid-ariaSearchInGrid": "\u0418\u0441\u043a\u0430\u0442\u044c \u0432 \u0442\u0430\u0431\u043b\u0438\u0446\u0435 \u0434\u0430\u043d\u043d\u044b\u0445",
             "dxDataGrid-ariaSelectAll": "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u0432\u0441\u0451",
             "dxDataGrid-ariaSelectRow": "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443",
