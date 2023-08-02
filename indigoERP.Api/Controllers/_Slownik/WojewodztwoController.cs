@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
+using indigoERP.Domain.ViewModels._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -21,15 +22,25 @@ namespace indigoERP.Api.Controllers._Slownik
             _context = context;
         }
 
-        // GET: api/Wojewodztwo
+        // GET: api/WojewodztwoViewModel
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Wojewodztwo>>> GetWojewodztwo(string wojStatus)
+        public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> Select(string wojStatus)
         {
-          if (_context.Wojewodztwo == null)
+          if (_context.WojewodztwoViewModel == null)
           {
               return NotFound();
           }
-            return await _context.Wojewodztwo.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
+            return await _context.WojewodztwoViewModel.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> SelectByKraj(int kraID, string wojStatus)
+        {
+            if (_context.WojewodztwoViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.WojewodztwoViewModel.Where(w => w.kraID == kraID && (w.wojStatus == wojStatus || wojStatus == "*")).ToListAsync();
         }
 
         // GET: api/Wojewodztwo/5
@@ -53,7 +64,7 @@ namespace indigoERP.Api.Controllers._Slownik
         // PUT: api/Wojewodztwo/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{wojID}")]
-        public async Task<IActionResult> PutWojewodztwo(int wojID, Wojewodztwo wojewodztwo)
+        public async Task<IActionResult> Update(int wojID, Wojewodztwo wojewodztwo)
         {
             if (wojID != wojewodztwo.wojID)
             {
@@ -84,7 +95,7 @@ namespace indigoERP.Api.Controllers._Slownik
         // POST: api/Wojewodztwo
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Wojewodztwo>> PostWojewodztwo(Wojewodztwo wojewodztwo)
+        public async Task<ActionResult<Wojewodztwo>> Insert(Wojewodztwo wojewodztwo)
         {
           if (_context.Wojewodztwo == null)
           {
@@ -93,12 +104,12 @@ namespace indigoERP.Api.Controllers._Slownik
             _context.Wojewodztwo.Add(wojewodztwo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetWojewodztwo", new { wojID = wojewodztwo.wojID }, wojewodztwo);
+            return CreatedAtAction("Get", new { wojID = wojewodztwo.wojID }, wojewodztwo);
         }
 
         // DELETE: api/Wojewodztwo/5
         [HttpDelete("{wojID}")]
-        public async Task<IActionResult> DeleteWojewodztwo(int wojID)
+        public async Task<IActionResult> Delete(int wojID)
         {
             if (_context.Wojewodztwo == null)
             {

@@ -8,10 +8,12 @@ namespace indigoERP.Blazor.Utils
 {
     public class ClaimsTransformation : IClaimsTransformation
     {
+        private readonly IConfiguration _configuration;
         private readonly ILoginService _loginService;
 
-        public ClaimsTransformation(ILoginService loginService)
+        public ClaimsTransformation(IConfiguration configuration, ILoginService loginService)
         {
+            _configuration = configuration;
             _loginService = loginService;
         }
 
@@ -21,6 +23,7 @@ namespace indigoERP.Blazor.Utils
                 return principal;
 
             UzytkownikLoginModel uzytkownikModel = new UzytkownikLoginModel(principal.Identity.Name, "masterKEY1");
+            uzytkownikModel.appID = _configuration["appSettings:appID"];
 
             UzytkownikViewModel uzytkownik = await _loginService.Get(uzytkownikModel);
 

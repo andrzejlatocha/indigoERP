@@ -40,19 +40,44 @@ namespace indigoERP.Controllers
         /// </returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public ActionResult<UzytkownikViewModel> Get(string usrNazwa, string usrHaslo)
+        public ActionResult<UzytkownikViewModel> Get(string usrNazwa, string usrHaslo, string? usrKomputer, string? appID)
         {
-            _logger.LogInformation($"LoginControler [Get] - parameters {usrNazwa}");
+            _logger.LogInformation($"LoginControler [Get] - parameters {usrNazwa}, {appID}");
 
-            var uzytkownik = Authenticate(usrNazwa, usrHaslo);
+            if (usrKomputer == null)
+            {
+                usrKomputer = "WebBrowser";
+            }
+
+            if (appID == null)
+            {
+                appID = _configuration["appSettings:appID"];
+
+                if (appID == null)
+                {
+                    appID = "900";
+                }
+            }
+
+            var uzytkownik = Authenticate(usrNazwa, usrHaslo, usrKomputer, appID);
 
             if (uzytkownik != null)
             {
                 var token = GenerateToken(uzytkownik);
 
-                uzytkownik.usrToken = token.ToString();
-
-                return uzytkownik;
+                if (token != null)
+                {
+                    uzytkownik.usrToken = token.ToString();
+                    return uzytkownik;
+                }
+                else
+                {
+                    _logger.LogInformation("User token is null");
+                }
+            }
+            else
+            {
+                _logger.LogInformation("User authenticate object is null");
             }
 
             return NotFound("Błędne hasło lub nazwa użytkownika.");
@@ -77,8 +102,8 @@ namespace indigoERP.Controllers
             claims.Add(new Claim("stnKod", uzytkownikViewModel.stnKod));
             claims.Add(new Claim("stnNazwa", uzytkownikViewModel.stnNazwa));
             claims.Add(new Claim("usrGuid", uzytkownikViewModel.usrGuid.ToString().ToLower()));
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, uzytkownikViewModel.usrNazwa));
-            claims.Add(new Claim(ClaimTypes.Email, uzytkownikViewModel.usrEmail));
+            claims.Add(new Claim("usrNazwa", uzytkownikViewModel.usrNazwa));
+            claims.Add(new Claim("usrEmail", uzytkownikViewModel.usrEmail));
             //claims.Add(new Claim(ClaimTypes.Role, uzytkownikViewModel.srlNazwa));
 
             string[] roles = uzytkownikViewModel.srlNazwa.Split('|');
@@ -97,30 +122,36 @@ namespace indigoERP.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private UzytkownikViewModel? Authenticate(string usrNazwa, string usrHaslo)
+        private UzytkownikViewModel? Authenticate(string usrNazwa, string usrHaslo, string usrComputer, string appID)
         {
-            var usrComputer = "WebBrowser";
-            var appID = _configuration["appSettings:appID"];
-
-            IEnumerable<UzytkownikViewModel> uzytkownik = _context.UzytkownikViewModel
-                .FromSqlRaw($"EXEC uspGetUzytkownik '{usrNazwa}', '{usrHaslo}', '{usrComputer}', {appID}")
-                .AsEnumerable<UzytkownikViewModel>();
-
-            if (uzytkownik != null)
+            try
             {
-                if (uzytkownik.Count() == 1)
+                IEnumerable<UzytkownikViewModel> uzytkownik = _context.UzytkownikViewModel
+                    .FromSqlRaw($"EXEC uspGetUzytkownik '{usrNazwa}', '{usrHaslo}', '{usrComputer}', {appID}")
+                    .AsEnumerable<UzytkownikViewModel>();
+
+                if (uzytkownik != null)
                 {
-                    return uzytkownik.FirstOrDefault();
+                    if (uzytkownik.Count() == 1)
+                    {
+                        return uzytkownik.FirstOrDefault();
+                    }
+                    else
+                    {
+                        _logger.LogInformation("User exists more than one times");
+                    }
                 }
                 else
                 {
-                    return null;
+                    _logger.LogInformation("User object is null");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return null;
+                _logger.LogError($"User authenticate error {ex.Message}");
             }
+
+            return null;
         }
     }
 }

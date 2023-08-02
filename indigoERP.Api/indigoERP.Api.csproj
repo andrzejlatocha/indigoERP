@@ -7,7 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.143" />
-    <PackageReference Include="DevExtreme.AspNet.Core" Version="23.1.4" />
     <PackageReference Include="DevExtreme.AspNet.Data" Version="2.9.3" />
     <PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9" />
@@ -23,5 +22,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\indigoERP.Domain\indigoERP.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 </Project>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace indigoERP.Domain.Enities._Wspolne
+namespace indigoERP.Domain.Entities._Wspolne
 {
     public partial class Forum
     {

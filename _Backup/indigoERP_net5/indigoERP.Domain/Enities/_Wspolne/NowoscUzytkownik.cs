@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
-namespace indigoERP.Domain.Enities._Wspolne
+namespace indigoERP.Domain.Entities._Wspolne
 {
     public partial class NowoscUzytkownik
     {

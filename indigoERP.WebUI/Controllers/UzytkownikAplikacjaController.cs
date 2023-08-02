@@ -1,6 +1,5 @@
 ﻿using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
-using indigoERP.Domain.Data;
 using indigoERP.Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

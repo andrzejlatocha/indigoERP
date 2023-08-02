@@ -20,7 +20,8 @@ namespace indigoERP.Service.Services._Autoryzacja
 
             try
             {
-                var uzytkownik = await httpClient.GetFromJsonAsync<UzytkownikViewModel>($"Login/Get?usrNazwa={uzytkownikModel.usrNazwa}&usrHaslo={uzytkownikModel.usrHaslo}");
+                var uzytkownik = await httpClient.GetFromJsonAsync<UzytkownikViewModel>
+                    ($"Login/Get?usrNazwa={uzytkownikModel.usrNazwa}&usrHaslo={uzytkownikModel.usrHaslo}&usrKomputer={uzytkownikModel.usrKomputer}&appID={uzytkownikModel.appID}");
 
                 return uzytkownik;
             }

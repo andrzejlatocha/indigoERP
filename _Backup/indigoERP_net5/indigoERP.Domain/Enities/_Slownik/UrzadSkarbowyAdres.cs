@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 #nullable disable
 
-namespace indigoERP.Domain.Enities._Slownik
+namespace indigoERP.Domain.Entities._Slownik
 {
     public class UrzadSkarbowyAdres
     {

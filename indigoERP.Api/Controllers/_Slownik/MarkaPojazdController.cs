@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
-using indigoERP.Domain.Enities._Slownik;
+using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]/[action]/[action]")]
     [ApiController]
     public class MarkaPojazdController : ControllerBase
     {

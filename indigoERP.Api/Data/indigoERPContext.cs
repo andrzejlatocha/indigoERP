@@ -1,6 +1,6 @@
 ﻿using epicaHR.Domain.Entities._Slownik;
-using indigoERP.Domain.Enities._Slownik;
-using indigoERP.Domain.Enities._Wspolne;
+using indigoERP.Domain.Entities._Slownik;
+using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.Entities._Autoryzacja;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Wspolne;

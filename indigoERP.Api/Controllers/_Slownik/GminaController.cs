@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
+using indigoERP.Domain.ViewModels._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,13 +24,43 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/Gmina
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Gmina>>> Select(string gmiStatus)
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> Select(string gmiStatus)
         {
-          if (_context.Gmina == null)
+          if (_context.GminaViewModel == null)
           {
               return NotFound();
           }
-            return await _context.Gmina.Where(w => w.gmiStatus == gmiStatus || gmiStatus == "*").ToListAsync();
+            return await _context.GminaViewModel.Where(w => w.gmiStatus == gmiStatus || gmiStatus == "*").ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByKraj(int kraID)
+        {
+            if (_context.GminaViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.GminaViewModel.Where(w => w.kraID == kraID).ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByWojewodztwo(int wojID)
+        {
+            if (_context.GminaViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.GminaViewModel.Where(w => w.wojID == wojID).ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByPowiat(int powID)
+        {
+            if (_context.GminaViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.GminaViewModel.Where(w => w.powID == powID).ToListAsync();
         }
 
         // GET: api/Gmina/5
@@ -53,7 +84,7 @@ namespace indigoERP.Api.Controllers._Slownik
         // PUT: api/Gmina/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{gmiID}")]
-        public async Task<IActionResult> PutGmina(int gmiID, Gmina gmina)
+        public async Task<IActionResult> Update(int gmiID, Gmina gmina)
         {
             if (gmiID != gmina.gmiID)
             {
@@ -84,7 +115,7 @@ namespace indigoERP.Api.Controllers._Slownik
         // POST: api/Gmina
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Gmina>> PostGmina(Gmina gmina)
+        public async Task<ActionResult<Gmina>> Insert(Gmina gmina)
         {
           if (_context.Gmina == null)
           {
@@ -98,7 +129,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // DELETE: api/Gmina/5
         [HttpDelete("{gmiID}")]
-        public async Task<IActionResult> DeleteGmina(int gmiID)
+        public async Task<IActionResult> Delete(int gmiID)
         {
             if (_context.Gmina == null)
             {

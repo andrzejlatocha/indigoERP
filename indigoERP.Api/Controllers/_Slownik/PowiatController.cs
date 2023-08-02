@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
+using indigoERP.Domain.ViewModels._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,13 +24,33 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/Powiat
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Powiat>>> Select(string powStatus)
+        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> Select(string powStatus)
         {
-          if (_context.Powiat == null)
+          if (_context.PowiatViewModel == null)
           {
               return NotFound();
           }
-            return await _context.Powiat.Where(w => w.powStatus == powStatus || powStatus == "*").ToListAsync();
+            return await _context.PowiatViewModel.Where(w => w.powStatus == powStatus || powStatus == "*").ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByKraj(int kraID, string powStatus)
+        {
+            if (_context.PowiatViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.PowiatViewModel.Where(w => w.kraID == kraID && (w.powStatus == powStatus || powStatus == "*")).ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByWojewodztwo(int wojID, string powStatus)
+        {
+            if (_context.PowiatViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.PowiatViewModel.Where(w => w.wojID == wojID && (w.powStatus == powStatus || powStatus == "*")).ToListAsync();
         }
 
         // GET: api/Powiat/5
