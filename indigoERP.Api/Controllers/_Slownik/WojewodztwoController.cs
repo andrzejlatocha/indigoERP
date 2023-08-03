@@ -26,14 +26,14 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> Select(string wojStatus)
         {
-          if (_context.WojewodztwoViewModel == null)
-          {
-              return NotFound();
-          }
+            if (_context.WojewodztwoViewModel == null)
+            {
+                return NotFound();
+            }
             return await _context.WojewodztwoViewModel.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
         }
 
-        [HttpGet]
+        [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> SelectByKraj(int kraID, string wojStatus)
         {
             if (_context.WojewodztwoViewModel == null)

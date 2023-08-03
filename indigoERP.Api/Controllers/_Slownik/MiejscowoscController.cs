@@ -33,7 +33,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.mscStatus == mscStatus || mscStatus == "*").ToListAsync();
         }
 
-        [HttpGet]
+        [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByKraj(int kraID, string mscStatus)
         {
             if (_context.MiejscowoscViewModel == null)
@@ -43,7 +43,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.kraID == kraID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
 
-        [HttpGet]
+        [HttpGet("{wojID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByWojewodztwo(int wojID, string mscStatus)
         {
             if (_context.MiejscowoscViewModel == null)
@@ -53,7 +53,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.wojID == wojID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
 
-        [HttpGet]
+        [HttpGet("{powID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByPowiat(int powID, string mscStatus)
         {
             if (_context.MiejscowoscViewModel == null)
@@ -63,7 +63,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.powID == powID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
 
-        [HttpGet]
+        [HttpGet("{gmiID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByGmina(int gmiID, string mscStatus)
         {
             if (_context.MiejscowoscViewModel == null)

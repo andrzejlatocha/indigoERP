@@ -23,7 +23,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/DaneFirmaAdres
-        [HttpGet]
+        [HttpGet("{stfID}")]
         public async Task<ActionResult<IEnumerable<DaneFirmaAdresViewModel>>> Select(int stfID)
         {
             if (_context.DaneFirmaAdresViewModel == null)

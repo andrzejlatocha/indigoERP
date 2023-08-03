@@ -69,7 +69,7 @@ namespace indigoERP.Api.Controllers._Wspolne
                 }
             }
 
-            return NoContent();
+            return Ok(200);
         }
 
         // POST: api/Plik
@@ -104,7 +104,7 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context.Plik.Remove(plik);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(200);
         }
 
         private bool PlikExists(int plkID)

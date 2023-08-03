@@ -24,7 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/Nowosc
         [AllowAnonymous]
-        [HttpGet]
+        [HttpGet("{appID}")]
         public async Task<ActionResult<IEnumerable<Nowosc>>> Select(int appID, string newStatus)
         {
           if (_context.Nowosc == null)

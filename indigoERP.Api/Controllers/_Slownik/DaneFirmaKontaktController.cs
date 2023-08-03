@@ -11,7 +11,7 @@ using indigoERP.Domain.ViewModels._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class DaneFirmaKontaktController : ControllerBase
     {
@@ -23,7 +23,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/DaneFirmaKontakt
-        [HttpGet]
+        [HttpGet("{stfID}")]
         public async Task<ActionResult<IEnumerable<DaneFirmaKontaktViewModel>>> Select(int stfID)
         {
             if (_context.DaneFirmaKontaktViewModel == null)

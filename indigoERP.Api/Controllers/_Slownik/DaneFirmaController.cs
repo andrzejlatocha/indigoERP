@@ -10,7 +10,7 @@ using indigoERP.Domain.Entities._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class DaneFirmaController : ControllerBase
     {

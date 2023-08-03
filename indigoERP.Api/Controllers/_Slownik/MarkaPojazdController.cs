@@ -23,7 +23,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/MarkaPojazd
-        [HttpGet]
+        [HttpGet("{mpjStatus}")]
         public async Task<ActionResult<IEnumerable<MarkaPojazdViewModel>>> Select(string mpjStatus)
         {
             if (_context.MarkaPojazdViewModel == null)
@@ -34,7 +34,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/MarkaPojazd
-        [HttpGet]
+        [HttpGet("{mpjStatus}")]
         public async Task<ActionResult<IEnumerable<MarkaPojazd>>> SelectMarka(string mpjStatus)
         {
             if (_context.MarkaPojazd == null)
@@ -45,14 +45,14 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/MarkaPojazd
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<MarkaPojazd>>> SelectModel(int mpjID, string mpjStatus)
+        [HttpGet("{mpjID}")]
+        public async Task<ActionResult<IEnumerable<MarkaPojazd>>> SelectModel(int mpjID)
         {
             if (_context.MarkaPojazd == null)
             {
                 return NotFound();
             }
-            return await _context.MarkaPojazd.Where(w => w.mpjMarkaPojazdID == mpjID && (w.mpjStatus == mpjStatus || mpjStatus == "*")).ToListAsync();
+            return await _context.MarkaPojazd.Where(w => w.mpjMarkaPojazdID == mpjID && w.mpjStatus == "2").ToListAsync();
         }
 
         // GET: api/MarkaPojazd/5

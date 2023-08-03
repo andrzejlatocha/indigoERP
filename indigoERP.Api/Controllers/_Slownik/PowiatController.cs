@@ -33,7 +33,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.PowiatViewModel.Where(w => w.powStatus == powStatus || powStatus == "*").ToListAsync();
         }
 
-        [HttpGet]
+        [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByKraj(int kraID, string powStatus)
         {
             if (_context.PowiatViewModel == null)
@@ -43,7 +43,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.PowiatViewModel.Where(w => w.kraID == kraID && (w.powStatus == powStatus || powStatus == "*")).ToListAsync();
         }
 
-        [HttpGet]
+        [HttpGet("{wojID}")]
         public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByWojewodztwo(int wojID, string powStatus)
         {
             if (_context.PowiatViewModel == null)

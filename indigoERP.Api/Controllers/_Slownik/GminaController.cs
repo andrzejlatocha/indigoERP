@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,6 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Gmina
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GminaViewModel>>> Select(string gmiStatus)
         {
@@ -33,37 +35,40 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.GminaViewModel.Where(w => w.gmiStatus == gmiStatus || gmiStatus == "*").ToListAsync();
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByKraj(int kraID)
+        [AllowAnonymous]
+        [HttpGet("{kraID}")]
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByKraj(int kraID, string gmiStatus)
         {
             if (_context.GminaViewModel == null)
             {
                 return NotFound();
             }
-            return await _context.GminaViewModel.Where(w => w.kraID == kraID).ToListAsync();
+            return await _context.GminaViewModel.Where(w => w.kraID == kraID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByWojewodztwo(int wojID)
+        [AllowAnonymous]
+        [HttpGet("{wojID}")]
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByWojewodztwo(int wojID, string gmiStatus)
         {
             if (_context.GminaViewModel == null)
             {
                 return NotFound();
             }
-            return await _context.GminaViewModel.Where(w => w.wojID == wojID).ToListAsync();
+            return await _context.GminaViewModel.Where(w => w.wojID == wojID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByPowiat(int powID)
+        [AllowAnonymous]
+        [HttpGet("{powID}")]
+        public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByPowiat(int powID, string gmiStatus)
         {
             if (_context.GminaViewModel == null)
             {
                 return NotFound();
             }
-            return await _context.GminaViewModel.Where(w => w.powID == powID).ToListAsync();
+            return await _context.GminaViewModel.Where(w => w.powID == powID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Gmina/5
+        [AllowAnonymous]
         [HttpGet("{gmiID}")]
         public async Task<ActionResult<Gmina>> Get(int gmiID)
         {
@@ -83,6 +88,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Gmina/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{gmiID}")]
         public async Task<IActionResult> Update(int gmiID, Gmina gmina)
         {
@@ -114,6 +120,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Gmina
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Gmina>> Insert(Gmina gmina)
         {
@@ -128,6 +135,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Gmina/5
+        [Authorize]
         [HttpDelete("{gmiID}")]
         public async Task<IActionResult> Delete(int gmiID)
         {

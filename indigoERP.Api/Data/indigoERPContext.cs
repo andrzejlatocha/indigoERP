@@ -77,6 +77,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<KrajViewModel> KrajViewModel { get; set; }
         public virtual DbSet<MarkaPojazdViewModel> MarkaPojazdViewModel { get; set; }
         public virtual DbSet<MiejscowoscViewModel> MiejscowoscViewModel { get; set; }
+        public virtual DbSet<PocztaViewModel> PocztaViewModel { get; set; }
         public virtual DbSet<PowiatViewModel> PowiatViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<UzytkownikAplikacjaViewModel> UzytkownikAplikacjaViewModel { get; set; }
