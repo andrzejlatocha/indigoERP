@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using epicaHR.Domain.Entities._Slownik;
 using indigoERP.Api.Data;
 using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
+    [AllowAnonymous]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class PocztaListaController : ControllerBase

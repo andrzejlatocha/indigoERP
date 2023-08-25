@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,6 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Powiat
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PowiatViewModel>>> Select(string powStatus)
         {
@@ -33,6 +35,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.PowiatViewModel.Where(w => w.powStatus == powStatus || powStatus == "*").ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByKraj(int kraID, string powStatus)
         {
@@ -43,6 +46,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.PowiatViewModel.Where(w => w.kraID == kraID && (w.powStatus == powStatus || powStatus == "*")).ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{wojID}")]
         public async Task<ActionResult<IEnumerable<PowiatViewModel>>> SelectByWojewodztwo(int wojID, string powStatus)
         {
@@ -54,6 +58,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Powiat/5
+        [AllowAnonymous]
         [HttpGet("{powID}")]
         public async Task<ActionResult<Powiat>> Get(int powID)
         {
@@ -73,6 +78,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Powiat/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{powID}")]
         public async Task<IActionResult> Update(int powID, Powiat powiat)
         {
@@ -104,6 +110,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Powiat
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Powiat>> Insert(Powiat powiat)
         {
@@ -118,6 +125,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Powiat/5
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{powID}")]
         public async Task<IActionResult> Delete(int powID)
         {

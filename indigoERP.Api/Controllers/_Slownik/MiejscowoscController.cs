@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,6 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/MiejscowoscViewModel
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> Select(string mscStatus)
         {
@@ -33,6 +35,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.mscStatus == mscStatus || mscStatus == "*").ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByKraj(int kraID, string mscStatus)
         {
@@ -43,6 +46,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.kraID == kraID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{wojID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByWojewodztwo(int wojID, string mscStatus)
         {
@@ -53,6 +57,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.wojID == wojID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{powID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByPowiat(int powID, string mscStatus)
         {
@@ -63,6 +68,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscViewModel.Where(w => w.powID == powID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{gmiID}")]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByGmina(int gmiID, string mscStatus)
         {
@@ -72,8 +78,9 @@ namespace indigoERP.Api.Controllers._Slownik
             }
             return await _context.MiejscowoscViewModel.Where(w => w.gmiID == gmiID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
-		
+
         // GET: api/Miejscowosc/5
+        [AllowAnonymous]
         [HttpGet("{mscID}")]
         public async Task<ActionResult<Miejscowosc>> Get(int mscID)
         {
@@ -93,6 +100,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Miejscowosc/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{mscID}")]
         public async Task<IActionResult> Update(int mscID, Miejscowosc miejscowosc)
         {
@@ -124,6 +132,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Miejscowosc
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Miejscowosc>> Insert(Miejscowosc miejscowosc)
         {
@@ -138,6 +147,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Miejscowosc/5
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{mscID}")]
         public async Task<IActionResult> Delete(int id)
         {

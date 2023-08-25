@@ -55,7 +55,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/RodzajDokumentTozsamosc/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{dtyID}")]
         public async Task<IActionResult> Update(int dtyID, RodzajDokumentTozsamosc rodzajDokumentTozsamosc)
         {
@@ -87,7 +87,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/RodzajDokumentTozsamosc
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<RodzajDokumentTozsamosc>> Insert(RodzajDokumentTozsamosc rodzajDokumentTozsamosc)
         {
@@ -102,7 +102,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/RodzajDokumentTozsamosc/5
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

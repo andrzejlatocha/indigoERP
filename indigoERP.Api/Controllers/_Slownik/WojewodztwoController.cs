@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,6 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/WojewodztwoViewModel
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> Select(string wojStatus)
         {
@@ -33,6 +35,7 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.WojewodztwoViewModel.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> SelectByKraj(int kraID, string wojStatus)
         {
@@ -44,6 +47,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Wojewodztwo/5
+        [AllowAnonymous]
         [HttpGet("{wojID}")]
         public async Task<ActionResult<Wojewodztwo>> GetWojewodztwo(int wojID)
         {
@@ -63,6 +67,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Wojewodztwo/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{wojID}")]
         public async Task<IActionResult> Update(int wojID, Wojewodztwo wojewodztwo)
         {
@@ -94,6 +99,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Wojewodztwo
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Wojewodztwo>> Insert(Wojewodztwo wojewodztwo)
         {
@@ -108,6 +114,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Wojewodztwo/5
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{wojID}")]
         public async Task<IActionResult> Delete(int wojID)
         {

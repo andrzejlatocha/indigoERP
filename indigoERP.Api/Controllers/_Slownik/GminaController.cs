@@ -88,7 +88,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Gmina/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{gmiID}")]
         public async Task<IActionResult> Update(int gmiID, Gmina gmina)
         {
@@ -120,7 +120,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Gmina
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Gmina>> Insert(Gmina gmina)
         {
@@ -135,7 +135,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Gmina/5
-        [Authorize]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{gmiID}")]
         public async Task<IActionResult> Delete(int gmiID)
         {

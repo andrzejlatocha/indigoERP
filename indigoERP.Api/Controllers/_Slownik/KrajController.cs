@@ -56,7 +56,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Kraj/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{kraID}")]
         public async Task<IActionResult> Update(int kraID, Kraj kraj)
         {
@@ -88,7 +88,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Kraj
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Kraj>> Insert(Kraj kraj)
         {
@@ -103,7 +103,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Kraj/5
-        [Authorize]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{kraID}")]
         public async Task<IActionResult> Delete(int kraID)
         {

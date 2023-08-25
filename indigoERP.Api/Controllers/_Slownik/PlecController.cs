@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using epicaHR.Domain.Entities._Slownik;
 using indigoERP.Api.Data;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,14 +24,25 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Plec
-        [AllowAnonymous]
+        //[Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Plec>>> Select(string pleStatus)
         {
-          if (_context.Plec == null)
-          {
-              return NotFound();
-          }
+            if (_context.Plec == null)
+            {
+                return NotFound();
+            }
+
+            //var plec = await _context.Plec.Where(w => w.pleStatus == pleStatus).ToListAsync();
+            //var p = new Plec();
+
+            //p.pleKOD = "X";
+            //p.pleOpis = user.Identity!.Name;
+            //p.pleStatus = "2";
+
+            //plec.Add(p);
+            //return plec;
+
             return await _context.Plec.Where(w => w.pleStatus == pleStatus).ToListAsync();
         }
 
@@ -55,7 +67,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Plec/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{pleKOD}")]
         public async Task<IActionResult> Update(string pleKOD, Plec plec)
         {
@@ -87,7 +99,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Plec
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Plec>> Insert(Plec plec)
         {
@@ -116,7 +128,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Plec/5
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{pleKOD}")]
         public async Task<IActionResult> Delete(string pleKOD)
         {

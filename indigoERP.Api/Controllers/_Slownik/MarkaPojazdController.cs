@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,7 +24,8 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/MarkaPojazd
-        [HttpGet("{mpjStatus}")]
+        [AllowAnonymous]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<MarkaPojazdViewModel>>> Select(string mpjStatus)
         {
             if (_context.MarkaPojazdViewModel == null)
@@ -34,7 +36,8 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/MarkaPojazd
-        [HttpGet("{mpjStatus}")]
+        [AllowAnonymous]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<MarkaPojazd>>> SelectMarka(string mpjStatus)
         {
             if (_context.MarkaPojazd == null)
@@ -45,6 +48,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/MarkaPojazd
+        [AllowAnonymous]
         [HttpGet("{mpjID}")]
         public async Task<ActionResult<IEnumerable<MarkaPojazd>>> SelectModel(int mpjID)
         {
@@ -75,6 +79,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/MarkaPojazd/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{mpjID}")]
         public async Task<IActionResult> Update(int mpjID, MarkaPojazd markaPojazd)
         {
@@ -106,6 +111,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/MarkaPojazd
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<MarkaPojazd>> Insert(MarkaPojazd markaPojazd)
         {
@@ -120,6 +126,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/MarkaPojazd/5
+        [Authorize]
         [HttpDelete("{mpjID}")]
         public async Task<IActionResult> Delete(int mpjID)
         {

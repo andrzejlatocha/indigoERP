@@ -55,7 +55,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/Nowosc/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{newID}")]
         public async Task<IActionResult> Update(int newID, Nowosc nowosc)
         {
@@ -87,7 +87,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/Nowosc
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Nowosc>> Insert(Nowosc nowosc)
         {
@@ -102,7 +102,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/Nowosc/5
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{newID}")]
         public async Task<IActionResult> Delete(int newID)
         {

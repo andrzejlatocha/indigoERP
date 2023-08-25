@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,6 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/DaneFirmaKontakt
+        [AllowAnonymous]
         [HttpGet("{stfID}")]
         public async Task<ActionResult<IEnumerable<DaneFirmaKontaktViewModel>>> Select(int stfID)
         {
@@ -34,6 +36,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/DaneFirmaKontakt/5
+        [AllowAnonymous]
         [HttpGet("{fkoID}")]
         public async Task<ActionResult<DaneFirmaKontakt>> Get(int fkoID)
         {
@@ -53,6 +56,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // PUT: api/DaneFirmaKontakt/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{fkoID}")]
         public async Task<IActionResult> Update(int fkoID, DaneFirmaKontakt daneFirmaKontakt)
         {
@@ -84,6 +88,7 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // POST: api/DaneFirmaKontakt
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<DaneFirmaKontakt>> Insert(DaneFirmaKontakt daneFirmaKontakt)
         {
@@ -98,6 +103,7 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // DELETE: api/DaneFirmaKontakt/5
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{fkoID}")]
         public async Task<IActionResult> Delete(int fkoID)
         {

@@ -76,7 +76,7 @@ namespace indigoERP.Api.Controllers._Slownik
         /// <param name="bank"></param>
         /// <returns>
         /// </returns>
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPut("{lbaKOD}")]
         public async Task<IActionResult> Update(string lbaKOD, Bank bank)
         {
@@ -111,7 +111,7 @@ namespace indigoERP.Api.Controllers._Slownik
         /// </summary>
         /// <param name="bank"></param>
         /// <returns></returns>
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpPost]
         public async Task<ActionResult<Bank>> Insert(Bank bank)
         {
@@ -130,7 +130,7 @@ namespace indigoERP.Api.Controllers._Slownik
         /// </summary>
         /// <param name="lbaKOD"></param>
         /// <returns></returns>
-        [Authorize(Roles = "indigoERP-Administrator,indigoERP-Slownik", AuthenticationSchemes = "Bearer,Cookie")]
+        [Authorize(Roles = "PL-SCX-APP-indigoER-Administrator,PL-SCX-APP-indigoER-Słownik", AuthenticationSchemes = "Bearer,Cookie")]
         [HttpDelete("{lbaKOD}")]
         public async Task<IActionResult> Delete(int lbaKOD)
         {
