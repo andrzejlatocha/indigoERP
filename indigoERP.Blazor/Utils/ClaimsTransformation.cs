@@ -36,20 +36,20 @@ namespace indigoERP.Blazor.Utils
             {
                 new Claim("usrID", uzytkownik.usrID.ToString()),
                 new Claim("usrPracownikID", uzytkownik.usrPracownikID.ToString()),
-                new Claim("usrImie", uzytkownik.usrImie.ToString()),
-                new Claim("usrNazwisko", uzytkownik.usrNazwisko.ToString()),
-                new Claim("usrNazwa", uzytkownik.usrImie.ToString() + " " + uzytkownik.usrNazwisko.ToString()),
-                new Claim("appFolder", uzytkownik.appFolder.ToString()),
-                new Claim("usrFolder", uzytkownik.usrFolder.ToString()),
-                new Claim("usrZdjecie", uzytkownik.usrZdjecie.ToString()),
-                new Claim("wdzKod", uzytkownik.wdzKod.ToString()),
-                new Claim("wdzSymbol", uzytkownik.wdzSymbol.ToString()),
-                new Claim("wdzNazwa", uzytkownik.wdzNazwa.ToString()),
-                new Claim("stnKod", uzytkownik.stnKod.ToString()),
-                new Claim("stnNazwa", uzytkownik.stnNazwa.ToString()),
-                new Claim("usrNazwa", uzytkownik.usrNazwa.ToString()),
-                new Claim("usrEmail", uzytkownik.usrEmail.ToString()),
-                new Claim("accessToken", uzytkownik.usrToken.ToString())
+                new Claim("usrImie", $"{uzytkownik.usrImie}"),
+                new Claim("usrNazwisko", $"{uzytkownik.usrNazwisko}"),
+                new Claim("usrNazwa", $"{uzytkownik.usrImie} {uzytkownik.usrNazwisko}"),
+                new Claim("appFolder", $"{uzytkownik.appFolder}"),
+                new Claim("usrFolder", $"{uzytkownik.usrFolder}"),
+                new Claim("usrZdjecie", $"{uzytkownik.usrZdjecie}"),
+                new Claim("wdzKod", $"{uzytkownik.wdzKod}"),
+                new Claim("wdzSymbol", $"{uzytkownik.wdzSymbol}"),
+                new Claim("wdzNazwa", $"{uzytkownik.wdzNazwa}"),
+                new Claim("stnKod", $"{uzytkownik.stnKod}"),
+                new Claim("stnNazwa", $"{uzytkownik.stnNazwa}"),
+                new Claim("usrLogin", $"{uzytkownik.usrNazwa}"),
+                new Claim("usrEmail", $"{uzytkownik.usrEmail}"),
+                new Claim("accessToken", $"{uzytkownik.usrToken}")
             };
 
             ClaimsIdentity identity = new ClaimsIdentity(claims);

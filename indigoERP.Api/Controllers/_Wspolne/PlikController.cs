@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Entities._Wspolne;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using indigoERP.Api.Data;
-using indigoERP.Domain.Entities._Wspolne;
-using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class PlikController : ControllerBase

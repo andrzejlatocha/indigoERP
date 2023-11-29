@@ -72,3 +72,109 @@ html, body {
     margin-left: auto;
     margin-right: auto;
 }
+
+.area-main {
+    width: 100%;
+    min-height: 380px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+}
+
+    .area-main .service {
+        background: #F0F0F0;
+        padding: 30px;
+        border-radius: 10px;
+        position: absolute;
+        bottom: 0;
+        z-index: 10;
+        box-shadow: 0 0 20px -15px #030380;
+        transition: transform .8s;
+    }
+
+        .area-main .service p {
+            height: 40px;
+            margin-top: 20px;
+        }
+
+        .area-main .service h4 {
+            height: 35px;
+            width: 80%;
+            background: #F0F0F0;
+            margin: 10px auto;
+            position: relative;
+        }
+
+            .area-main .service h4::after {
+                content: '';
+                width: 40px;
+                height: 30px;
+                background: linear-gradient(to right, #F0F0F0, #007bff);
+                position: absolute;
+                right: -5px;
+                top: -5px;
+                z-index: -1;
+            }
+
+            .area-main .service h4::before {
+                content: '';
+                width: 40px;
+                height: 30px;
+                background: linear-gradient(to right, #007bff, #F0F0F0);
+                position: absolute;
+                left: -5px;
+                bottom: -5px;
+                z-index: -1;
+            }
+
+        .area-main .service .logo {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            margin: -90px auto 0;
+            background-color: #F0F0F0;
+            border: 18px solid #00194F;
+        }
+
+            .area-main .service .logo img {
+                width: 50px;
+                margin-top: 20px;
+                transition: transform 1s;
+            }
+
+            .area-main:hover .service .logo img {
+                transform: rotate(360deg)
+            }
+
+    .area-main .shadow1 {
+        height: 200px;
+        width: 80%;
+        background: #EFEFEF;
+        position: absolute;
+        border-radius: 10px;
+        bottom: 0;
+        left: 10%;
+        z-index: 1;
+        box-shadow: 0 0 20px -15px #030380;
+        transition: transform .8s;
+    }
+
+    .area-main .shadow2 {
+        height: 200px;
+        width: 64%;
+        background: #EFEFEF;
+        position: absolute;
+        border-radius: 10px;
+        bottom: 0;
+        left: 18%;
+        z-index: 0;
+    }
+
+    .area-main:hover .service {
+        transform: translateY(-50px)
+    }
+
+    .area-main:hover .shadow1 {
+        transform: translateY(-25px)
+    }
+

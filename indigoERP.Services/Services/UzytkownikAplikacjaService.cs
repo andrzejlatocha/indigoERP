@@ -15,7 +15,7 @@ namespace indigoERP.Service.Services
 
         public async Task<IEnumerable<UzytkownikAplikacjaViewModel>> Select(int usrID)
         {
-            var httpClient = _httpClientFactory.CreateClient("indigoERPClient");
+            var httpClient = _httpClientFactory.CreateClient("indigoApiClient");
 
             try
             {

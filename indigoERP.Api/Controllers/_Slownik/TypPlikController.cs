@@ -29,6 +29,18 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.TypPlik.Where(w => w.tpkStatus == tpkStatus || tpkStatus == "*").ToListAsync();
         }
 
+        // GET: api/TypPlik
+        [AllowAnonymous]
+        [HttpGet("{tpkAplikacjaID}")]
+        public async Task<ActionResult<IEnumerable<TypPlik>>> SelectByAplikacja(int tpkAplikacjaID, string tpkStatus)
+        {
+            if (_context.TypPlik == null)
+            {
+                return NotFound();
+            }
+            return await _context.TypPlik.Where(w => w.tpkAplikacjaID == tpkAplikacjaID && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
+        }
+
         // GET: api/TypPlik/5
         [AllowAnonymous]
         [HttpGet("{tpkID}")]

@@ -16,6 +16,7 @@ namespace indigoERP.Domain.Entities._Slownik
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int tpkID { get; set; }
+        public int tpkAplikacjaID { get; set; }
         public string tpkNazwa { get; set; }
         public string tpkStatus { get; set; }
     }

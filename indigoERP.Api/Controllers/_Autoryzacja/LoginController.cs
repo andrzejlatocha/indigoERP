@@ -89,10 +89,11 @@ namespace indigoERP.Controllers
             SigningCredentials credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>();
+
+            claims.Add(new Claim(ClaimTypes.Name, uzytkownikViewModel.usrNazwa));
             claims.Add(new Claim("usrID", uzytkownikViewModel.usrID.ToString()));
             claims.Add(new Claim("usrImie", uzytkownikViewModel.usrImie));
             claims.Add(new Claim("usrNazwisko", uzytkownikViewModel.usrNazwisko));
-
             claims.Add(new Claim("appFolder", uzytkownikViewModel.appFolder));
             claims.Add(new Claim("usrFolder", uzytkownikViewModel.usrFolder));
             claims.Add(new Claim("usrZdjecie", uzytkownikViewModel.usrZdjecie));
@@ -104,7 +105,6 @@ namespace indigoERP.Controllers
             claims.Add(new Claim("usrGuid", uzytkownikViewModel.usrGuid.ToString().ToLower()));
             claims.Add(new Claim("usrNazwa", uzytkownikViewModel.usrNazwa));
             claims.Add(new Claim("usrEmail", uzytkownikViewModel.usrEmail));
-            //claims.Add(new Claim(ClaimTypes.Role, uzytkownikViewModel.srlNazwa));
 
             string[] roles = uzytkownikViewModel.srlNazwa.Split('|');
 

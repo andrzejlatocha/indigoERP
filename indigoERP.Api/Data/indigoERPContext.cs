@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace indigoERP.Api.Data
 {
     /// <summary>
-    /// SBContext dla klas aplikacji
+    /// DBContext dla klas aplikacji
     /// </summary>
     public partial class indigoERPContext : DbContext
     {

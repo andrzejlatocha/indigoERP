@@ -24,14 +24,14 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 string? baseApiUrl = configuration.GetSection("appSettings").GetValue<string>(key: "BaseApiUrl");
-services.AddHttpClient("baseClient", client =>
+services.AddHttpClient("baseApiClient", client =>
 {
     client.BaseAddress = new Uri(baseApiUrl);
     client.DefaultRequestHeaders.Clear();
 });
 
 string? indigoApiUrl = configuration.GetSection("appSettings").GetValue<string>(key: "IndigoApiUrl");
-services.AddHttpClient("indigoERPClient", client =>
+services.AddHttpClient("indigoApiClient", client =>
 {
     client.BaseAddress = new Uri(indigoApiUrl);
     client.DefaultRequestHeaders.Clear();

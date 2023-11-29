@@ -16,7 +16,7 @@ namespace indigoERP.Service.Services._Autoryzacja
 
         public async Task<UzytkownikViewModel> Get(UzytkownikLoginModel uzytkownikModel)
         {
-            var httpClient = _httpClientFactory.CreateClient("indigoERPClient");
+            var httpClient = _httpClientFactory.CreateClient("indigoApiClient");
 
             try
             {

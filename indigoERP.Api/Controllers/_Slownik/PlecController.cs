@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using epicaHR.Domain.Entities._Slownik;
+﻿using epicaHR.Domain.Entities._Slownik;
 using indigoERP.Api.Data;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -24,7 +18,6 @@ namespace indigoERP.Api.Controllers._Slownik
         }
 
         // GET: api/Plec
-        //[Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Plec>>> Select(string pleStatus)
         {
@@ -33,15 +26,7 @@ namespace indigoERP.Api.Controllers._Slownik
                 return NotFound();
             }
 
-            //var plec = await _context.Plec.Where(w => w.pleStatus == pleStatus).ToListAsync();
-            //var p = new Plec();
-
-            //p.pleKOD = "X";
-            //p.pleOpis = user.Identity!.Name;
-            //p.pleStatus = "2";
-
-            //plec.Add(p);
-            //return plec;
+            var usrID = User.FindFirst("usrID")?.Value;
 
             return await _context.Plec.Where(w => w.pleStatus == pleStatus).ToListAsync();
         }

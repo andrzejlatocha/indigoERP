@@ -20,7 +20,7 @@ services.AddAuthorization(options =>
 services.AddRazorPages().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null).AddRazorRuntimeCompilation(); 
 
 string? baseApiUrl = configuration.GetSection("appSettings").GetValue<string>(key: "BaseApiUrl");
-services.AddHttpClient("indigoERPClient", client =>
+services.AddHttpClient("indigoApiClient", client =>
 {
     client.BaseAddress = new Uri(baseApiUrl);
     client.DefaultRequestHeaders.Clear();
