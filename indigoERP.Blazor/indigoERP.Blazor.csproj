@@ -12,7 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.0" />
-    <PackageReference Include="Radzen.Blazor" Version="4.22.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0" />
+    <PackageReference Include="Radzen.Blazor" Version="4.23.5" />
   </ItemGroup>
 
   <ItemGroup>

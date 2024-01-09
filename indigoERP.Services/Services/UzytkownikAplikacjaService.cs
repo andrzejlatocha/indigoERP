@@ -13,13 +13,13 @@ namespace indigoERP.Service.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<IEnumerable<UzytkownikAplikacjaViewModel>> Select(int usrID)
+        public async Task<IEnumerable<AplikacjaUzytkownikViewModel>> Select(int usrID)
         {
             var httpClient = _httpClientFactory.CreateClient("indigoApiClient");
 
             try
             {
-                var aplikacja = await httpClient.GetFromJsonAsync<IEnumerable<UzytkownikAplikacjaViewModel>>($"UzytkownikAplikacja/Select?usrID={usrID}");
+                var aplikacja = await httpClient.GetFromJsonAsync<IEnumerable<AplikacjaUzytkownikViewModel>>($"UzytkownikAplikacja/Select?usrID={usrID}");
 
                 return aplikacja;
             }

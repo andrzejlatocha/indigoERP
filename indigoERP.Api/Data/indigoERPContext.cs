@@ -1,12 +1,14 @@
 ﻿using epicaHR.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Wspolne;
-using indigoERP.Domain.Entities._Autoryzacja;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.ViewModels._Autoryzacja;
 using indigoERP.Domain.ViewModels._Slownik;
 using Microsoft.EntityFrameworkCore;
+using indigoERP.Domain.Enumerators._Slownik;
+using indigoERP.Domain.Entities._Administrator;
+using indigoERP.Domain.ViewModels._Administracja;
 
 namespace indigoERP.Api.Data
 {
@@ -67,20 +69,41 @@ namespace indigoERP.Api.Data
         public virtual DbSet<UzytkownikGrupa> UzytkownikGrupa { get; set; }
         public virtual DbSet<Wojewodztwo> Wojewodztwo { get; set; }
 
+        // Enumerators
+        public virtual DbSet<BankEnumerator> BankEnumerator { get; set; }
+        public virtual DbSet<GminaEnumerator> GminaEnumerator { get; set; }
+        public virtual DbSet<KrajEnumerator> KrajEnumerator { get; set; }
+        public virtual DbSet<MarkaPojazdEnumerator> MarkaPojazdEnumerator { get; set; }
+        public virtual DbSet<MiejscowoscEnumerator> MiejscowoscEnumerator { get; set; }
+        public virtual DbSet<NarodowoscEnumerator> NarodowoscEnumerator { get; set; }
+        public virtual DbSet<ObywatelstwoEnumerator> ObywatelstwoEnumerator { get; set; }
+        public virtual DbSet<PlecEnumerator> PlecEnumerator { get; set; }
+        public virtual DbSet<PocztaEnumerator> PocztaEnumerator { get; set; }
+        public virtual DbSet<PowiatEnumerator> PowiatEnumerator { get; set; }
+        public virtual DbSet<RodzajDokumentTozsamoscEnumerator> RodzajDokumentTozsamoscEnumerator { get; set; }
+        public virtual DbSet<TypPlikEnumerator> TypPlikEnumerator { get; set; }
+        public virtual DbSet<WojewodztwoEnumerator> WojewodztwoEnumerator { get; set; }
+
         //Models
 
 
         //ViewModels
+        public virtual DbSet<AplikacjaUzytkownikViewModel> AplikacjaUzytkownikViewModel { get; set; }
         public virtual DbSet<DaneFirmaAdresViewModel> DaneFirmaAdresViewModel { get; set; }
         public virtual DbSet<DaneFirmaKontaktViewModel> DaneFirmaKontaktViewModel { get; set; }
         public virtual DbSet<GminaViewModel> GminaViewModel { get; set; }
+        public virtual DbSet<GrupaAplikacjaViewModel> GrupaAplikacjaViewModel { get; set; }
+        public virtual DbSet<GrupaRolaViewModel> GrupaRolaViewModel { get; set; }
         public virtual DbSet<KrajViewModel> KrajViewModel { get; set; }
         public virtual DbSet<MarkaPojazdViewModel> MarkaPojazdViewModel { get; set; }
         public virtual DbSet<MiejscowoscViewModel> MiejscowoscViewModel { get; set; }
         public virtual DbSet<PocztaViewModel> PocztaViewModel { get; set; }
         public virtual DbSet<PowiatViewModel> PowiatViewModel { get; set; }
-        public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
+        public virtual DbSet<RolaAplikacjaViewModel> RolaAplikacjaViewModel { get; set; }
         public virtual DbSet<UzytkownikAplikacjaViewModel> UzytkownikAplikacjaViewModel { get; set; }
+        public virtual DbSet<UzytkownikGrupaViewModel> UzytkownikGrupaViewModel { get; set; }
+        public virtual DbSet<UzytkownikRolaViewModel> UzytkownikRolaViewModel { get; set; }
+        public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<WojewodztwoViewModel> WojewodztwoViewModel { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

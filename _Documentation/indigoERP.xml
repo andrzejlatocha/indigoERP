@@ -1,0 +1,257 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>indigoERP.Api</name>
+    </assembly>
+    <members>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.Select(System.String)">
+            <summary>
+            Zwraca listę aplikacji o zadanym statusie
+            </summary>
+            <param name="appStatus"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.SelectRolaByAplikacja(System.Int32,System.String)">
+            <summary>
+            zwraca listę grup dla danej aplikacji
+            </summary>
+            <param name="appID"></param>
+            <param name="srlStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.SelectGrupaByAplikacja(System.Int32,System.String)">
+            <summary>
+            zwraca listę grup dla danej aplikacji
+            </summary>
+            <param name="appID"></param>
+            <param name="groStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.SelectUzytkownikByAplikacja(System.Int32,System.String)">
+            <summary>
+            zwraca listę użytkowników mających dostęp do aplikacji
+            </summary>
+            <param name="appID"></param>
+            <param name="usrStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.Get(System.Int32)">
+            <summary>
+            Zwraca aplikację o określonym identyfikatorze
+            </summary>
+            <param name="appID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.Update(System.Int32,indigoERP.Domain.Entities._Administrator.Aplikacja)">
+            <summary>
+            Poprawia aplikację o podanym identyfikatorze
+            </summary>
+            <param name="appID"></param>
+            <param name="aplikacja"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.Insert(indigoERP.Domain.Entities._Administrator.Aplikacja)">
+            <summary>
+            Wstawia nową aplikację
+            </summary>
+            <param name="aplikacja"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.AplikacjaController.Delete(System.Int32)">
+            <summary>
+            Usuwa aplikację
+            </summary>
+            <param name="appID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.Select(System.String)">
+            <summary>
+            Zwraca listę grup o zadanym statusie
+            </summary>
+            <param name="groStatus"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.SelectAplikacjaByGrupa(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę aplikacji dla danej grupy
+            </summary>
+            <param name="appID">-1 wszystkie</param>
+            <param name="appStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.SelectRolaByGrupa(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę ról dla danej grupy
+            </summary>
+            <param name="appID">-1 wszystkie</param> 
+            <param name="groID"></param>
+            <param name="srlStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.SelectUzytkownikByGrupa(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę użytkownikó dla danej grupy
+            </summary>
+            <param name="appID">-1 wszystkie</param>
+            <param name="groID"></param>
+            <param name="usrStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.Get(System.Int32)">
+            <summary>
+            Zwraca grupę o określonym identyfikatorze
+            </summary>
+            <param name="groID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.Update(System.Int32,indigoERP.Domain.Entities._Administrator.Grupa)">
+            <summary>
+            Poprawia grupę o podanym identyfikatorze
+            </summary>
+            <param name="groID"></param>
+            <param name="grupa"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.Insert(indigoERP.Domain.Entities._Administrator.Grupa)">
+            <summary>
+            Wstawia nową grupę
+            </summary>
+            <param name="grupa"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.GrupaController.Delete(System.Int32)">
+            <summary>
+            Usuwa grupę
+            </summary>
+            <param name="groID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.RolaController.SelectAplikacjaByRola(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę aplikacji dla roli
+            </summary>
+            <param name="appID">-1 wszystkie aplikacje</param>
+            <param name="srlID"></param>
+            <param name="appStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.RolaController.SelectGrupaByRola(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę grup dla danej roli
+            </summary>
+            <param name="appID">-1 wszystkie aplikacje</param>
+            <param name="srlID"></param>
+            <param name="groStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.RolaController.SelectUzytkownikByRola(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę użytkowników dla danej roli
+            </summary>
+            <param name="appID">-1 wszystkie aplikacje</param>
+            <param name="usrID"></param>
+            <param name="usrStatus"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.SelectAplikacjaByUzytkownik(System.Int32,System.String)">
+            <summary>
+            zwraca listę aplikacji do jakich dostęp posiada użytkownik
+            </summary>
+            <param name="usrID"></param>
+            <param name="appStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.SelectRolaByUzytkownik(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę grup do jakich należy użytkownik 
+            </summary>
+            <param name="appID"> -1 wsystkie</param>
+            <param name="usrID"></param>
+            <param name="srlStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.SelectGrupaByUzytkownik(System.Int32,System.Int32,System.String)">
+            <summary>
+            zwraca listę grup do jakich należy użytkownik 
+            </summary>
+            <param name="appID"> -1 wsystkie </param>
+            <param name="usrID"></param>
+            <param name="groStatus">* wszystkie</param>
+            <returns></returns>
+        </member>
+        <member name="T:indigoERP.Api.Controllers._Slownik.BankController">
+            <summary>
+            Pobieranie i aktualizacja listy banków, domyślnie tabela zawieraa wszystkie polskie banki 
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Select(System.String)">
+            <summary>
+            Pobieranie listy banków
+            </summary>
+            <param name="lbaStatus">
+            </param>
+            <returns>
+            Lista banków
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.SelectLookup(System.String)">
+            <summary>
+            Pobieranie listy banków do kontrolek wyboru
+            </summary>
+            <param name="lbaStatus">
+            </param>
+            <returns>
+            Lista banków
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Get(System.String)">
+            <summary>
+            Pobranie danych banku
+            </summary>
+            <param name="lbaID"></param>
+            <returns>
+            Bank
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Update(System.String,indigoERP.Domain.Entities._Slownik.Bank)">
+            <summary>
+            Aktualizacja danych banku
+            </summary>
+            <param name="lbaKOD"></param>
+            <param name="bank"></param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Insert(indigoERP.Domain.Entities._Slownik.Bank)">
+            <summary>
+            Dodanie banku
+            </summary>
+            <param name="bank"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Delete(System.Int32)">
+            <summary>
+            Usunięcie banku o oknkretny ID
+            </summary>
+            <param name="lbaKOD"></param>
+            <returns></returns>
+        </member>
+        <member name="T:indigoERP.Api.Data.indigoERPContext">
+            <summary>
+            DBContext dla klas aplikacji
+            </summary>
+        </member>
+        <member name="M:indigoERP.Controllers.LoginController.Get(System.String,System.String,System.String,System.String)">
+            <summary>
+            Pobiera użytkownika
+            </summary>
+            <param name="usrNazwa">
+            </param>
+            <param name="usrHaslo">
+            </param>
+            <returns>
+            Klasa UzytkownikViewModel
+            </returns>
+        </member>
+    </members>
+</doc>

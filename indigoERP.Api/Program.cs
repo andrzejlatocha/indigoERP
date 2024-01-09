@@ -80,7 +80,7 @@ services.AddSwaggerGen(options =>
         }
     });
 
-    //options.IncludeXmlComments(@"D:\Work\Liberty\VisualStudioCore\indigoERP\_Documentation\indigoERP.xml");
+    options.IncludeXmlComments(@"D:\Work\Liberty\VisualStudioCore\indigoERP\_Documentation\indigoERP.xml");
 });
 
 var app = builder.Build();

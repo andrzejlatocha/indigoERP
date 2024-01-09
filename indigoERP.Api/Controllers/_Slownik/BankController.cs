@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using Microsoft.AspNetCore.Authorization;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {    
@@ -37,11 +38,30 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Bank>>> Select(string lbaStatus)
         {
-          if (_context.Bank == null)
-          {
-              return NotFound();
-          }
+            if (_context.Bank == null)
+            {
+                return NotFound();
+            }
             return await _context.Bank.Where(w => w.lbaStatus == lbaStatus || lbaStatus == "*").ToListAsync();
+        }
+
+        /// <summary>
+        /// Pobieranie listy banków do kontrolek wyboru
+        /// </summary>
+        /// <param name="lbaStatus">
+        /// </param>
+        /// <returns>
+        /// Lista banków
+        /// </returns>
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<BankEnumerator>>> SelectLookup(string lbaStatus)
+        {
+            if (_context.BankEnumerator == null)
+            {
+                return NotFound();
+            }
+            return await _context.BankEnumerator.Where(w => w.lbaStatus == lbaStatus || lbaStatus == "*").ToListAsync();
         }
 
         /// <summary>

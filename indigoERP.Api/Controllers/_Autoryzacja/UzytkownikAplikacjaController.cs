@@ -10,7 +10,7 @@ using indigoERP.Domain.ViewModels._Autoryzacja;
 
 namespace indigoERP.Api.Controllers._Autoryzacja
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class UzytkownikAplikacjaController : ControllerBase
     {
@@ -23,14 +23,14 @@ namespace indigoERP.Api.Controllers._Autoryzacja
 
         // GET: api/UzytkownikAplikacja
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UzytkownikAplikacjaViewModel>>> Select(int usrID)
+        public async Task<ActionResult<IEnumerable<AplikacjaUzytkownikViewModel>>> Select(int usrID)
         {
-            if (_context.UzytkownikAplikacjaViewModel == null)
+            if (_context.AplikacjaUzytkownikViewModel == null)
             {
                 return NotFound();
             }
 
-            return await _context.UzytkownikAplikacjaViewModel.Where(w => w.usrID == usrID).ToListAsync(); ;
+            return await _context.AplikacjaUzytkownikViewModel.Where(w => w.usrID == usrID).ToListAsync(); ;
         }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using Microsoft.AspNetCore.Authorization;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -27,11 +28,25 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RodzajDokumentTozsamosc>>> Select(string dtyStatus)
         {
-          if (_context.RodzajDokumentTozsamosc == null)
-          {
-              return NotFound();
-          }
+            if (_context.RodzajDokumentTozsamosc == null)
+            {
+                return NotFound();
+            }
+
             return await _context.RodzajDokumentTozsamosc.Where(w => w.dtyStatus == dtyStatus || dtyStatus == "*").ToListAsync();
+        }
+
+        // GET: api/RodzajDokumentTozsamosc
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<RodzajDokumentTozsamoscEnumerator>>> SelectLookup(string dtyStatus)
+        {
+            if (_context.RodzajDokumentTozsamoscEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.RodzajDokumentTozsamoscEnumerator.Where(w => w.dtyStatus == dtyStatus || dtyStatus == "*").ToListAsync();
         }
 
         // GET: api/RodzajDokumentTozsamosc/5

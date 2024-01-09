@@ -1,5 +1,7 @@
 using indigoERP.Blazor.Utils;
+using indigoERP.Service.Interfaces._Administrator;
 using indigoERP.Service.Interfaces._Autoryzacja;
+using indigoERP.Service.Services._Administrator;
 using indigoERP.Service.Services._Autoryzacja;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
@@ -47,7 +49,14 @@ services.AddScoped<TooltipService>();
 services.AddSingleton<ILoginService, LoginService>();
 services.AddSingleton<IClaimsTransformation, ClaimsTransformation>();
 
+// Adminstrator
+services.AddScoped<IAplikacjaService, AplikacjaService>();
+services.AddScoped<IGrupaService, GrupaService>();
+services.AddScoped<IRolaService, RolaService>();
+services.AddScoped<IUzytkownikService, UzytkownikService>();
+
 //Aplikacja
+
 
 services.AddHttpContextAccessor();
 services.AddLocalization();

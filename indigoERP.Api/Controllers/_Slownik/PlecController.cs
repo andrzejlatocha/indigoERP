@@ -1,5 +1,6 @@
 ﻿using epicaHR.Domain.Entities._Slownik;
 using indigoERP.Api.Data;
+using indigoERP.Domain.Enumerators._Slownik;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,18 @@ namespace indigoERP.Api.Controllers._Slownik
             var usrID = User.FindFirst("usrID")?.Value;
 
             return await _context.Plec.Where(w => w.pleStatus == pleStatus).ToListAsync();
+        }
+
+        // GET: api/Plec
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PlecEnumerator>>> SelectLookup(string pleStatus)
+        {
+            if (_context.PlecEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.PlecEnumerator.Where(w => w.pleStatus == pleStatus).ToListAsync();
         }
 
         // GET: api/Plec/5

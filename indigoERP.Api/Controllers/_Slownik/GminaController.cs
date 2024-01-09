@@ -9,6 +9,7 @@ using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
 using Microsoft.AspNetCore.Authorization;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -28,13 +29,28 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GminaViewModel>>> Select(string gmiStatus)
         {
-          if (_context.GminaViewModel == null)
-          {
-              return NotFound();
-          }
+            if (_context.GminaViewModel == null)
+            {
+                return NotFound();
+            }
+
             return await _context.GminaViewModel.Where(w => w.gmiStatus == gmiStatus || gmiStatus == "*").ToListAsync();
         }
 
+        // GET: api/Gmina
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<GminaEnumerator>>> SelectLookup(string gmiStatus)
+        {
+            if (_context.GminaEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.GminaEnumerator.Where(w => w.gmiStatus == gmiStatus || gmiStatus == "*").ToListAsync();
+        }
+
+        // GET: api/Gmina
         [AllowAnonymous]
         [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByKraj(int kraID, string gmiStatus)
@@ -43,9 +59,24 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.GminaViewModel.Where(w => w.kraID == kraID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
         }
 
+        // GET: api/Gmina
+        [AllowAnonymous]
+        [HttpGet("{kraID}")]
+        public async Task<ActionResult<IEnumerable<GminaEnumerator>>> SelectLookupByKraj(int kraID, string gmiStatus)
+        {
+            if (_context.GminaEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.GminaEnumerator.Where(w => w.kraID == kraID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Gmina
         [AllowAnonymous]
         [HttpGet("{wojID}")]
         public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByWojewodztwo(int wojID, string gmiStatus)
@@ -54,9 +85,25 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.GminaViewModel.Where(w => w.wojID == wojID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
         }
 
+
+        // GET: api/Gmina
+        [AllowAnonymous]
+        [HttpGet("{wojID}")]
+        public async Task<ActionResult<IEnumerable<GminaEnumerator>>> SelectLookupByWojewodztwo(int wojID, string gmiStatus)
+        {
+            if (_context.GminaEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.GminaEnumerator.Where(w => w.wojID == wojID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Gmina
         [AllowAnonymous]
         [HttpGet("{powID}")]
         public async Task<ActionResult<IEnumerable<GminaViewModel>>> SelectByPowiat(int powID, string gmiStatus)
@@ -65,9 +112,24 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.GminaViewModel.Where(w => w.powID == powID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
         }
 
+        // GET: api/Gmina
+        [AllowAnonymous]
+        [HttpGet("{powID}")]
+        public async Task<ActionResult<IEnumerable<GminaEnumerator>>> SelectLookupByPowiat(int powID, string gmiStatus)
+        {
+            if (_context.GminaEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.GminaEnumerator.Where(w => w.powID == powID && (w.gmiStatus == gmiStatus || gmiStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Gmina/5
         [AllowAnonymous]
         [HttpGet("{gmiID}")]
         public async Task<ActionResult<Gmina>> Get(int gmiID)

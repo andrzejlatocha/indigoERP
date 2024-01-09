@@ -31,26 +31,30 @@ namespace indigoERP.Blazor.Utils
                 return principal;
 
             var clone = principal.Clone();
+            var claims = new List<Claim>();
 
-            Claim[] claims = new Claim[]
+            claims.Add(new Claim("usrID", uzytkownik.usrID.ToString()));
+            claims.Add(new Claim("usrPracownikID", uzytkownik.usrPracownikID.ToString()));
+            claims.Add(new Claim("usrImie", $"{uzytkownik.usrImie}"));
+            claims.Add(new Claim("usrNazwisko", $"{uzytkownik.usrNazwisko}"));
+            claims.Add(new Claim("usrNazwa", $"{uzytkownik.usrImie} {uzytkownik.usrNazwisko}"));
+            claims.Add(new Claim("appFolder", $"{uzytkownik.appFolder}"));
+            claims.Add(new Claim("usrFolder", $"{uzytkownik.usrFolder}"));
+            claims.Add(new Claim("usrZdjecie", $"{uzytkownik.usrZdjecie}"));
+            claims.Add(new Claim("wdzKod", $"{uzytkownik.wdzKod}"));
+            claims.Add(new Claim("wdzSymbol", $"{uzytkownik.wdzSymbol}"));
+            claims.Add(new Claim("wdzNazwa", $"{uzytkownik.wdzNazwa}"));
+            claims.Add(new Claim("stnKod", $"{uzytkownik.stnKod}"));
+            claims.Add(new Claim("stnNazwa", $"{uzytkownik.stnNazwa}"));
+            claims.Add(new Claim("usrLogin", $"{uzytkownik.usrNazwa}"));
+            claims.Add(new Claim("usrEmail", $"{uzytkownik.usrEmail}"));
+            claims.Add(new Claim("accessToken", $"{uzytkownik.usrToken}"));
+
+            string[] roles = uzytkownik.srlNazwa.Split('|');
+            foreach (var role in roles)
             {
-                new Claim("usrID", uzytkownik.usrID.ToString()),
-                new Claim("usrPracownikID", uzytkownik.usrPracownikID.ToString()),
-                new Claim("usrImie", $"{uzytkownik.usrImie}"),
-                new Claim("usrNazwisko", $"{uzytkownik.usrNazwisko}"),
-                new Claim("usrNazwa", $"{uzytkownik.usrImie} {uzytkownik.usrNazwisko}"),
-                new Claim("appFolder", $"{uzytkownik.appFolder}"),
-                new Claim("usrFolder", $"{uzytkownik.usrFolder}"),
-                new Claim("usrZdjecie", $"{uzytkownik.usrZdjecie}"),
-                new Claim("wdzKod", $"{uzytkownik.wdzKod}"),
-                new Claim("wdzSymbol", $"{uzytkownik.wdzSymbol}"),
-                new Claim("wdzNazwa", $"{uzytkownik.wdzNazwa}"),
-                new Claim("stnKod", $"{uzytkownik.stnKod}"),
-                new Claim("stnNazwa", $"{uzytkownik.stnNazwa}"),
-                new Claim("usrLogin", $"{uzytkownik.usrNazwa}"),
-                new Claim("usrEmail", $"{uzytkownik.usrEmail}"),
-                new Claim("accessToken", $"{uzytkownik.usrToken}")
-            };
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             ClaimsIdentity identity = new ClaimsIdentity(claims);
             clone.AddIdentity(identity);

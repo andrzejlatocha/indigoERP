@@ -9,6 +9,7 @@ using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
 using Microsoft.AspNetCore.Authorization;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -32,7 +33,21 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.MarkaPojazdViewModel.Where(w => w.mpjStatus == mpjStatus || mpjStatus == "*").ToListAsync();
+        }
+
+        // GET: api/MarkaPojazd
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MarkaPojazdEnumerator>>> SelectLookup(string mpjStatus)
+        {
+            if (_context.MarkaPojazdEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.MarkaPojazdEnumerator.Where(w => w.mpjStatus == mpjStatus || mpjStatus == "*").ToListAsync();
         }
 
         // GET: api/MarkaPojazd
@@ -44,19 +59,47 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.MarkaPojazd.Where(w => w.mpjMarkaPojazdID == null && (w.mpjStatus == mpjStatus || mpjStatus == "*")).ToListAsync();
         }
 
         // GET: api/MarkaPojazd
         [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<MarkaPojazdEnumerator>>> SelectLookpMarka(string mpjStatus)
+        {
+            if (_context.MarkaPojazdEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.MarkaPojazdEnumerator.Where(w => w.mpjMarkaPojazdID == null && (w.mpjStatus == mpjStatus || mpjStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/MarkaPojazd
+        [AllowAnonymous]
         [HttpGet("{mpjID}")]
-        public async Task<ActionResult<IEnumerable<MarkaPojazd>>> SelectModel(int mpjID)
+        public async Task<ActionResult<IEnumerable<MarkaPojazd>>> SelectModelByMarka(int mpjID)
         {
             if (_context.MarkaPojazd == null)
             {
                 return NotFound();
             }
+
             return await _context.MarkaPojazd.Where(w => w.mpjMarkaPojazdID == mpjID && w.mpjStatus == "2").ToListAsync();
+        }
+
+        // GET: api/MarkaPojazd
+        [AllowAnonymous]
+        [HttpGet("{mpjID}")]
+        public async Task<ActionResult<IEnumerable<MarkaPojazdEnumerator>>> SelectLookupModelByMarka(int mpjID)
+        {
+            if (_context.MarkaPojazdEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.MarkaPojazdEnumerator.Where(w => w.mpjMarkaPojazdID == mpjID && w.mpjStatus == "2").ToListAsync();
         }
 
         // GET: api/MarkaPojazd/5

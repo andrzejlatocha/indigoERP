@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using Microsoft.AspNetCore.Authorization;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -34,6 +35,19 @@ namespace indigoERP.Api.Controllers._Slownik
             }
 
             return await _context.Narodowosc.Where(w => w.narStatus == narStatus || narStatus == "*").ToListAsync();
+        }
+
+        // GET: api/Narodowosc
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<NarodowoscEnumerator>>> SelectLookup(string narStatus)
+        {
+            if (_context.NarodowoscEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.NarodowoscEnumerator.Where(w => w.narStatus == narStatus || narStatus == "*").ToListAsync();
         }
 
         // GET: api/Narodowosc/5

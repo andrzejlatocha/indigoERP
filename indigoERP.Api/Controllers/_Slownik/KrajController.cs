@@ -9,6 +9,7 @@ using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using Microsoft.AspNetCore.Authorization;
 using indigoERP.Domain.ViewModels._Slownik;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -28,12 +29,25 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<KrajViewModel>>> Select(string kraStatus)
         {
-          if (_context.KrajViewModel == null)
-          {
-              return NotFound();
-          }
+            if (_context.KrajViewModel == null)
+            {
+                return NotFound();
+            }
             return await _context.KrajViewModel.Where(w => w.kraStatus == kraStatus || kraStatus == "*").ToListAsync();
         }
+
+        // GET: api/Kraj
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<KrajEnumerator>>> SelectLookup(string kraStatus)
+        {
+            if (_context.KrajEnumerator == null)
+            {
+                return NotFound();
+            }
+            return await _context.KrajEnumerator.Where(w => w.kraStatus == kraStatus || kraStatus == "*").ToListAsync();
+        }
+
 
         // GET: api/Kraj/5
         [AllowAnonymous]

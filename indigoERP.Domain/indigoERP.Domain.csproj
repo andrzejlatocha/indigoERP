@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <Folder Include="Data\" />
+    <Folder Include="Entities\_Autoryzacja\" />
+    <Folder Include="Enumerators\_Autoryzacja\" />
+    <Folder Include="Enumerators\_Wspolne\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
   </ItemGroup>
 

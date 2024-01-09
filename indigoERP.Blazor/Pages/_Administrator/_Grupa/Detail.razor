@@ -1,0 +1,37 @@
+﻿@page "/administrator/grupa/detail/{groID:int}"
+
+@using indigoERP.Domain.Entities._Administrator;
+@using indigoERP.Service.Interfaces._Administrator;
+
+@inject IGrupaService _grupaService
+@inject NavigationManager _navigationManager
+@inject DialogService _dialogService
+
+    <div class="row">
+        <div class="col-12">
+            @groID
+        </div>
+    </div>
+    <div class="position-absolute bottom-0 start-50 pe-4 pb-2">
+            <RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Dark" Text="Zamknij" Click="@(_ => _dialogService.CloseSide())" />
+    </div>
+
+
+@code {
+    [Parameter]
+    public int groID { get; set; }
+
+    private Grupa? data;
+
+    protected async override Task OnInitializedAsync()
+    {
+        data = await _grupaService.Get(groID);
+
+        if (data == null)
+        {
+            await _dialogService.Alert("Błędny identyfikator pracownika.", "Błąd", new AlertOptions() { OkButtonText = "OK" });
+
+            _dialogService.CloseSide();
+        }
+    }
+}

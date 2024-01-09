@@ -1,5 +1,6 @@
 ﻿using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
+using indigoERP.Domain.Enumerators._Slownik;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,11 +23,25 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TypPlik>>> Select(string tpkStatus)
         {
-          if (_context.TypPlik == null)
-          {
-              return NotFound();
-          }
+            if (_context.TypPlik == null)
+            {
+                return NotFound();
+            }
+
             return await _context.TypPlik.Where(w => w.tpkStatus == tpkStatus || tpkStatus == "*").ToListAsync();
+        }
+
+        // GET: api/TypPlik
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<TypPlikEnumerator>>> SelectLookup(string tpkStatus)
+        {
+            if (_context.TypPlikEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.TypPlikEnumerator.Where(w => w.tpkStatus == tpkStatus || tpkStatus == "*").ToListAsync();
         }
 
         // GET: api/TypPlik
@@ -38,7 +53,21 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.TypPlik.Where(w => w.tpkAplikacjaID == tpkAplikacjaID && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/TypPlik
+        [AllowAnonymous]
+        [HttpGet("{tpkAplikacjaID}")]
+        public async Task<ActionResult<IEnumerable<TypPlikEnumerator>>> SelectLookupByAplikacja(int tpkAplikacjaID, string tpkStatus)
+        {
+            if (_context.TypPlikEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.TypPlikEnumerator.Where(w => w.tpkAplikacjaID == tpkAplikacjaID && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
         }
 
         // GET: api/TypPlik/5

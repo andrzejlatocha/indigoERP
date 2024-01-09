@@ -9,6 +9,6 @@ namespace indigoERP.Service.Interfaces
 {
     public interface IUzytkownikAplikacjaService
     {
-        Task<IEnumerable<UzytkownikAplikacjaViewModel>> Select(int usrID);
+        Task<IEnumerable<AplikacjaUzytkownikViewModel>> Select(int usrID);
     }
 }

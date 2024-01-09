@@ -9,6 +9,7 @@ using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Cryptography;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -28,12 +29,25 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Obywatelstwo>>> Select(string obyStatus)
         {
-           if (_context.Obywatelstwo == null)
-           {
-              return NotFound();
-           }
+            if (_context.Obywatelstwo == null)
+            {
+                return NotFound();
+            }
 
-           return await _context.Obywatelstwo.Where(w => w.obyStatus == obyStatus || obyStatus == "*").ToListAsync();
+            return await _context.Obywatelstwo.Where(w => w.obyStatus == obyStatus || obyStatus == "*").ToListAsync();
+        }
+
+        // GET: api/Obywatelstwo
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ObywatelstwoEnumerator>>> SelectLookup(string obyStatus)
+        {
+            if (_context.ObywatelstwoEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.ObywatelstwoEnumerator.Where(w => w.obyStatus == obyStatus || obyStatus == "*").ToListAsync();
         }
 
         // GET: api/Obywatelstwo/5

@@ -9,6 +9,7 @@ using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
 using Microsoft.AspNetCore.Authorization;
+using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -23,7 +24,7 @@ namespace indigoERP.Api.Controllers._Slownik
             _context = context;
         }
 
-        // GET: api/WojewodztwoViewModel
+        // GET: api/Wojewodztwo
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> Select(string wojStatus)
@@ -32,9 +33,24 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.WojewodztwoViewModel.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
         }
 
+        // GET: api/Wojewodztwo
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<WojewodztwoEnumerator>>> SelectLookup(string wojStatus)
+        {
+            if (_context.WojewodztwoEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.WojewodztwoEnumerator.Where(w => w.wojStatus == wojStatus || wojStatus == "*").ToListAsync();
+        }
+
+        // GET: api/Wojewodztwo
         [AllowAnonymous]
         [HttpGet("{kraID}")]
         public async Task<ActionResult<IEnumerable<WojewodztwoViewModel>>> SelectByKraj(int kraID, string wojStatus)
@@ -43,7 +59,21 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.WojewodztwoViewModel.Where(w => w.kraID == kraID && (w.wojStatus == wojStatus || wojStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Wojewodztwo
+        [AllowAnonymous]
+        [HttpGet("{kraID}")]
+        public async Task<ActionResult<IEnumerable<WojewodztwoEnumerator>>> SelectLookupByKraj(int kraID, string wojStatus)
+        {
+            if (_context.WojewodztwoEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            return await _context.WojewodztwoEnumerator.Where(w => w.kraID == kraID && (w.wojStatus == wojStatus || wojStatus == "*")).ToListAsync();
         }
 
         // GET: api/Wojewodztwo/5

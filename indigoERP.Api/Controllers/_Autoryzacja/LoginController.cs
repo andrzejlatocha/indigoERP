@@ -29,7 +29,7 @@ namespace indigoERP.Controllers
         }
 
         /// <summary>
-        /// Pobiera użytkownika
+        /// Pobiera dane logującego się użytkownika
         /// </summary>
         /// <param name="usrNazwa">
         /// </param>

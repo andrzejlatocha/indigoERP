@@ -1,0 +1,89 @@
+﻿@inject AuthenticationStateProvider _authenticationStateProvider
+
+<div class="row w-100 mt-1 h3">
+    <div class="col-12 text-center">
+        <img class="rounded-circle" src="@String.Format(@"{0}", usrZdjecie)" alt="Użytkownik" aria-label="Użytkownik" height="80" width="80" />
+    </div>
+</div>
+
+<div class="row w-100 mt-1 h3">
+    <div class="col-12 text-center">
+        <div class="d-inline-block">
+            @usrImie
+        </div>
+        <div class="d-inline-block ml-1">
+            @usrNazwisko
+        </div>
+        <div class="d-inline-block ml-1">
+            ( @usrLogin )
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-1">
+    <div class="col-12 text-center">
+        <a href="@String.Format(@"mailto:{0}", usrEmail)">
+            @usrEmail
+        </a>
+    </div>
+</div>
+
+<div class="row w-100 mt-4 h4">
+    <div class="col-12 text-center">
+        <div class="d-inline-block">
+            @wdzKod
+        </div>
+        <div class="d-inline-block ml-1">
+            @wdzNazwa
+        </div>
+        <div class="d-inline-block ml-1">
+            ( @wdzSymbol )
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-1">
+    <div class="col-12 text-center">
+        <div class="d-inline-block">
+            @stnKod
+        </div>
+        <div class="d-inline-block ml-1">
+            @stnNazwa
+        </div>
+    </div>
+</div>
+
+@code {
+    private int usrID;
+    private string usrImie;
+    private string usrNazwisko;
+    private string wdzKod;
+    private string wdzSymbol;
+    private string wdzNazwa;
+    private string stnKod;
+    private string stnNazwa;
+    private string usrLogin;
+    private string usrEmail;
+    private string usrZdjecie;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var uzytkownik = authState.User;
+
+        usrID = Convert.ToInt32(uzytkownik.FindFirst("usrID").Value);
+        usrImie = uzytkownik.FindFirst("usrImie").Value;
+        usrNazwisko = uzytkownik.FindFirst("usrNazwisko").Value;
+        usrLogin = uzytkownik.FindFirst("usrLogin").Value;
+
+        wdzKod = uzytkownik.FindFirst("wdzKod").Value;
+        wdzSymbol = uzytkownik.FindFirst("wdzSymbol").Value;
+        wdzNazwa = uzytkownik.FindFirst("wdzNazwa").Value;
+
+        stnKod = uzytkownik.FindFirst("stnKod").Value;
+        stnNazwa = uzytkownik.FindFirst("stnNazwa").Value;
+
+        usrEmail = uzytkownik.FindFirst("usrEmail").Value;
+        usrZdjecie = uzytkownik.FindFirst("usrZdjecie").Value;
+    }
+}
