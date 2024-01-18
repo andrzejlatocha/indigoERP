@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Mvc;
 using Radzen;
 using System.Globalization;
 
@@ -22,8 +24,16 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+services.AddRazorPages().AddRazorRuntimeCompilation();
+
+if (builder.Environment.IsDevelopment())
+{
+    services.AddServerSideBlazor().AddCircuitOptions(x => x.DetailedErrors = true);
+}
+else
+{
+    services.AddServerSideBlazor();
+}
 
 string? baseApiUrl = configuration.GetSection("appSettings").GetValue<string>(key: "BaseApiUrl");
 services.AddHttpClient("baseApiClient", client =>

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.ViewModels._Administracja;
+using Microsoft.AspNetCore.Authorization;
 
 namespace indigoERP.Api.Controllers._Administrator
 {

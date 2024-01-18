@@ -243,7 +243,7 @@
         </member>
         <member name="M:indigoERP.Controllers.LoginController.Get(System.String,System.String,System.String,System.String)">
             <summary>
-            Pobiera użytkownika
+            Pobiera dane logującego się użytkownika
             </summary>
             <param name="usrNazwa">
             </param>

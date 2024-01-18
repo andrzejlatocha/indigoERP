@@ -10,11 +10,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevExtreme NuGet.config", "
 		NuGet.config = NuGet.config
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "indigoERP.Api", "indigoERP.Api\indigoERP.Api.csproj", "{56858801-D2E1-4CBF-8562-380328200F5E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "indigoERP.Service", "indigoERP.Services\indigoERP.Service.csproj", "{CA87CE37-C520-46FF-AFEF-92176026A2FB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "indigoERP.Blazor", "indigoERP.Blazor\indigoERP.Blazor.csproj", "{491F4D4B-1D8E-4A16-AF64-DA8674ED14EA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "indigoERP.Api", "indigoERP.Api\indigoERP.Api.csproj", "{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,10 +26,6 @@ Global
 		{FC90191B-BDA5-419C-81D0-8300622BA810}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC90191B-BDA5-419C-81D0-8300622BA810}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC90191B-BDA5-419C-81D0-8300622BA810}.Release|Any CPU.Build.0 = Release|Any CPU
-		{56858801-D2E1-4CBF-8562-380328200F5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{56858801-D2E1-4CBF-8562-380328200F5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{56858801-D2E1-4CBF-8562-380328200F5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{56858801-D2E1-4CBF-8562-380328200F5E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CA87CE37-C520-46FF-AFEF-92176026A2FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CA87CE37-C520-46FF-AFEF-92176026A2FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA87CE37-C520-46FF-AFEF-92176026A2FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -38,6 +34,10 @@ Global
 		{491F4D4B-1D8E-4A16-AF64-DA8674ED14EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{491F4D4B-1D8E-4A16-AF64-DA8674ED14EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{491F4D4B-1D8E-4A16-AF64-DA8674ED14EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
