@@ -16,11 +16,11 @@ namespace indigoERP.Api.Controllers._Slownik
     [AllowAnonymous]
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class PocztaListaController : ControllerBase
+    public class PocztaController : ControllerBase
     {
         private readonly indigoERPContext _context;
 
-        public PocztaListaController(indigoERPContext context)
+        public PocztaController(indigoERPContext context)
         {
             _context = context;
         }
@@ -143,6 +143,30 @@ namespace indigoERP.Api.Controllers._Slownik
             }
 
             return await _context.PocztaEnumerator.Where(w => w.gmiID == gmiID && (w.pczStatus == pczStatus || pczStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Miejscowosc
+        [AllowAnonymous]
+        [HttpGet("{pczID}")]
+        public async Task<ActionResult<IEnumerable<PocztaViewModel>>> SelectByPoczta(int pczID, string pczStatus)
+        {
+            if (_context.PocztaViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.PocztaViewModel.Where(w => w.pczID == pczID && (w.pczStatus == pczStatus || pczStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Miejscowosc
+        [AllowAnonymous]
+        [HttpGet("{pczID}")]
+        public async Task<ActionResult<IEnumerable<PocztaEnumerator>>> SelectLookupByPoczta(int pczID, string pczStatus)
+        {
+            if (_context.PocztaEnumerator == null)
+            {
+                return NotFound();
+            }
+            return await _context.PocztaEnumerator.Where(w => w.pczID == pczID && (w.pczStatus == pczStatus || pczStatus == "*")).ToListAsync();
         }
 
         // GET: api/PocztaLista/5

@@ -54,7 +54,7 @@ namespace indigoERP.Api.Controllers._Slownik
                 return NotFound();
             }
 
-            return await _context.TypPlik.Where(w => w.tpkAplikacjaID == tpkAplikacjaID && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
+            return await _context.TypPlik.Where(w => (w.tpkAplikacjaID == tpkAplikacjaID || w.tpkAplikacjaID == 0) && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
         }
 
         // GET: api/TypPlik
@@ -67,7 +67,7 @@ namespace indigoERP.Api.Controllers._Slownik
                 return NotFound();
             }
 
-            return await _context.TypPlikEnumerator.Where(w => w.tpkAplikacjaID == tpkAplikacjaID && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
+            return await _context.TypPlikEnumerator.Where(w => (w.tpkAplikacjaID == tpkAplikacjaID || w.tpkAplikacjaID == 0) && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
         }
 
         // GET: api/TypPlik/5

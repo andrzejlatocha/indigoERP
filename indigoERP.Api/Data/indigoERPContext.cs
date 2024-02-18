@@ -61,6 +61,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<RodzajDokumentTozsamosc> RodzajDokumentTozsamosc { get; set; }
         public virtual DbSet<RolaCzlonkowie> RolaCzlonkowie { get; set; }
         public virtual DbSet<RolaMenu> RolaMenu { get; set; }
+        public virtual DbSet<TypKontakt> TypKontakt { get; set; }
         public virtual DbSet<TypPlik> TypPlik { get; set; }
         public virtual DbSet<UrzadSkarbowy> UrzadSkarbowy { get; set; }
         public virtual DbSet<UrzadSkarbowyAdres> UrzadSkarbowyAdres { get; set; }
@@ -81,7 +82,9 @@ namespace indigoERP.Api.Data
         public virtual DbSet<PocztaEnumerator> PocztaEnumerator { get; set; }
         public virtual DbSet<PowiatEnumerator> PowiatEnumerator { get; set; }
         public virtual DbSet<RodzajDokumentTozsamoscEnumerator> RodzajDokumentTozsamoscEnumerator { get; set; }
+        public virtual DbSet<TypKontaktEnumerator> TypKontaktEnumerator { get; set; }
         public virtual DbSet<TypPlikEnumerator> TypPlikEnumerator { get; set; }
+        public virtual DbSet<UrzadSkarbowyEnumerator> UrzadSkarbowyEnumerator { get; set; }
         public virtual DbSet<WojewodztwoEnumerator> WojewodztwoEnumerator { get; set; }
 
         //Models

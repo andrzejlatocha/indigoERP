@@ -63,7 +63,7 @@ namespace indigoERP.Api.Controllers._Wspolne
                 }
             }
 
-            return NoContent();
+            return Ok(200);
         }
 
         // POST: api/Kontakt
@@ -98,12 +98,12 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context.Kontakt.Remove(kontakt);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(200);
         }
 
-        private bool KontaktExists(int id)
+        private bool KontaktExists(int kntID)
         {
-            return (_context.Kontakt?.Any(e => e.kntID == id)).GetValueOrDefault();
+            return (_context.Kontakt?.Any(e => e.kntID == kntID)).GetValueOrDefault();
         }
     }
 }

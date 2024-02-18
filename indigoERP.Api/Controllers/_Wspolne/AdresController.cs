@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
-    [Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class AdresController : ControllerBase
@@ -65,7 +64,7 @@ namespace indigoERP.Api.Controllers._Wspolne
                 }
             }
 
-            return NoContent();
+            return Ok(200);
         }
 
         // POST: api/Adres
@@ -81,7 +80,7 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context.Adres.Add(adres);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { id = adres.adrID }, adres);
+            return CreatedAtAction("Get", new { adrID = adres.adrID }, adres);
         }
 
         // DELETE: api/Adres/5
@@ -102,7 +101,7 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context.Adres.Remove(adres);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(200);
         }
 
         private bool AdresExists(int adrID)

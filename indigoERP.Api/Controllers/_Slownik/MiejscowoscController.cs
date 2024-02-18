@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using indigoERP.Api.Data;
+﻿using indigoERP.Api.Data;
 using indigoERP.Domain.Entities._Slownik;
+using indigoERP.Domain.Enumerators._Slownik;
 using indigoERP.Domain.ViewModels._Slownik;
 using Microsoft.AspNetCore.Authorization;
-using indigoERP.Domain.Enumerators._Slownik;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
@@ -29,10 +26,10 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> Select(string mscStatus)
         {
-          if (_context.MiejscowoscViewModel == null)
-          {
-              return NotFound();
-          }
+            if (_context.MiejscowoscViewModel == null)
+            {
+                return NotFound();
+            }
             return await _context.MiejscowoscViewModel.Where(w => w.mscStatus == mscStatus || mscStatus == "*").ToListAsync();
         }
 
@@ -144,15 +141,58 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.MiejscowoscEnumerator.Where(w => w.gmiID == gmiID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
         }
 
+        // GET: api/Miejscowosc
+        [AllowAnonymous]
+        [HttpGet("{mscID}")]
+        public async Task<ActionResult<IEnumerable<MiejscowoscViewModel>>> SelectByMiejscowosc(int mscID, string mscStatus)
+        {
+            if (_context.MiejscowoscViewModel == null)
+            {
+                return NotFound();
+            }
+            return await _context.MiejscowoscViewModel.Where(w => w.mscID == mscID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Miejscowosc
+        [AllowAnonymous]
+        [HttpGet("{mscID}")]
+        public async Task<ActionResult<IEnumerable<MiejscowoscEnumerator>>> SelectLookupByMiejscowosc(int mscID, string mscStatus)
+        {
+            if (_context.MiejscowoscEnumerator == null)
+            {
+                return NotFound();
+            }
+            return await _context.MiejscowoscEnumerator.Where(w => w.mscID == mscID && (w.mscStatus == mscStatus || mscStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Miejscowosc/5
+        [AllowAnonymous]
+        [HttpGet("{mscID}")]
+        public async Task<ActionResult<MiejscowoscEnumerator>> GetMyMiejscowosc(int mscID)
+        {
+            if (_context.MiejscowoscEnumerator == null)
+            {
+                return NotFound();
+            }
+            var miejscowosc = await _context.MiejscowoscEnumerator.FindAsync(mscID);
+
+            if (miejscowosc == null)
+            {
+                return NotFound();
+            }
+
+            return miejscowosc;
+        }
+
         // GET: api/Miejscowosc/5
         [AllowAnonymous]
         [HttpGet("{mscID}")]
         public async Task<ActionResult<Miejscowosc>> Get(int mscID)
         {
-          if (_context.Miejscowosc == null)
-          {
-              return NotFound();
-          }
+            if (_context.Miejscowosc == null)
+            {
+                return NotFound();
+            }
             var miejscowosc = await _context.Miejscowosc.FindAsync(mscID);
 
             if (miejscowosc == null)
@@ -201,10 +241,10 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpPost]
         public async Task<ActionResult<Miejscowosc>> Insert(Miejscowosc miejscowosc)
         {
-          if (_context.Miejscowosc == null)
-          {
-              return Problem("Entity set 'indigoERPContext.Miejscowosc'  is null.");
-          }
+            if (_context.Miejscowosc == null)
+            {
+                return Problem("Entity set 'indigoERPContext.Miejscowosc'  is null.");
+            }
             _context.Miejscowosc.Add(miejscowosc);
             await _context.SaveChangesAsync();
 
