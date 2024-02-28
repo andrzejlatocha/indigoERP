@@ -1,14 +1,13 @@
 ﻿using epicaHR.Domain.Entities._Slownik;
+using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Wspolne;
-using indigoERP.Domain.Entities._Slownik;
-using indigoERP.Domain.Entities._Wspolne;
+using indigoERP.Domain.Enumerators._Slownik;
+using indigoERP.Domain.ViewModels._Administracja;
 using indigoERP.Domain.ViewModels._Autoryzacja;
 using indigoERP.Domain.ViewModels._Slownik;
+using indigoERP.Domain.ViewModels._Wspolne;
 using Microsoft.EntityFrameworkCore;
-using indigoERP.Domain.Enumerators._Slownik;
-using indigoERP.Domain.Entities._Administrator;
-using indigoERP.Domain.ViewModels._Administracja;
 
 namespace indigoERP.Api.Data
 {
@@ -26,7 +25,7 @@ namespace indigoERP.Api.Data
         }
 
         //Entities
-        public virtual DbSet<Adres> Adres { get; set; }   
+        public virtual DbSet<Adres> Adres { get; set; }
         public virtual DbSet<Aplikacja> Aplikacja { get; set; }
         public virtual DbSet<AplikacjaDostep> AplikacjaDostep { get; set; }
         public virtual DbSet<Bank> Bank { get; set; }
@@ -68,7 +67,10 @@ namespace indigoERP.Api.Data
         public virtual DbSet<UrzadSkarbowyKontakt> UrzadSkarbowyKontakt { get; set; }
         public virtual DbSet<Uzytkownik> Uzytkownik { get; set; }
         public virtual DbSet<UzytkownikGrupa> UzytkownikGrupa { get; set; }
+        public virtual DbSet<Wiadomosc> Wiadomosc { get; set; }
         public virtual DbSet<Wojewodztwo> Wojewodztwo { get; set; }
+        public virtual DbSet<Zadanie> Zadanie { get; set; }
+        public virtual DbSet<Zdarzenie> Zdarzenie { get; set; }
 
         // Enumerators
         public virtual DbSet<BankEnumerator> BankEnumerator { get; set; }
@@ -107,7 +109,10 @@ namespace indigoERP.Api.Data
         public virtual DbSet<UzytkownikGrupaViewModel> UzytkownikGrupaViewModel { get; set; }
         public virtual DbSet<UzytkownikRolaViewModel> UzytkownikRolaViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
+        public virtual DbSet<WiadomoscViewModel> WiadomoscViewModel { get; set; }
         public virtual DbSet<WojewodztwoViewModel> WojewodztwoViewModel { get; set; }
+        public virtual DbSet<ZadanieViewModel> ZadanieViewModel { get; set; }
+        public virtual DbSet<ZdarzenieViewModel> ZdarzenieViewModel { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
