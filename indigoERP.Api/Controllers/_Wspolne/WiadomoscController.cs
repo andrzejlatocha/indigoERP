@@ -33,6 +33,20 @@ namespace indigoERP.Api.Controllers._Wspolne
             return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
         }
 
+        // GET: api/Wiadomosc
+        [HttpGet("{wiaAplikacjaID}/{wuzUzytkownikID}")]
+        public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectOdczytByUzytkownik(int wiaAplikacjaID, int wuzUzytkownikID, string wiaStatus)
+        {
+            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && w.wuzOdczyt == true && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Wiadomosc
+        [HttpGet("{wiaAplikacjaID}/{wuzUzytkownikID}")]
+        public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectBrakOdczytByUzytkownik(int wiaAplikacjaID, int wuzUzytkownikID, string wiaStatus)
+        {
+            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && w.wuzOdczyt == false && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
+        }
+
         // GET: api/Wiadomosc/5
         [HttpGet("{wiaID}")]
         public async Task<ActionResult<Wiadomosc>> Get(int wiaID)

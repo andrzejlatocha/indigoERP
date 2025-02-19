@@ -27,7 +27,7 @@ namespace indigoERP.Api.Controllers._Wspolne
         }
 
         // GET: api/Zadanie        
-        [HttpGet("{tskAplikacjaID}/{tskUzytkownikID}")]
+        [HttpGet("{tskAplikacjaID}/{tusUzytkownikID}")]
         public async Task<ActionResult<IEnumerable<ZadanieViewModel>>> SelectByUzytkownik(int tskAplikacjaID, int tusUzytkownikID, string tusStatus)
         {
             return await _context.ZadanieViewModel.Where(w => w.tskAplikacjaID == tskAplikacjaID && w.tusUzytkownikID == tusUzytkownikID && (w.tusStatus == tusStatus || tusStatus == "*")).ToListAsync();

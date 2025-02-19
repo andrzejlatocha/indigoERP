@@ -33,6 +33,20 @@ namespace indigoERP.Api.Controllers._Wspolne
             return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == zdaAplikacjaID && w.zurUzytkownikID == zurUzytkownikID && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
         }
 
+        // GET: api/Zdarzenie
+        [HttpGet("{zdaAplikacjaID}/{zurUzytkownikID}")]
+        public async Task<ActionResult<IEnumerable<ZdarzenieViewModel>>> SelectOdczytByUzytkownik(int zdaAplikacjaID, int zurUzytkownikID, string zdaStatus)
+        {
+            return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == zdaAplikacjaID && w.zurUzytkownikID == zurUzytkownikID && w.zurOdczyt == true && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
+        }
+
+        // GET: api/Zdarzenie
+        [HttpGet("{zdaAplikacjaID}/{zurUzytkownikID}")]
+        public async Task<ActionResult<IEnumerable<ZdarzenieViewModel>>> SelectBrakOdczytByUzytkownik(int zdaAplikacjaID, int zurUzytkownikID, string zdaStatus)
+        {
+            return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == zdaAplikacjaID && w.zurUzytkownikID == zurUzytkownikID && w.zurOdczyt == false && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
+        }
+
         // GET: api/Zdarzenie/5
         [HttpGet("{zdaID}")]
         public async Task<ActionResult<Zdarzenie>> Get(int zdaID)
