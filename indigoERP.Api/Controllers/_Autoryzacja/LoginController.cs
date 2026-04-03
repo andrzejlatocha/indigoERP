@@ -1,4 +1,5 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.ViewModels._Autoryzacja;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -94,6 +95,7 @@ namespace indigoERP.Controllers
             claims.Add(new Claim("usrID", uzytkownikViewModel.usrID.ToString()));
             claims.Add(new Claim("usrImie", uzytkownikViewModel.usrImie));
             claims.Add(new Claim("usrNazwisko", uzytkownikViewModel.usrNazwisko));
+            claims.Add(new Claim("usrNazwa", uzytkownikViewModel.usrNazwa));
             claims.Add(new Claim("appFolder", uzytkownikViewModel.appFolder));
             claims.Add(new Claim("usrFolder", uzytkownikViewModel.usrFolder));
             claims.Add(new Claim("usrZdjecie", uzytkownikViewModel.usrZdjecie));
@@ -102,9 +104,12 @@ namespace indigoERP.Controllers
             claims.Add(new Claim("wdzNazwa", uzytkownikViewModel.wdzNazwa));
             claims.Add(new Claim("stnKod", uzytkownikViewModel.stnKod));
             claims.Add(new Claim("stnNazwa", uzytkownikViewModel.stnNazwa));
-            claims.Add(new Claim("usrGuid", uzytkownikViewModel.usrGuid.ToString().ToLower()));
-            claims.Add(new Claim("usrNazwa", uzytkownikViewModel.usrNazwa));
-            claims.Add(new Claim("usrEmail", uzytkownikViewModel.usrEmail));
+            claims.Add(new Claim("usrLogin", $"{uzytkownikViewModel.usrNazwa}"));
+            claims.Add(new Claim("usrEmail", $"{uzytkownikViewModel.usrEmail}"));
+            claims.Add(new Claim("usrTelefon", $"{uzytkownikViewModel.usrTelefon}"));
+            claims.Add(new Claim("usrKomorka", $"{uzytkownikViewModel.usrKomorka}"));
+            claims.Add(new Claim("accessToken", $"{uzytkownikViewModel.usrToken}"));
+
 
             string[] roles = uzytkownikViewModel.srlNazwa.Split('|');
 

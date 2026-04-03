@@ -100,7 +100,7 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context.Wiadomosc.Add(wiadomosc);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetWiadomosc", new { wiaID = wiadomosc.wiaID }, wiadomosc);
+            return CreatedAtAction("Get", new { wiaID = wiadomosc.wiaID }, wiadomosc);
         }
 
         // DELETE: api/Wiadomosc/5

@@ -43,6 +43,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<GrupaCzlonkowie> GrupaCzlonkowie { get; set; }
         public virtual DbSet<Kraj> Kraj { get; set; }
         public virtual DbSet<Kontakt> Kontakt { get; set; }
+        public virtual DbSet<Notatka> Notatka { get; set; }
         public virtual DbSet<MarkaPojazd> MarkaPojazd { get; set; }
         public virtual DbSet<Menu> Menu { get; set; }
         public virtual DbSet<Miejscowosc> Miejscowosc { get; set; }
@@ -75,6 +76,7 @@ namespace indigoERP.Api.Data
         // Enumerators
         public virtual DbSet<BankEnumerator> BankEnumerator { get; set; }
         public virtual DbSet<GminaEnumerator> GminaEnumerator { get; set; }
+        public virtual DbSet<GodzinaEnumerator> GodzinaEnumerator { get; set; }
         public virtual DbSet<KrajEnumerator> KrajEnumerator { get; set; }
         public virtual DbSet<MarkaPojazdEnumerator> MarkaPojazdEnumerator { get; set; }
         public virtual DbSet<MiejscowoscEnumerator> MiejscowoscEnumerator { get; set; }
@@ -100,6 +102,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<GrupaAplikacjaViewModel> GrupaAplikacjaViewModel { get; set; }
         public virtual DbSet<GrupaRolaViewModel> GrupaRolaViewModel { get; set; }
         public virtual DbSet<KrajViewModel> KrajViewModel { get; set; }
+        public virtual DbSet<NotatkaViewModel> NotatkaViewModel { get; set; }
         public virtual DbSet<MarkaPojazdViewModel> MarkaPojazdViewModel { get; set; }
         public virtual DbSet<MiejscowoscViewModel> MiejscowoscViewModel { get; set; }
         public virtual DbSet<PocztaViewModel> PocztaViewModel { get; set; }

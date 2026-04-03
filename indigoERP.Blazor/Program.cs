@@ -19,7 +19,7 @@ var services = builder.Services;
 // Add services to the container.
 services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 
-builder.Services.AddAuthorization(options =>
+services.AddAuthorization(options =>
 {
     options.FallbackPolicy = options.DefaultPolicy;
 });

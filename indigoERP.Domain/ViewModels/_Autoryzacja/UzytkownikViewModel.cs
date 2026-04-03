@@ -14,6 +14,8 @@ namespace indigoERP.Domain.ViewModels._Autoryzacja
         public string? usrNazwa { get; set; }
         public string? usrImie { get; set; }
         public string? usrNazwisko { get; set; }
+        public string? usrTelefon { get; set; }
+        public string? usrKomorka { get; set; }
         public string? usrEmail { get; set; }
         public string? appFolder { get; set; }
         public string? usrFolder { get; set; }

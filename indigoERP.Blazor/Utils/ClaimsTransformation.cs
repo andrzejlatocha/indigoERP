@@ -56,7 +56,7 @@ namespace indigoERP.Blazor.Utils
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            ClaimsIdentity identity = new ClaimsIdentity(claims);
+            ClaimsIdentity identity = new ClaimsIdentity(claims, "jwtAuthType");
             clone.AddIdentity(identity);
 
             return clone;

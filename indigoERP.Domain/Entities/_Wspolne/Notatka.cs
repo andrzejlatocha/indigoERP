@@ -10,7 +10,8 @@ namespace indigoERP.Domain.Entities._Wspolne
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int notID { get; set; }
-		public int? notUzytkownikID { get; set; }
+        public int? notAplikacjaID { get; set; }
+        public int? notUzytkownikID { get; set; }
 		public byte? notTypNotatkaID { get; set; }
 		public string? notTemat { get; set; }
 		public DateTime? notData { get; set; }

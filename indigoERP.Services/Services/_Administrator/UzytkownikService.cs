@@ -1,4 +1,4 @@
-﻿using indigoERP.Domain.Models._Wspolne;
+using indigoERP.Domain.Models._Wspolne;
 using indigoERP.Service.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Json;
