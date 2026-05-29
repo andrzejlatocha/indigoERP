@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Entities._Administrator;
+using indigoERP.Domain.ViewModels;
+using indigoERP.Domain.ViewModels._Administracja;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using indigoERP.Api.Data;
-using indigoERP.Domain.Entities._Administrator;
-using indigoERP.Domain.ViewModels._Administracja;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace indigoERP.Api.Controllers._Administrator
 {
@@ -29,9 +30,9 @@ namespace indigoERP.Api.Controllers._Administrator
         /// <param name="appStatus"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Aplikacja>>> Select(string appStatus)
+        public async Task<ActionResult<IEnumerable<AplikacjaViewModel>>> Select(string appStatus)
         {
-            return await _context.Aplikacja.Where(w => w.appStatus == appStatus || appStatus == "*").ToListAsync();
+            return await _context.AplikacjaViewModel.Where(w => w.appStatus == appStatus || appStatus == "*").ToListAsync();
         }
 
         // GET: api/Grupa

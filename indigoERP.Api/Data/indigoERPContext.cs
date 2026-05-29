@@ -3,6 +3,7 @@ using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.Enumerators._Slownik;
+using indigoERP.Domain.ViewModels;
 using indigoERP.Domain.ViewModels._Administracja;
 using indigoERP.Domain.ViewModels._Autoryzacja;
 using indigoERP.Domain.ViewModels._Slownik;
@@ -95,6 +96,7 @@ namespace indigoERP.Api.Data
 
 
         //ViewModels
+        public virtual DbSet<AplikacjaViewModel> AplikacjaViewModel { get; set; }
         public virtual DbSet<AplikacjaUzytkownikViewModel> AplikacjaUzytkownikViewModel { get; set; }
         public virtual DbSet<DaneFirmaAdresViewModel> DaneFirmaAdresViewModel { get; set; }
         public virtual DbSet<DaneFirmaKontaktViewModel> DaneFirmaKontaktViewModel { get; set; }

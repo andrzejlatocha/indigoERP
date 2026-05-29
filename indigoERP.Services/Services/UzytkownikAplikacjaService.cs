@@ -28,6 +28,5 @@ namespace indigoERP.Service.Services
                 throw;
             }
         }
-
     }
 }

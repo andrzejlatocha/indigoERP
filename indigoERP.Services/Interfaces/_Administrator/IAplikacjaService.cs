@@ -1,5 +1,6 @@
 ﻿using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.Models._Wspolne;
+using indigoERP.Domain.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace indigoERP.Service.Interfaces._Administrator
 {
     public interface IAplikacjaService
     {
-        Task<IEnumerable<Aplikacja>> Select(string appStatus);
+        Task<IEnumerable<AplikacjaViewModel>> Select(string appStatus);
         Task<Aplikacja> Get(int appID);
         Task<ResponseMessage> Insert(Aplikacja aplikacja);
         Task<ResponseMessage> Update(int appID, Aplikacja aplikacja);

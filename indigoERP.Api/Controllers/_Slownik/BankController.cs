@@ -42,6 +42,7 @@ namespace indigoERP.Api.Controllers._Slownik
             {
                 return NotFound();
             }
+
             return await _context.Bank.Where(w => w.lbaStatus == lbaStatus || lbaStatus == "*").ToListAsync();
         }
 

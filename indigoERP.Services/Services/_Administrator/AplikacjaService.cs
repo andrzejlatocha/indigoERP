@@ -1,5 +1,6 @@
 ﻿using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.Models._Wspolne;
+using indigoERP.Domain.ViewModels;
 using indigoERP.Service.Extensions;
 using indigoERP.Service.Interfaces._Administrator;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -20,13 +21,13 @@ namespace indigoERP.Service.Services._Administrator
             _authenticationStateProvider = authenticationStateProvider;
         }
 
-        public async Task<IEnumerable<Aplikacja>> Select(string appStatus)
+        public async Task<IEnumerable<AplikacjaViewModel>> Select(string appStatus)
         {
             var httpClient = new HttpClient().CreateClientWithToken("baseClient", _httpClientFactory, _authenticationStateProvider);
 
             try
             {
-                var result = await httpClient.GetFromJsonAsync<IEnumerable<Aplikacja>>($"Aplikacja/Select?appStatus={appStatus}");
+                var result = await httpClient.GetFromJsonAsync<IEnumerable<AplikacjaViewModel>>($"Aplikacja/Select?appStatus={appStatus}");
 
                 return result;
             }
