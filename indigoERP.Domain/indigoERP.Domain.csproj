@@ -7,11 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
+    <Compile Remove="Data\**" />
+    <Compile Remove="Dtos\**" />
+    <Compile Remove="Enumerators\_Autoryzacja\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <EmbeddedResource Remove="Dtos\**" />
+    <EmbeddedResource Remove="Enumerators\_Autoryzacja\**" />
+    <None Remove="Data\**" />
+    <None Remove="Dtos\**" />
+    <None Remove="Enumerators\_Autoryzacja\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Entities\_Autoryzacja\" />
-    <Folder Include="Enumerators\_Autoryzacja\" />
     <Folder Include="Enumerators\_Wspolne\" />
-    <Folder Include="Dtos\" />
   </ItemGroup>
 
   <ItemGroup>

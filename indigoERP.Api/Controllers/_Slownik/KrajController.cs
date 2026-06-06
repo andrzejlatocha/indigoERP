@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Entities._Slownik;
+using indigoERP.Domain.Enumerators._Slownik;
+using indigoERP.Domain.ViewModels._Slownik;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using indigoERP.Api.Data;
-using indigoERP.Domain.Entities._Slownik;
-using Microsoft.AspNetCore.Authorization;
-using indigoERP.Domain.ViewModels._Slownik;
-using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {

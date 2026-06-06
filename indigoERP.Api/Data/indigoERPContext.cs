@@ -90,6 +90,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<TypKontaktEnumerator> TypKontaktEnumerator { get; set; }
         public virtual DbSet<TypPlikEnumerator> TypPlikEnumerator { get; set; }
         public virtual DbSet<UrzadSkarbowyEnumerator> UrzadSkarbowyEnumerator { get; set; }
+        public virtual DbSet<WalutaEnumerator> WalutaEnumerator { get; set; }
         public virtual DbSet<WojewodztwoEnumerator> WojewodztwoEnumerator { get; set; }
 
         //Models
@@ -116,6 +117,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<WiadomoscViewModel> WiadomoscViewModel { get; set; }
         public virtual DbSet<WojewodztwoViewModel> WojewodztwoViewModel { get; set; }
+        public virtual DbSet<WalutaViewModel> WalutaViewModel { get; set; }
         public virtual DbSet<ZadanieViewModel> ZadanieViewModel { get; set; }
         public virtual DbSet<ZdarzenieViewModel> ZdarzenieViewModel { get; set; }
 

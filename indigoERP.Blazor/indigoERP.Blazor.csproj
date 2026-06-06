@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\**" />
+    <Content Remove="Data\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <None Remove="Data\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Pages\Index.html" />
   </ItemGroup>
 
@@ -14,11 +21,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.8" />
-    <PackageReference Include="Radzen.Blazor" Version="10.4.3" />
+    <PackageReference Include="Radzen.Blazor" Version="10.4.7" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
     <Folder Include="Pages\_Wiadomosc\" />
     <Folder Include="Pages\_Zadanie\" />
     <Folder Include="Pages\_Zdarzenie\" />
