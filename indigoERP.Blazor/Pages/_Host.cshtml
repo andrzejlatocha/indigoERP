@@ -14,13 +14,43 @@
     <link href="~/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/css/fontawesome.min.css" rel="stylesheet" />
     @* <link href="~/css/open-iconic/font/css/open-iconic-bootstrap.min.css" rel="stylesheet" /> *@
+    <link id="radzen-theme" href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet" />
     <link href="~/css/site.css" rel="stylesheet" />
     <link href="~/css/card.css" rel="stylesheet" />
     <link href="~/css/menu.css" rel="stylesheet" />
+    <link href="~/indigoERP.Blazor.styles.css" rel="stylesheet" />
 
-    <link href="_content/Radzen.Blazor/css/humanistic-base.css" rel="stylesheet" />
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        window.indigoTheme = window.indigoTheme || (function () {
+            const storageKey = "indigoERP.darkMode";
+            const lightTheme = "_content/Radzen.Blazor/css/material-base.css";
+            const darkTheme = "_content/Radzen.Blazor/css/material-dark-base.css";
 
-    <script src="~/js/site.js"></script>
+            function setDarkMode(isDarkMode) {
+                const theme = document.getElementById("radzen-theme");
+
+                if (theme) {
+                    theme.setAttribute("href", isDarkMode ? darkTheme : lightTheme);
+                }
+
+                document.documentElement.setAttribute("data-bs-theme", isDarkMode ? "dark" : "light");
+                localStorage.setItem(storageKey, isDarkMode ? "true" : "false");
+            }
+
+            function initialize() {
+                const isDarkMode = localStorage.getItem(storageKey) === "true";
+                setDarkMode(isDarkMode);
+
+                return isDarkMode;
+            }
+
+            return {
+                initialize,
+                setDarkMode
+            };
+        })();
+    </script>
     <script src="~/js/fontawesome.min.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 

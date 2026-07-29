@@ -13,7 +13,7 @@ body {
     width: 100%;
     white-space: nowrap;
     line-height: 60px;
-    background-color: #013473;
+    background-color: #575756;
 }
 
 .main-bg {
@@ -23,7 +23,12 @@ body {
 
 .liberty-bg {
     --bs-bg-opacity: 1;
-    background-color: #013473 !important;
+    background-color: #575756 !important;
+}
+
+.navbar-brand > img {
+    height: 43px;
+    width: auto;
 }
 
 .edit-caption {

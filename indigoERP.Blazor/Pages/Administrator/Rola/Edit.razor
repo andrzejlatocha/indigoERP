@@ -1,0 +1,59 @@
+﻿@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+
+@inject DialogService _dialogService
+
+<RadzenStack Gap="1rem" Class="p-3">
+    <RadzenFormField Text="Status" Style="width:100%">
+        <RadzenDropDown Data="@StatusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="@Model.srlStatus" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Aplikacja" Style="width:100%">
+        <RadzenDropDown Data="@ApplicationLookup" TextProperty="appNazwa" ValueProperty="appID" TValue="int"
+                        @bind-Value="@Model.srlAplikacjaID" AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Nazwa" Style="width:100%">
+        <RadzenTextBox @bind-Value="@Model.srlNazwa" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Opis" Style="width:100%">
+        <RadzenTextArea @bind-Value="@Model.srlOpis" Rows="3" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+        <RadzenCheckBox TValue="bool?" @bind-Value="@Model.srlBlokada" />
+        <RadzenLabel Text="Blokada" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+        <RadzenCheckBox TValue="bool?" @bind-Value="@Model.srlEdycja" />
+        <RadzenLabel Text="Edycja" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
+        <RadzenButton Text="Zapisz" Icon="save" ButtonStyle="ButtonStyle.Primary" Click="@Save" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public RolaViewModel Model { get; set; } = new();
+
+    [Parameter]
+    public IEnumerable<AplikacjaEnumerator> ApplicationLookup { get; set; } = Enumerable.Empty<AplikacjaEnumerator>();
+
+    private readonly List<StatusOption> StatusOptions = new()
+    {
+        new("Aktywne", "2"),
+        new("Anulowane", "1")
+    };
+
+    private void Save()
+    {
+        _dialogService.CloseSide(Model);
+    }
+
+    private void Cancel()
+    {
+        _dialogService.CloseSide(null);
+    }
+
+    private sealed record StatusOption(string Text, string Value);
+}

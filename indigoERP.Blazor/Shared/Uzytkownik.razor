@@ -55,35 +55,40 @@
 
 @code {
     private int usrID;
-    private string usrImie;
-    private string usrNazwisko;
-    private string wdzKod;
-    private string wdzSymbol;
-    private string wdzNazwa;
-    private string stnKod;
-    private string stnNazwa;
-    private string usrLogin;
-    private string usrEmail;
-    private string usrZdjecie;
+    private string usrImie = string.Empty;
+    private string usrNazwisko = string.Empty;
+    private string wdzKod = string.Empty;
+    private string wdzSymbol = string.Empty;
+    private string wdzNazwa = string.Empty;
+    private string stnKod = string.Empty;
+    private string stnNazwa = string.Empty;
+    private string usrLogin = string.Empty;
+    private string usrEmail = string.Empty;
+    private string usrZdjecie = "images/empty.png";
 
     protected async override Task OnInitializedAsync()
     {
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
         var uzytkownik = authState.User;
 
-        usrID = Convert.ToInt32(uzytkownik.FindFirst("usrID").Value);
-        usrImie = uzytkownik.FindFirst("usrImie").Value;
-        usrNazwisko = uzytkownik.FindFirst("usrNazwisko").Value;
-        usrLogin = uzytkownik.FindFirst("usrLogin").Value;
+        usrID = int.TryParse(GetClaimValue(uzytkownik, "usrID"), out var userId) ? userId : 0;
+        usrImie = GetClaimValue(uzytkownik, "usrImie");
+        usrNazwisko = GetClaimValue(uzytkownik, "usrNazwisko");
+        usrLogin = GetClaimValue(uzytkownik, "usrLogin");
 
-        wdzKod = uzytkownik.FindFirst("wdzKod").Value;
-        wdzSymbol = uzytkownik.FindFirst("wdzSymbol").Value;
-        wdzNazwa = uzytkownik.FindFirst("wdzNazwa").Value;
+        wdzKod = GetClaimValue(uzytkownik, "wdzKod");
+        wdzSymbol = GetClaimValue(uzytkownik, "wdzSymbol");
+        wdzNazwa = GetClaimValue(uzytkownik, "wdzNazwa");
 
-        stnKod = uzytkownik.FindFirst("stnKod").Value;
-        stnNazwa = uzytkownik.FindFirst("stnNazwa").Value;
+        stnKod = GetClaimValue(uzytkownik, "stnKod");
+        stnNazwa = GetClaimValue(uzytkownik, "stnNazwa");
 
-        usrEmail = uzytkownik.FindFirst("usrEmail").Value;
-        usrZdjecie = uzytkownik.FindFirst("usrZdjecie").Value;
+        usrEmail = GetClaimValue(uzytkownik, "usrEmail");
+        usrZdjecie = GetClaimValue(uzytkownik, "usrZdjecie", "images/empty.png");
+    }
+
+    private static string GetClaimValue(System.Security.Claims.ClaimsPrincipal user, string claimType, string defaultValue = "")
+    {
+        return user.FindFirst(claimType)?.Value ?? defaultValue;
     }
 }

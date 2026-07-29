@@ -47,7 +47,7 @@ services.AddAuthentication(options =>
 })
      .AddCookie("Cookie", options =>
      {
-         options.LoginPath = "/_Autoryzacja/Login";
+         options.LoginPath = "/Autoryzacja/Login";
          options.AccessDeniedPath = "/Denied";
          options.ExpireTimeSpan = TimeSpan.FromMinutes(configuration.GetSection("appSettings").GetValue<int>(key: "timeOut"));
      });

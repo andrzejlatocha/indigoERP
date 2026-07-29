@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.4.11506.43 insiders
+VisualStudioVersion = 18.4.11506.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "indigoERP.Domain", "indigoERP.Domain\indigoERP.Domain.csproj", "{FC90191B-BDA5-419C-81D0-8300622BA810}"
 EndProject
@@ -15,6 +15,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "indigoERP.Blazor", "indigoERP.Blazor\indigoERP.Blazor.csproj", "{491F4D4B-1D8E-4A16-AF64-DA8674ED14EA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "indigoERP.Api", "indigoERP.Api\indigoERP.Api.csproj", "{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "indigoERP.AppHost", "indigoERP.AppHost\indigoERP.AppHost.csproj", "{3324B5DF-E3F5-4166-9B9A-627A45C56FD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "indigoERP.ServiceDefaults", "indigoERP.ServiceDefaults\indigoERP.ServiceDefaults.csproj", "{ABD32079-9485-7ABC-538C-B51B3749A3CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +42,14 @@ Global
 		{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E45E8D3-08DD-47E9-A25C-C15B6FBA4803}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3324B5DF-E3F5-4166-9B9A-627A45C56FD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3324B5DF-E3F5-4166-9B9A-627A45C56FD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3324B5DF-E3F5-4166-9B9A-627A45C56FD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3324B5DF-E3F5-4166-9B9A-627A45C56FD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABD32079-9485-7ABC-538C-B51B3749A3CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABD32079-9485-7ABC-538C-B51B3749A3CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABD32079-9485-7ABC-538C-B51B3749A3CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABD32079-9485-7ABC-538C-B51B3749A3CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

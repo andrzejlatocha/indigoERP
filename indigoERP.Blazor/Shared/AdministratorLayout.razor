@@ -3,14 +3,12 @@
 <RadzenDialog />
 <RadzenTooltip />
 
-<div class="row">
-    <div class="col-12">
-        <AdministratorHeader />
-        <div>
-            @Body
-        </div>
-        <Footer />
-    </div>
+<div class="administrator-shell">
+    <AdministratorHeader />
+    <main class="administrator-content">
+        @Body
+    </main>
+    <Footer />
 </div>
 
 @code{

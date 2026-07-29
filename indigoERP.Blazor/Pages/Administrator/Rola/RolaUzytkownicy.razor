@@ -1,0 +1,194 @@
+﻿@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Domain.ViewModels._Autoryzacja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IRolaService _rolaService
+@inject IUzytkownikService _uzytkownikService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="0.75rem" Class="p-3">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+        <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
+    </RadzenStack>
+
+    @if (data == null)
+    {
+        <Load />
+    }
+    else
+    {
+        <RadzenDataGridApp @ref="grid" Data="@data" TItem="UzytkownikRolaViewModel" Density="Density.Compact"
+                        SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                        AllowPaging="true" PageSize="18" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                        RowCreate="@OnCreateRow">
+            <Columns>
+                <RadzenDataGridColumn TItem="UzytkownikRolaViewModel" Property="cwrID" Title="ID" Width="80px" />
+                <RadzenDataGridColumn TItem="UzytkownikRolaViewModel" Property="usrID" Title="Użytkownik">
+                    <Template Context="row">
+                        @row.usrNazwa
+                    </Template>
+                    <EditTemplate Context="row">
+                        <RadzenDropDown Data="@AvailableUsers" TextProperty="usrNazwa" ValueProperty="usrID" TValue="int"
+                                        @bind-Value="@row.usrID" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" />
+                    </EditTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="UzytkownikRolaViewModel" Property="usrStatus" Title="S" Width="70px">
+                    <Template Context="row">
+                        <RadzenImage Path="@($"Images/status/{row.usrStatus}.png")" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="UzytkownikRolaViewModel" Property="uwgDziedziczy" Title="Dz." Width="70px">
+                    <Template Context="row">
+                        <RadzenCheckBox TValue="bool" Value="@row.uwgDziedziczy" Disabled="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="UzytkownikRolaViewModel" Filterable="false" Sortable="false" Width="120px" TextAlign="TextAlign.Center">
+                    <Template Context="row">
+                        <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Disabled="@(row.uwgDziedziczy || row.cwrID <= 0)" Click="@(_ => DeleteRow(row))" />
+                    </Template>
+                    <EditTemplate Context="row">
+                        <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Click="@(_ => SaveRow(row))" />
+                        <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Click="@(_ => CancelEdit(row))" />
+                    </EditTemplate>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGridApp>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public int RolaID { get; set; }
+
+    private RadzenDataGridApp<UzytkownikRolaViewModel>? grid;
+    private IList<UzytkownikRolaViewModel> selectedItems = new List<UzytkownikRolaViewModel>();
+    private List<UzytkownikRolaViewModel>? data;
+    private List<UzytkownikViewModel> users = new();
+    private IEnumerable<UzytkownikViewModel> AvailableUsers => users.Where(w => w.usrID > 0 && data?.All(a => a.usrID != w.usrID) != false);
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = (await _uzytkownikService.Select("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        data = (await _rolaService.SelectUzytkownikByRola(-1, RolaID, "*")).ToList();
+    }
+
+    private async Task InsertRow()
+    {
+        if (grid == null)
+        {
+            return;
+        }
+
+        var user = AvailableUsers.FirstOrDefault();
+
+        if (user == null)
+        {
+            ShowResponse(409, string.Empty, "Brak użytkowników możliwych do dodania do tej roli.");
+            return;
+        }
+
+        await grid.InsertRow(new UzytkownikRolaViewModel { srlID = RolaID, usrID = user.usrID, usrStatus = "2", srlStatus = "2" });
+    }
+
+    private async Task SaveRow(UzytkownikRolaViewModel row)
+    {
+        if (grid != null)
+        {
+            await grid.UpdateRow(row);
+        }
+    }
+
+    private async Task CancelEdit(UzytkownikRolaViewModel row)
+    {
+        grid?.CancelEditRow(row);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(UzytkownikRolaViewModel row)
+    {
+        if (row.usrID <= 0)
+        {
+            ShowResponse(400, string.Empty, "Wybierz użytkownika.");
+            return;
+        }
+
+        var response = await _rolaService.InsertCzlonek(new RolaCzlonkowieDto { cwrRolaID = RolaID, cwrUzytkownikID = row.usrID, cwrStatus = "2" });
+        var success = response.Code >= 200 && response.Code < 300;
+        ShowResponse(response.Code, "Użytkownik został dodany do roli.", response.Message);
+
+        if (success)
+        {
+            grid?.CancelEditRow(row);
+        }
+
+        await ReloadDataAfterCreate(success ? response.Id : null, success ? row.usrID : 0);
+    }
+
+    private async Task ReloadDataAfterCreate(int? cwrID, int usrID)
+    {
+        data = new List<UzytkownikRolaViewModel>();
+        selectedItems = new List<UzytkownikRolaViewModel>();
+        await InvokeAsync(StateHasChanged);
+        await LoadData();
+        SelectRoleUser(cwrID, usrID);
+
+        if (grid != null)
+        {
+            await grid.Reload();
+        }
+    }
+
+    private async Task DeleteRow(UzytkownikRolaViewModel row)
+    {
+        if (row.uwgDziedziczy || row.cwrID <= 0)
+        {
+            ShowResponse(400, string.Empty, "Można usunąć tylko bezpośrednio przypisanego użytkownika.");
+            return;
+        }
+
+        var options = new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" };
+        var confirmed = await _dialogService.Confirm($"Usunąć użytkownika '{row.usrNazwa}' z roli?", "Potwierdzenie", options);
+
+        if (confirmed == true)
+        {
+            var response = await _rolaService.DeleteCzlonek(row.cwrID);
+            ShowResponse(response.Code, "Użytkownik został usunięty z roli.", response.Message);
+            await LoadData();
+            selectedItems = new List<UzytkownikRolaViewModel>();
+        }
+    }
+
+    private void SelectRoleUser(int? cwrID, int usrID)
+    {
+        var selected = data?.FirstOrDefault(w => cwrID > 0 ? w.cwrID == cwrID.Value : w.usrID == usrID);
+        selectedItems = selected == null ? new List<UzytkownikRolaViewModel>() : new List<UzytkownikRolaViewModel> { selected };
+    }
+
+    private void Close()
+    {
+        _dialogService.CloseSide(null);
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = code >= 200 && code < 300 ? NotificationSeverity.Success : NotificationSeverity.Error,
+            Summary = code >= 200 && code < 300 ? "Gotowe" : "Błąd",
+            Detail = code >= 200 && code < 300 ? successMessage : errorMessage ?? "Operacja nie powiodła się.",
+            Duration = 5000
+        });
+    }
+}

@@ -8,9 +8,21 @@
 
   <ItemGroup>
     <Compile Remove="Data\**" />
+    <Compile Remove="Pages\Wiadomosc\**" />
+    <Compile Remove="Pages\Zadanie\**" />
+    <Compile Remove="Pages\Zdarzenie\**" />
     <Content Remove="Data\**" />
+    <Content Remove="Pages\Wiadomosc\**" />
+    <Content Remove="Pages\Zadanie\**" />
+    <Content Remove="Pages\Zdarzenie\**" />
     <EmbeddedResource Remove="Data\**" />
+    <EmbeddedResource Remove="Pages\Wiadomosc\**" />
+    <EmbeddedResource Remove="Pages\Zadanie\**" />
+    <EmbeddedResource Remove="Pages\Zdarzenie\**" />
     <None Remove="Data\**" />
+    <None Remove="Pages\Wiadomosc\**" />
+    <None Remove="Pages\Zadanie\**" />
+    <None Remove="Pages\Zdarzenie\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,16 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="10.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.8" />
-    <PackageReference Include="Radzen.Blazor" Version="10.4.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Pages\_Wiadomosc\" />
-    <Folder Include="Pages\_Zadanie\" />
-    <Folder Include="Pages\_Zdarzenie\" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.10" />
+    <PackageReference Include="Radzen.Blazor" Version="11.1.9" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
   </ItemGroup>
 
   <ItemGroup>

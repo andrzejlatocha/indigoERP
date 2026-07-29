@@ -1,0 +1,379 @@
+﻿@page "/administrator/grupa"
+@page "/admistrator/grupa"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IGrupaService _grupaService
+@inject IAplikacjaService _aplikacjaService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow" Disabled="@(!HasSelectedGroup)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow" Disabled="@(!HasSelectedGroup)" />
+            <RadzenButton Text="Pokaż użytkowników" Icon="manage_accounts" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@ShowUsersForSelectedGroup" Disabled="@(!HasSelectedGroup)" />
+            <RadzenButton Text="Pokaż role" Icon="assignment_ind" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@ShowRolesForSelectedGroup" Disabled="@(!HasSelectedGroup)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Anulowane" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="GrupaViewModel" Density="Density.Compact"
+                            Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And" EditMode="DataGridEditMode.Single"
+                            RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
+                <Columns>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groID" Title="Symbol" Width="80px" />
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groStatus" Title="S" Width="70px">
+                        <Template Context="row">
+                            <RadzenImage Path="@($"Images/status/{row.groStatus}.png")" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@statusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="@row.groStatus" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groAplikacjaID" Title="Aplikacja" Width="180px">
+                        <Template Context="row">
+                            @GetApplicationName(row.groAplikacjaID)
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@applicationLookup" TextProperty="appNazwa" ValueProperty="appID" TValue="int"
+                                            @bind-Value="@row.groAplikacjaID" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groNazwa" Title="Nazwa">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.groNazwa" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groOpis" Title="Opis">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.groOpis" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groDataWaznosc" Title="Ważne do" Width="140px" FormatString="{0:d}">
+                        <EditTemplate Context="row">
+                            <RadzenDatePicker @bind-Value="@row.groDataWaznosc" DateFormat="d" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groAdministrator" Title="A" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool?" Value="@row.groAdministrator" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool?" @bind-Value="@row.groAdministrator" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groBlokada" Title="B" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool?" Value="@row.groBlokada" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool?" @bind-Value="@row.groBlokada" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Property="groEdycja" Title="E" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool?" Value="@row.groEdycja" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool?" @bind-Value="@row.groEdycja" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="GrupaViewModel" Context="row" Filterable="false" Sortable="false" Width="110px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => SaveRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => CancelEdit(row))" @onclick:stopPropagation="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<GrupaViewModel>? grid;
+    private IList<GrupaViewModel> selectedItems = new List<GrupaViewModel>();
+    private List<GrupaViewModel>? data;
+    private List<AplikacjaEnumerator> applicationLookup = new();
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+    private readonly List<StatusOption> statusOptions = new()
+    {
+        new("Aktywne", "2"),
+        new("Anulowane", "1")
+    };
+
+    private GrupaViewModel? SelectedGroup => selectedItems.FirstOrDefault();
+    private bool HasSelectedGroup => SelectedGroup != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        applicationLookup = (await _aplikacjaService.SelectLookup("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _grupaService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private async Task InsertRow()
+    {
+        var grupa = new GrupaViewModel
+        {
+            groStatus = "2",
+            groAplikacjaID = applicationLookup.FirstOrDefault()?.appID ?? 0,
+            groNazwa = string.Empty,
+            groOpis = string.Empty,
+            groAdministrator = false,
+            groBlokada = false,
+            groEdycja = true
+        };
+
+        var result = await OpenEditor("Dodaj grupę", grupa);
+
+        if (result is GrupaViewModel edited)
+        {
+            await OnCreateRow(edited);
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedGroup != null)
+        {
+            await EditRow(SelectedGroup);
+        }
+    }
+
+    private async Task EditRow(GrupaViewModel grupa)
+    {
+        var result = await OpenEditor("Popraw grupę", Clone(grupa));
+
+        if (result is GrupaViewModel edited)
+        {
+            await OnUpdateRow(edited);
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, GrupaViewModel grupa)
+    {
+        return await _dialogService.OpenSideAsync<Edit>(
+            title,
+            new Dictionary<string, object?>
+            {
+                ["Model"] = grupa,
+                ["ApplicationLookup"] = applicationLookup
+            },
+            GetSideDialogOptions());
+    }
+
+    private async Task SaveRow(GrupaViewModel grupa)
+    {
+        if (grid != null)
+        {
+            await grid.UpdateRow(grupa);
+        }
+    }
+
+    private async Task CancelEdit(GrupaViewModel grupa)
+    {
+        grid?.CancelEditRow(grupa);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(GrupaViewModel grupa)
+    {
+        var response = await _grupaService.Insert(ToDto(grupa));
+        ShowResponse(response.Code, "Grupa została dodana.", response.Message);
+        await LoadData();
+        SelectGroup(response.Code >= 200 && response.Code < 300 ? response.Id ?? grupa.groID : null);
+    }
+
+    private async Task OnUpdateRow(GrupaViewModel grupa)
+    {
+        var response = await _grupaService.Update(grupa.groID, ToDto(grupa));
+        ShowResponse(response.Code, "Grupa została zapisana.", response.Message);
+        await LoadData();
+        SelectGroup(response.Code >= 200 && response.Code < 300 ? grupa.groID : null);
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedGroup != null)
+        {
+            await DeleteRow(SelectedGroup);
+        }
+    }
+
+    private async Task DeleteRow(GrupaViewModel grupa)
+    {
+        var confirmed = await _dialogService.Confirm($"Usunąć grupę '{grupa.groNazwa}'?", "Potwierdzenie", new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _grupaService.Delete(grupa.groID);
+            ShowResponse(response.Code, "Grupa została usunięta.", response.Message);
+            await LoadData();
+            selectedItems = new List<GrupaViewModel>();
+        }
+    }
+
+    private void SelectGroup(int? groID)
+    {
+        var selected = groID.HasValue ? data?.FirstOrDefault(w => w.groID == groID.Value) : null;
+        selectedItems = selected == null ? new List<GrupaViewModel>() : new List<GrupaViewModel> { selected };
+    }
+
+    private async Task ShowRolesForSelectedGroup()
+    {
+        if (SelectedGroup == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<GrupaRole>(
+            $"Role grupy: {SelectedGroup.groNazwa}",
+            new Dictionary<string, object?> { ["GrupaID"] = SelectedGroup.groID },
+            GetRelationSideDialogOptions());
+    }
+
+    private async Task ShowUsersForSelectedGroup()
+    {
+        if (SelectedGroup == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<GrupaUzytkownicy>(
+            $"Użytkownicy grupy: {SelectedGroup.groNazwa}",
+            new Dictionary<string, object?> { ["GrupaID"] = SelectedGroup.groID },
+            GetRelationSideDialogOptions());
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private void ShowInfo(string message)
+    {
+        _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Informacja", Detail = message, Duration = 5000 });
+    }
+
+    private string? GetApplicationName(int appID)
+    {
+        return applicationLookup.FirstOrDefault(a => a.appID == appID)?.appNazwa;
+    }
+
+    private static GrupaDto ToDto(GrupaViewModel grupa)
+    {
+        return new GrupaDto
+        {
+            groID = grupa.groID,
+            groAplikacjaID = grupa.groAplikacjaID > 0 ? grupa.groAplikacjaID : null,
+            groNazwa = grupa.groNazwa,
+            groOpis = grupa.groOpis,
+            groDataWaznosc = grupa.groDataWaznosc,
+            groGrupaWszyscy = grupa.groGrupaWszyscy,
+            groAdministrator = grupa.groAdministrator,
+            groBlokada = grupa.groBlokada,
+            groEdycja = grupa.groEdycja,
+            groStatus = grupa.groStatus
+        };
+    }
+
+    private static GrupaViewModel Clone(GrupaViewModel grupa)
+    {
+        return new GrupaViewModel
+        {
+            groID = grupa.groID,
+            groTemporaryID = grupa.groTemporaryID,
+            groKluczSortowania = grupa.groKluczSortowania,
+            groAplikacjaID = grupa.groAplikacjaID,
+            groNazwa = grupa.groNazwa,
+            groNazwaAD = grupa.groNazwaAD,
+            groOpis = grupa.groOpis,
+            groDataWaznosc = grupa.groDataWaznosc,
+            groGrupaWszyscy = grupa.groGrupaWszyscy,
+            groAdministrator = grupa.groAdministrator,
+            groBlokada = grupa.groBlokada,
+            groEdycja = grupa.groEdycja,
+            groSynchronizacjaAD = grupa.groSynchronizacjaAD,
+            gruGuidAD = grupa.gruGuidAD,
+            groStatus = grupa.groStatus
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "560px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private static SideDialogOptions GetRelationSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "760px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private sealed record StatusOption(string Text, string Value);
+}

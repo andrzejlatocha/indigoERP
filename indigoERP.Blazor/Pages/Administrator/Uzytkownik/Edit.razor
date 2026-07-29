@@ -1,0 +1,160 @@
+﻿@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.ViewModels._Autoryzacja
+@using System.Globalization
+
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="1rem" Class="p-3">
+    <RadzenFormField Text="Status" Style="width:100%">
+        <RadzenDropDown Data="@StatusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="@Model.usrStatus" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Pracownik" Style="width:100%">
+        <RadzenDropDown TValue="int?" Data="@UniqueEmployeeLookup" TextProperty="prcOpis" ValueProperty="prcID"
+                        Value="@Model.usrPracownikID" Change="@OnEmployeeChange"
+                        AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Nazwa" Style="width:100%">
+        <RadzenTextBox @bind-Value="@Model.usrNazwa" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Imię" Style="width:100%">
+        <RadzenTextBox @bind-Value="@Model.usrImie" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Nazwisko" Style="width:100%">
+        <RadzenTextBox @bind-Value="@Model.usrNazwisko" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Email" Style="width:100%">
+        <RadzenTextBox @bind-Value="@Model.usrEmail" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Telefon" Style="width:100%">
+        <RadzenTextBox @bind-Value="@Model.usrTelefon" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+        <RadzenCheckBox TValue="bool?" @bind-Value="@Model.usrBlokada" />
+        <RadzenLabel Text="Blokada" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+        <RadzenCheckBox TValue="bool?" @bind-Value="@Model.usrEdycja" />
+        <RadzenLabel Text="Edycja" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" ButtonType="ButtonType.Button" Click="@Cancel" />
+        <RadzenButton Text="Zapisz" Icon="save" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Button" Click="@Save" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public UzytkownikViewModel Model { get; set; } = new();
+
+    [Parameter]
+    public IEnumerable<PracownikEnumerator> EmployeeLookup { get; set; } = Enumerable.Empty<PracownikEnumerator>();
+
+    private List<PracownikEnumerator> UniqueEmployeeLookup => EmployeeLookup
+        .Where(w => w.prcID > 0)
+        .GroupBy(g => g.prcID)
+        .Select(s => s.OrderBy(o => o.prcOpis).First())
+        .OrderBy(o => o.prcOpis)
+        .ToList();
+
+    private readonly List<StatusOption> StatusOptions = new()
+    {
+        new("Aktywne", "2"),
+        new("Anulowane", "1")
+    };
+
+    private void OnEmployeeChange(object? value)
+    {
+        var employeeId = ToNullableInt(value);
+        Model.usrPracownikID = employeeId;
+
+        var employee = UniqueEmployeeLookup.FirstOrDefault(f => f.prcID == employeeId);
+
+        if (employee == null)
+        {
+            return;
+        }
+
+        Model.usrNazwa = employee.prcKod ?? Model.usrNazwa;
+        Model.usrImie = employee.prcImie ?? Model.usrImie;
+        Model.usrNazwisko = employee.prcNazwisko ?? Model.usrNazwisko;
+        Model.wdzNazwa = employee.wdzNazwa ?? Model.wdzNazwa;
+        Model.stnNazwa = employee.stnNazwa ?? Model.stnNazwa;
+        ApplyGeneratedUserFields();
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(Model.usrNazwa))
+        {
+            ShowValidation("Nazwa użytkownika jest wymagana.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Model.usrImie) || string.IsNullOrWhiteSpace(Model.usrNazwisko))
+        {
+            ShowValidation("Imię i nazwisko są wymagane.");
+            return;
+        }
+
+        Model.usrStatus ??= "2";
+        Model.usrJezyk = string.IsNullOrWhiteSpace(Model.usrJezyk) ? "pl-PL" : Model.usrJezyk;
+        Model.usrEmail ??= string.Empty;
+        Model.usrTelefon ??= string.Empty;
+        Model.usrBlokada ??= false;
+        Model.usrEdycja ??= true;
+        ApplyGeneratedUserFields();
+        await _dialogService.CloseSideAsync(Model);
+    }
+
+    private async Task Cancel()
+    {
+        await _dialogService.CloseSideAsync(null);
+    }
+
+    private void ShowValidation(string message)
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Warning,
+            Summary = "Uzupełnij dane",
+            Detail = message,
+            Duration = 4000
+        });
+    }
+
+    private static int? ToNullableInt(object? value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (value is int intValue)
+        {
+            return intValue;
+        }
+
+        return int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), out var parsedValue)
+            ? parsedValue
+            : null;
+    }
+
+    private void ApplyGeneratedUserFields()
+    {
+        Model.usrInicjal = GenerateInitials(Model.usrImie, Model.usrNazwisko);
+    }
+
+    private static string GenerateInitials(string? firstName, string? lastName)
+    {
+        var culture = CultureInfo.GetCultureInfo("pl-PL");
+        var initials = new[] { firstName, lastName }
+            .Where(w => !string.IsNullOrWhiteSpace(w))
+            .Select(s => culture.TextInfo.ToUpper(s!.Trim()[0].ToString()));
+
+        return string.Concat(initials).PadRight(2).Substring(0, 2).Trim();
+    }
+
+    private sealed record StatusOption(string Text, string Value);
+}

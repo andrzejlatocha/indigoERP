@@ -1,0 +1,553 @@
+﻿@page "/administrator/uzytkownik"
+@page "/admistrator/uzytkownik"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.ViewModels._Autoryzacja
+@using indigoERP.Service.Interfaces._Administrator
+@using System.Globalization
+
+@inject IPracownikService _pracownikService
+@inject IUzytkownikService _uzytkownikService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow"
+                          Disabled="@(!HasSelectedUser)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow"
+                          Disabled="@(!HasSelectedUser)" />
+            <RadzenButton Text="Pokaż grupy" Icon="group_add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info"
+                          Click="@ShowGroupsForSelectedUser" Disabled="@(!HasSelectedUser)" />
+            <RadzenButton Text="Pokaż role" Icon="assignment_ind" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info"
+                          Click="@ShowRolesForSelectedUser" Disabled="@(!HasSelectedUser)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Anulowane" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Advanced"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="UzytkownikViewModel" Density="Density.Compact"
+                            Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LogicalFilterOperator="LogicalFilterOperator.And" 
+                            EditMode="DataGridEditMode.Single" RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
+                <Columns>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrID" Title="Symbol" Visible="false" />
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrNazwa" Title="Nazwa" Width="160px">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.usrNazwa" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrImie" Title="Imię" Width="110px">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.usrImie" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrNazwisko" Title="Nazwisko" Width="130px">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.usrNazwisko" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="wdzNazwa" Title="Wydział" Width="160px" />
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="stnNazwa" Title="Stanowisko" Width="180px" />
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrEmail" Title="Email" Width="280px">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.usrEmail" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrTelefon" Title="Telefon" Width="80px">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.usrTelefon" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrPracownikID" Title="Pracownik" Visible="false">
+                        <Template Context="row">
+                            @GetEmployeeDescription(row.usrPracownikID)
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown TValue="int?" Data="@employeeLookup" TextProperty="prcOpis" ValueProperty="prcID"
+                                            Value="@row.usrPracownikID" Change="@((object value) => OnEmployeeChange(row, value))"
+                                            AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                            Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrStatus" Title="S" Width="70px">
+                        <Template Context="row">
+                            <RadzenImage Path="@($"Images/status/{row.usrStatus}.png")" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@statusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="@row.usrStatus" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrBlokada" Title="B" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool?" Value="@row.usrBlokada" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool?" @bind-Value="@row.usrBlokada" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrEdycja" Title="E" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool?" Value="@row.usrEdycja" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool?" @bind-Value="@row.usrEdycja" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Context="row" Filterable="false" Sortable="false"
+                                          Width="110px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                          Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                          Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                          Click="@(_ => SaveRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                          Click="@(_ => CancelEdit(row))" @onclick:stopPropagation="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<UzytkownikViewModel>? grid;
+    private IList<UzytkownikViewModel> selectedItems = new List<UzytkownikViewModel>();
+    private List<UzytkownikViewModel>? data;
+    private List<PracownikEnumerator> employeeLookup = new();
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+    private readonly List<StatusOption> statusOptions = new()
+    {
+        new("Aktywne", "2"),
+        new("Anulowane", "1")
+    };
+
+    private UzytkownikViewModel? SelectedUser => selectedItems.FirstOrDefault();
+    private bool HasSelectedUser => SelectedUser != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employeeLookup = BuildUniqueEmployeeLookup(await _pracownikService.SelectLookup());
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _uzytkownikService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private async Task InsertRow()
+    {
+        var uzytkownik = new UzytkownikViewModel
+        {
+            usrStatus = "2",
+            usrNazwa = string.Empty,
+            usrImie = string.Empty,
+            usrNazwisko = string.Empty,
+            usrJezyk = "pl-PL",
+            usrEmail = string.Empty,
+            usrTelefon = string.Empty,
+            usrNowy = true,
+            usrBlokada = false,
+            usrEdycja = true
+        };
+
+        var result = await TryOpenEditor("Dodaj użytkownika", uzytkownik);
+
+        if (result is UzytkownikViewModel edited)
+        {
+            await TrySaveNewUser(edited);
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedUser != null)
+        {
+            await EditRow(SelectedUser);
+        }
+    }
+
+    private async Task EditRow(UzytkownikViewModel uzytkownik)
+    {
+        var result = await TryOpenEditor("Popraw użytkownika", Clone(uzytkownik));
+
+        if (result is UzytkownikViewModel edited)
+        {
+            await TrySaveExistingUser(edited);
+        }
+    }
+
+    private async Task TrySaveNewUser(UzytkownikViewModel uzytkownik)
+    {
+        try
+        {
+            await OnCreateRow(uzytkownik);
+        }
+        catch (Exception ex)
+        {
+            ShowResponse(600, string.Empty, ex.Message);
+        }
+    }
+
+    private async Task TrySaveExistingUser(UzytkownikViewModel uzytkownik)
+    {
+        try
+        {
+            await OnUpdateRow(uzytkownik);
+        }
+        catch (Exception ex)
+        {
+            ShowResponse(600, string.Empty, ex.Message);
+        }
+    }
+
+    private async Task<object?> TryOpenEditor(string title, UzytkownikViewModel uzytkownik)
+    {
+        try
+        {
+            return await OpenEditor(title, uzytkownik);
+        }
+        catch (Exception ex)
+        {
+            ShowResponse(600, string.Empty, ex.Message);
+            return null;
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, UzytkownikViewModel uzytkownik)
+    {
+        return await _dialogService.OpenSideAsync<Edit>(
+            title,
+            new Dictionary<string, object?>
+            {
+                ["Model"] = uzytkownik,
+                ["EmployeeLookup"] = employeeLookup
+            },
+            GetSideDialogOptions());
+    }
+
+    private async Task SaveRow(UzytkownikViewModel uzytkownik)
+    {
+        ApplyGeneratedUserFields(uzytkownik);
+
+        if (grid != null)
+        {
+            await grid.UpdateRow(uzytkownik);
+        }
+    }
+
+    private async Task CancelEdit(UzytkownikViewModel uzytkownik)
+    {
+        grid?.CancelEditRow(uzytkownik);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(UzytkownikViewModel uzytkownik)
+    {
+        ApplyGeneratedUserFields(uzytkownik);
+        var response = await _uzytkownikService.Insert(ToDto(uzytkownik));
+        ShowResponse(response.Code, "Użytkownik został dodany.", response.Message);
+        await LoadData();
+        SelectUser(response.Code >= 200 && response.Code < 300 ? response.Id ?? uzytkownik.usrID : null);
+    }
+
+    private async Task OnUpdateRow(UzytkownikViewModel uzytkownik)
+    {
+        ApplyGeneratedUserFields(uzytkownik);
+        var response = await _uzytkownikService.Update(uzytkownik.usrID, ToDto(uzytkownik));
+        ShowResponse(response.Code, "Użytkownik został zapisany.", response.Message);
+        await LoadData();
+        SelectUser(response.Code >= 200 && response.Code < 300 ? uzytkownik.usrID : null);
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedUser != null)
+        {
+            await DeleteRow(SelectedUser);
+        }
+    }
+
+    private async Task DeleteRow(UzytkownikViewModel uzytkownik)
+    {
+        var options = new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" };
+        var confirmed = await _dialogService.Confirm($"Usunąć użytkownika '{uzytkownik.usrNazwa}'?", "Potwierdzenie", options);
+
+        if (confirmed == true)
+        {
+            var response = await _uzytkownikService.Delete(uzytkownik.usrID);
+            ShowResponse(response.Code, "Użytkownik został usunięty.", response.Message);
+            await LoadData();
+            selectedItems = new List<UzytkownikViewModel>();
+        }
+    }
+
+    private void SelectUser(int? usrID)
+    {
+        var selected = usrID.HasValue ? data?.FirstOrDefault(w => w.usrID == usrID.Value) : null;
+        selectedItems = selected == null ? new List<UzytkownikViewModel>() : new List<UzytkownikViewModel> { selected };
+    }
+
+    private async Task ShowGroupsForSelectedUser()
+    {
+        if (SelectedUser == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<UzytkownikGrupy>(
+            $"Grupy użytkownika: {SelectedUser.usrNazwa}",
+            new Dictionary<string, object?> { ["UzytkownikID"] = SelectedUser.usrID },
+            GetWideRelationSideDialogOptions());
+    }
+
+    private async Task ShowRolesForSelectedUser()
+    {
+        if (SelectedUser == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<UzytkownikRole>(
+            $"Role użytkownika: {SelectedUser.usrNazwa}",
+            new Dictionary<string, object?> { ["UzytkownikID"] = SelectedUser.usrID },
+            GetRelationSideDialogOptions());
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Gotowe",
+                Detail = successMessage,
+                Duration = 5000
+            });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Błąd",
+                Detail = errorMessage ?? "Operacja nie powiodła się.",
+                Duration = 5000
+            });
+        }
+    }
+
+    private void ShowInfo(string message)
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Info,
+            Summary = "Informacja",
+            Detail = message,
+            Duration = 5000
+        });
+    }
+
+    private void OnEmployeeChange(UzytkownikViewModel uzytkownik, object? value)
+    {
+        var employeeId = ToNullableInt(value);
+        uzytkownik.usrPracownikID = employeeId;
+
+        var employee = employeeLookup.FirstOrDefault(f => f.prcID == employeeId);
+
+        if (employee == null)
+        {
+            return;
+        }
+
+        uzytkownik.usrNazwa = employee.prcKod ?? uzytkownik.usrNazwa;
+        uzytkownik.usrImie = employee.prcImie ?? uzytkownik.usrImie;
+        uzytkownik.usrNazwisko = employee.prcNazwisko ?? uzytkownik.usrNazwisko;
+        uzytkownik.wdzNazwa = employee.wdzNazwa ?? uzytkownik.wdzNazwa;
+        uzytkownik.stnNazwa = employee.stnNazwa ?? uzytkownik.stnNazwa;
+        ApplyGeneratedUserFields(uzytkownik);
+    }
+
+    private string? GetEmployeeDescription(int? employeeId)
+    {
+        return employeeLookup.FirstOrDefault(f => f.prcID == employeeId)?.prcOpis;
+    }
+
+    private static List<PracownikEnumerator> BuildUniqueEmployeeLookup(IEnumerable<PracownikEnumerator> source)
+    {
+        return source
+            .Where(w => w.prcID > 0)
+            .GroupBy(g => g.prcID)
+            .Select(s => s.OrderBy(o => o.prcOpis).First())
+            .OrderBy(o => o.prcOpis)
+            .ToList();
+    }
+
+    private static int? ToNullableInt(object? value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (value is int intValue)
+        {
+            return intValue;
+        }
+
+        return int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), out var parsedValue)
+            ? parsedValue
+            : null;
+    }
+
+    private static void ApplyGeneratedUserFields(UzytkownikViewModel uzytkownik)
+    {
+        uzytkownik.usrInicjal = GenerateInitials(uzytkownik.usrImie, uzytkownik.usrNazwisko);
+    }
+
+    private static string GenerateInitials(string? firstName, string? lastName)
+    {
+        var culture = CultureInfo.GetCultureInfo("pl-PL");
+        var initials = new[] { firstName, lastName }
+            .Where(w => !string.IsNullOrWhiteSpace(w))
+            .Select(s => culture.TextInfo.ToUpper(s!.Trim()[0].ToString()));
+
+        return string.Concat(initials).PadRight(2).Substring(0, 2).Trim();
+    }
+
+    private static UzytkownikDto ToDto(UzytkownikViewModel uzytkownik)
+    {
+        return new UzytkownikDto
+        {
+            usrID = uzytkownik.usrID,
+            usrNazwa = uzytkownik.usrNazwa,
+            usrImie = uzytkownik.usrImie,
+            usrNazwisko = uzytkownik.usrNazwisko,
+            usrInicjal = GenerateInitials(uzytkownik.usrImie, uzytkownik.usrNazwisko),
+            usrPracownikID = uzytkownik.usrPracownikID,
+            usrJezyk = uzytkownik.usrJezyk,
+            usrTelefon = uzytkownik.usrTelefon,
+            usrEmail = uzytkownik.usrEmail,
+            usrHaslo = uzytkownik.usrHaslo,
+            usrDataWaznoscHaslo = uzytkownik.usrDataWaznoscHaslo,
+            usrNowy = uzytkownik.usrNowy,
+            usrBlokada = uzytkownik.usrBlokada,
+            usrEdycja = uzytkownik.usrEdycja,
+            usrStatus = uzytkownik.usrStatus
+        };
+    }
+
+    private static UzytkownikViewModel Clone(UzytkownikViewModel uzytkownik)
+    {
+        return new UzytkownikViewModel
+        {
+            usrID = uzytkownik.usrID,
+            usrNazwa = uzytkownik.usrNazwa,
+            usrNazwaAD = uzytkownik.usrNazwaAD,
+            usrImie = uzytkownik.usrImie,
+            usrNazwisko = uzytkownik.usrNazwisko,
+            usrImieNazwisko = uzytkownik.usrImieNazwisko,
+            usrInicjal = uzytkownik.usrInicjal,
+            usrPracownikID = uzytkownik.usrPracownikID,
+            usrJezyk = uzytkownik.usrJezyk,
+            usrTelefon = uzytkownik.usrTelefon,
+            usrKomorka = uzytkownik.usrKomorka,
+            usrEmail = uzytkownik.usrEmail,
+            appFolder = uzytkownik.appFolder,
+            usrFolder = uzytkownik.usrFolder,
+            usrZdjecie = uzytkownik.usrZdjecie,
+            wdzKod = uzytkownik.wdzKod,
+            wdzSymbol = uzytkownik.wdzSymbol,
+            wdzNazwa = uzytkownik.wdzNazwa,
+            stnKod = uzytkownik.stnKod,
+            stnNazwa = uzytkownik.stnNazwa,
+            usrNumerKlucz = uzytkownik.usrNumerKlucz,
+            usrHaslo = uzytkownik.usrHaslo,
+            usrDataWaznoscHaslo = uzytkownik.usrDataWaznoscHaslo,
+            usrNowy = uzytkownik.usrNowy,
+            usrBlokada = uzytkownik.usrBlokada,
+            usrEdycja = uzytkownik.usrEdycja,
+            usrSynchronizacjaAD = uzytkownik.usrSynchronizacjaAD,
+            usrGuidAD = uzytkownik.usrGuidAD,
+            usrStatus = uzytkownik.usrStatus,
+            srlNazwa = uzytkownik.srlNazwa,
+            usrGuid = uzytkownik.usrGuid,
+            usrToken = uzytkownik.usrToken
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "560px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private static SideDialogOptions GetRelationSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "560px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private static SideDialogOptions GetWideRelationSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "1120px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false,
+            ContentCssClass = "administrator-relation-side-content"
+        };
+    }
+
+    private sealed record StatusOption(string Text, string Value);
+}

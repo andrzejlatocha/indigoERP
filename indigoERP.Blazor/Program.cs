@@ -1,6 +1,8 @@
-using indigoERP.Blazor.Utils;
+﻿using indigoERP.Blazor.Utils;
+using indigoERP.Service.Interfaces;
 using indigoERP.Service.Interfaces._Administrator;
 using indigoERP.Service.Interfaces._Autoryzacja;
+using indigoERP.Service.Services;
 using indigoERP.Service.Services._Administrator;
 using indigoERP.Service.Services._Autoryzacja;
 using Microsoft.AspNetCore.Authentication;
@@ -35,17 +37,17 @@ else
     services.AddServerSideBlazor();
 }
 
-string? baseApiUrl = configuration.GetSection("appSettings").GetValue<string>(key: "BaseApiUrl");
+var baseApiUri = GetConfiguredApiUri(configuration, "BaseApiUrl", "IndigoApiUrl");
 services.AddHttpClient("baseApiClient", client =>
 {
-    client.BaseAddress = new Uri(baseApiUrl);
+    client.BaseAddress = baseApiUri;
     client.DefaultRequestHeaders.Clear();
 });
 
-string? indigoApiUrl = configuration.GetSection("appSettings").GetValue<string>(key: "IndigoApiUrl");
+var indigoApiUri = GetConfiguredApiUri(configuration, "IndigoApiUrl");
 services.AddHttpClient("indigoApiClient", client =>
 {
-    client.BaseAddress = new Uri(indigoApiUrl);
+    client.BaseAddress = indigoApiUri;
     client.DefaultRequestHeaders.Clear();
 });
 
@@ -62,8 +64,12 @@ services.AddSingleton<IClaimsTransformation, ClaimsTransformation>();
 // Adminstrator
 services.AddScoped<IAplikacjaService, AplikacjaService>();
 services.AddScoped<IGrupaService, GrupaService>();
+services.AddScoped<IPracownikService, PracownikService>();
 services.AddScoped<IRolaService, RolaService>();
 services.AddScoped<IUzytkownikService, UzytkownikService>();
+
+// Home
+services.AddScoped<IHomeService, HomeService>();
 
 //Aplikacja
 
@@ -90,8 +96,68 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+
+static Uri GetConfiguredApiUri(IConfiguration configuration, string key, string? fallbackKey = null)
+{
+    var value = configuration[$"appSettings:{key}"];
+
+    if (TryCreateHttpUri(value, out var uri))
+    {
+        return uri;
+    }
+
+    if (!string.IsNullOrWhiteSpace(fallbackKey))
+    {
+        var fallbackValue = configuration[$"appSettings:{fallbackKey}"];
+
+        if (TryCreateHttpUri(fallbackValue, out uri))
+        {
+            return uri;
+        }
+    }
+
+    var configuredValue = string.IsNullOrWhiteSpace(value) ? "<puste>" : value.Trim();
+    throw new InvalidOperationException($"Nieprawidłowa konfiguracja appSettings:{key}: '{configuredValue}'.");
+}
+
+static bool TryCreateHttpUri(string? value, out Uri uri)
+{
+    uri = null!;
+
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        return false;
+    }
+
+    var normalizedValue = value.Trim();
+
+    if (!normalizedValue.Contains("://", StringComparison.Ordinal))
+    {
+        normalizedValue = $"https://{normalizedValue}";
+    }
+
+    if (!Uri.TryCreate(normalizedValue, UriKind.Absolute, out var parsedUri))
+    {
+        return false;
+    }
+
+    if (string.IsNullOrWhiteSpace(parsedUri.Host))
+    {
+        return false;
+    }
+
+    if (parsedUri.Scheme != Uri.UriSchemeHttp && parsedUri.Scheme != Uri.UriSchemeHttps)
+    {
+        return false;
+    }
+
+    uri = parsedUri;
+    return true;
+}

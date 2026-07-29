@@ -1,11 +1,11 @@
-﻿<nav class="navbar navbar-dark bg-dark navbar-expand-md header-color">
+﻿<nav class="navbar navbar-dark bg-dark navbar-expand-md header-color header-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
-            <img src="images/logo_white.png" />
+            <img class="app-header-logo" src="images/logo_white.svg" />
         </a>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a href="/" class="nav-link active">Główna</a></li>
+                <li class="nav-item"><a href="/home" class="nav-link active">Home</a></li>
 @*
                 <li class="nav-item"><a href="/desktop" class="nav-link">Pulpit</a></li>
                 <li class="nav-item"><a href="task" class="nav-link">Zadania</a></li>
@@ -18,7 +18,7 @@
 @*                 
                 <li class="nav-item"><a href="#" class="nav-link">Telefony</a></li> 
 *@
-                <AuthorizeView Roles="PL-SCX-APP-indigoER-Administrator">
+                <AuthorizeView Roles="HCZ-indigoERP-Administrator">
                     <li class="nav-item"><a href="/administrator/" class="nav-link active">Administrator</a></li>
                 </AuthorizeView>
             </ul>

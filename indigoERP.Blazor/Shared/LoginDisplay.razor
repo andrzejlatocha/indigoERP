@@ -1,17 +1,62 @@
 ﻿@inject DialogService _dialogService
+@inject IJSRuntime _jsRuntime
 
 <AuthorizeView>
-    <RadzenButton Text=@(context.User.FindFirst("usrNazwa").Value) Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" 
-        Click=@WyswietlUzytkownik />   
+    <Authorized Context="auth">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Class="login-display">
+            <RadzenSwitch @bind-Value="@isDarkMode" Change="@ChangeTheme" />
+            <RadzenButton Text="@GetUserName(auth)" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" Class="login-display__user"
+                          Click="@WyswietlUzytkownik" />
+        </RadzenStack>
+    </Authorized>
 </AuthorizeView>
 
-@code{
-    //string uzytkownik = _accessor.HttpContext.User.FindFirst("usrImie").Value; // + " " + context.User.FindFirst("usrNazwisko").Value;
+@code {
+    private bool isDarkMode;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                isDarkMode = await _jsRuntime.InvokeAsync<bool>("indigoTheme.initialize");
+                StateHasChanged();
+            }
+            catch (JSException)
+            {
+                isDarkMode = false;
+            }
+        }
+    }
 
     public async Task WyswietlUzytkownik()
     {
         await _dialogService.OpenAsync<Uzytkownik>("Dane użytkownika",
-             new Dictionary<string, object>() { },
-             new DialogOptions() { Width = "700px", Height = "512px", Resizable = false, Draggable = true });
+            new Dictionary<string, object?>(),
+            new DialogOptions { Width = "700px", Height = "512px", Resizable = false, Draggable = true });
+    }
+
+    private async Task ChangeTheme(bool value)
+    {
+        isDarkMode = value;
+
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("indigoTheme.setDarkMode", value);
+        }
+        catch (JSException)
+        {
+            isDarkMode = false;
+        }
+    }
+
+    private static string GetUserName(AuthenticationState auth)
+    {
+        var firstName = auth.User.FindFirst("usrImie")?.Value;
+        var lastName = auth.User.FindFirst("usrNazwisko")?.Value;
+        var fullName = $"{firstName} {lastName}".Trim();
+
+        return string.IsNullOrWhiteSpace(fullName) ? auth.User.FindFirst("usrNazwa")?.Value ?? auth.User.Identity?.Name ?? "Użytkownik" : fullName;
     }
 }

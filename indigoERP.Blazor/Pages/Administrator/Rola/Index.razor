@@ -1,0 +1,355 @@
+﻿@page "/administrator/rola"
+@page "/admistrator/rola"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IRolaService _rolaService
+@inject IAplikacjaService _aplikacjaService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow" Disabled="@(!HasSelectedRole)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow" Disabled="@(!HasSelectedRole)" />
+            <RadzenButton Text="Pokaż grupy" Icon="groups" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@ShowGroupsForSelectedRole" Disabled="@(!HasSelectedRole)" />
+            <RadzenButton Text="Pokaż użytkowników" Icon="manage_accounts" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@ShowUsersForSelectedRole" Disabled="@(!HasSelectedRole)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Anulowane" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="6" AllowPaging="true" TItem="RolaViewModel" Density="Density.Compact"
+                            Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And" EditMode="DataGridEditMode.Single"
+                            RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
+                <Columns>
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlID" Title="Symbol" Width="80px" />
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlStatus" Title="S" Width="70px">
+                        <Template Context="row">
+                            <RadzenImage Path="@($"Images/status/{row.srlStatus}.png")" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@statusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="@row.srlStatus" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlAplikacjaID" Title="Aplikacja" Width="180px">
+                        <Template Context="row">
+                            @GetApplicationName(row.srlAplikacjaID)
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@applicationLookup" TextProperty="appNazwa" ValueProperty="appID" TValue="int"
+                                            @bind-Value="@row.srlAplikacjaID" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlNazwa" Title="Nazwa">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.srlNazwa" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlOpis" Title="Opis">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.srlOpis" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlBlokada" Title="B" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool?" Value="@row.srlBlokada" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool?" @bind-Value="@row.srlBlokada" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlEdycja" Title="E" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool?" Value="@row.srlEdycja" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool?" @bind-Value="@row.srlEdycja" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RolaViewModel" Context="row" Filterable="false" Sortable="false" Width="110px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => SaveRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => CancelEdit(row))" @onclick:stopPropagation="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<RolaViewModel>? grid;
+    private IList<RolaViewModel> selectedItems = new List<RolaViewModel>();
+    private List<RolaViewModel>? data;
+    private List<AplikacjaEnumerator> applicationLookup = new();
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+    private readonly List<StatusOption> statusOptions = new()
+    {
+        new("Aktywne", "2"),
+        new("Anulowane", "1")
+    };
+
+    private RolaViewModel? SelectedRole => selectedItems.FirstOrDefault();
+    private bool HasSelectedRole => SelectedRole != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        applicationLookup = (await _aplikacjaService.SelectLookup("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _rolaService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private async Task InsertRow()
+    {
+        var rola = new RolaViewModel
+        {
+            srlStatus = "2",
+            srlAplikacjaID = applicationLookup.FirstOrDefault()?.appID ?? 0,
+            srlNazwa = string.Empty,
+            srlOpis = string.Empty,
+            srlBlokada = false,
+            srlEdycja = true
+        };
+
+        var result = await OpenEditor("Dodaj rolę", rola);
+
+        if (result is RolaViewModel edited)
+        {
+            await OnCreateRow(edited);
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedRole != null)
+        {
+            await EditRow(SelectedRole);
+        }
+    }
+
+    private async Task EditRow(RolaViewModel rola)
+    {
+        var result = await OpenEditor("Popraw rolę", Clone(rola));
+
+        if (result is RolaViewModel edited)
+        {
+            await OnUpdateRow(edited);
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, RolaViewModel rola)
+    {
+        return await _dialogService.OpenSideAsync<Edit>(
+            title,
+            new Dictionary<string, object?>
+            {
+                ["Model"] = rola,
+                ["ApplicationLookup"] = applicationLookup
+            },
+            GetSideDialogOptions());
+    }
+
+    private async Task SaveRow(RolaViewModel rola)
+    {
+        if (grid != null)
+        {
+            await grid.UpdateRow(rola);
+        }
+    }
+
+    private async Task CancelEdit(RolaViewModel rola)
+    {
+        grid?.CancelEditRow(rola);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(RolaViewModel rola)
+    {
+        var response = await _rolaService.Insert(ToDto(rola));
+        ShowResponse(response.Code, "Rola została dodana.", response.Message);
+        await LoadData();
+        SelectRole(response.Code >= 200 && response.Code < 300 ? response.Id ?? rola.srlID : null);
+    }
+
+    private async Task OnUpdateRow(RolaViewModel rola)
+    {
+        var response = await _rolaService.Update(rola.srlID, ToDto(rola));
+        ShowResponse(response.Code, "Rola została zapisana.", response.Message);
+        await LoadData();
+        SelectRole(response.Code >= 200 && response.Code < 300 ? rola.srlID : null);
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedRole != null)
+        {
+            await DeleteRow(SelectedRole);
+        }
+    }
+
+    private async Task DeleteRow(RolaViewModel rola)
+    {
+        var confirmed = await _dialogService.Confirm($"Usunąć rolę '{rola.srlNazwa}'?", "Potwierdzenie", new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _rolaService.Delete(rola.srlID);
+            ShowResponse(response.Code, "Rola została usunięta.", response.Message);
+            await LoadData();
+            selectedItems = new List<RolaViewModel>();
+        }
+    }
+
+    private void SelectRole(int? srlID)
+    {
+        var selected = srlID.HasValue ? data?.FirstOrDefault(w => w.srlID == srlID.Value) : null;
+        selectedItems = selected == null ? new List<RolaViewModel>() : new List<RolaViewModel> { selected };
+    }
+
+    private async Task ShowGroupsForSelectedRole()
+    {
+        if (SelectedRole == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<RolaGrupy>(
+            $"Grupy roli: {SelectedRole.srlNazwa}",
+            new Dictionary<string, object?> { ["RolaID"] = SelectedRole.srlID },
+            GetRelationSideDialogOptions());
+    }
+
+    private async Task ShowUsersForSelectedRole()
+    {
+        if (SelectedRole == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<RolaUzytkownicy>(
+            $"Użytkownicy roli: {SelectedRole.srlNazwa}",
+            new Dictionary<string, object?> { ["RolaID"] = SelectedRole.srlID },
+            GetRelationSideDialogOptions());
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private void ShowInfo(string message)
+    {
+        _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Informacja", Detail = message, Duration = 5000 });
+    }
+
+    private string? GetApplicationName(int appID)
+    {
+        return applicationLookup.FirstOrDefault(a => a.appID == appID)?.appNazwa;
+    }
+
+    private static RolaDto ToDto(RolaViewModel rola)
+    {
+        return new RolaDto
+        {
+            srlID = rola.srlID,
+            srlAplikacjaID = rola.srlAplikacjaID > 0 ? rola.srlAplikacjaID : null,
+            srlEdycja = rola.srlEdycja,
+            srlNazwa = rola.srlNazwa,
+            srlOpis = rola.srlOpis,
+            srlBlokada = rola.srlBlokada,
+            srlStatus = rola.srlStatus
+        };
+    }
+
+    private static RolaViewModel Clone(RolaViewModel rola)
+    {
+        return new RolaViewModel
+        {
+            srlID = rola.srlID,
+            srlKluczSortowania = rola.srlKluczSortowania,
+            srlAplikacjaID = rola.srlAplikacjaID,
+            srlEdycja = rola.srlEdycja,
+            srlNazwa = rola.srlNazwa,
+            srlOpis = rola.srlOpis,
+            srlBlokada = rola.srlBlokada,
+            srlStatus = rola.srlStatus
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "560px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private static SideDialogOptions GetRelationSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "760px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private sealed record StatusOption(string Text, string Value);
+}

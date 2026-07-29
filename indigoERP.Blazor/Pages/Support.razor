@@ -3,11 +3,13 @@
 @using System.Net.Mail;
 @using System.Net;
 @using indigoERP.Domain.Entities
+@using Microsoft.AspNetCore.Hosting
 
 @inject ILogger<SupportMessage> _logger
 @inject AuthenticationStateProvider _authenticationStateProvider
 @inject NavigationManager _navigationManager
 @inject DialogService _dialogService
+@inject IWebHostEnvironment _webHostEnvironment
 
 @if (supportMessage == null)
 {
@@ -20,7 +22,7 @@ else
             <div class="card">
                 <div class="card-body">
                     <h3 class="card-title">Zgłoszenie do IT Support</h3>
-                    <RadzenTemplateForm Data="@supportMessage" Submit="@((SupportMessage args) => { Submit(args); })" Class="w-100">
+                    <RadzenTemplateForm Data="@supportMessage" Submit="@((SupportMessage args) => Submit(args))" Class="w-100">
                         <DataAnnotationsValidator />
                         <RadzenRow Gap="2rem" Class="w-100">
                             <RadzenFieldset Text="Wiadomość" Class="w-100">
@@ -30,7 +32,8 @@ else
                                             <RadzenLabel Text="Temat" />
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="10">
-                                            <RadzenTextBox @bind-Value="supportMessage.msgTemat" AllowClear="true" Placeholder="Temat" Name="Temat" Class="w-100">
+                                            <RadzenTextBox @bind-Value="supportMessage.msgTemat" AllowClear="true" Placeholder="Temat" Name="Temat"
+                                                           Class="w-100">
                                             </RadzenTextBox>
                                             <ValidationMessage For="() => supportMessage.msgTemat" />
                                         </RadzenColumn>
@@ -38,7 +41,8 @@ else
                                             <RadzenLabel Text="Wiadomość" />
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="10">
-                                            <RadzenTextArea @bind-Value="supportMessage.msgWiadomosc" AllowClear="true" Placeholder="Wiadomość" Name="Wiadomość" Class="w-100 h-25">
+                                            <RadzenTextArea @bind-Value="supportMessage.msgWiadomosc" AllowClear="true" Placeholder="Wiadomość"
+                                                            Name="Wiadomość" Class="w-100" Style="height: 180px; min-height: 180px;">
                                             </RadzenTextArea>
                                             <ValidationMessage For="() => supportMessage.msgWiadomosc" />
                                         </RadzenColumn>
@@ -47,8 +51,10 @@ else
                             </RadzenFieldset>
                         </RadzenRow>
                         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Class="rz-mt-8 rz-mb-4">
-                            <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon="send" Text="Wyślij" />
-                            <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Anuluj" Click="@Cancel" />
+                            <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon='@(isSending ? "hourglass_empty" : "send")'
+                                          Text='@(isSending ? "Wysyłanie..." : "Wyślij")' Disabled="@isSending" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Anuluj"
+                                          Click="@Cancel" Disabled="@isSending" />
                         </RadzenStack>
                     </RadzenTemplateForm>
                 </div>
@@ -58,67 +64,93 @@ else
 }
 
 @code {
+    private const string SupportRecipient = "helpdesk@hutaczestochowa.com.pl";
+    private const string SupportSmtpHost = "poczta.hcz.com.pl";
+    private const int SupportSmtpPort = 25;
+    private const string SupportSmtpUser = "support@hcz.com.pl";
+    private const string SupportSmtpPassword = "Sup@0928";
+
     private SupportMessage supportMessage = new SupportMessage();
+    private bool isSending;
 
     protected async override Task OnInitializedAsync()
     {
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
         var uzytkownik = authState.User;
 
-        if (uzytkownik.Identity.IsAuthenticated)
+        if (uzytkownik.Identity?.IsAuthenticated == true)
         {
-            supportMessage.msgImie = uzytkownik.FindFirst("usrImie").Value;
-            supportMessage.msgNazwisko = uzytkownik.FindFirst("usrNazwisko").Value;
-            supportMessage.msgAdresEmailOd = uzytkownik.FindFirst("usrEmail").Value;
+            supportMessage.msgImie = uzytkownik.FindFirst("usrImie")?.Value ?? string.Empty;
+            supportMessage.msgNazwisko = uzytkownik.FindFirst("usrNazwisko")?.Value ?? string.Empty;
+            supportMessage.msgAdresEmailOd = uzytkownik.FindFirst("usrEmail")?.Value ?? string.Empty;
+            supportMessage.msgAdresEmailDo = SupportRecipient;
         }
     }
 
-    private async void Submit(SupportMessage supportMessage)
+    private async Task Submit(SupportMessage supportMessage)
     {
-        _logger.LogInformation("onValidHandleSubmit called");
-
-        string wiadomosc = File.ReadAllText(@"d:\mail.html");
-        wiadomosc = wiadomosc.Replace("{FirstName}", supportMessage.msgImie);
-        wiadomosc = wiadomosc.Replace("{LastName}", supportMessage.msgNazwisko);
-        wiadomosc = wiadomosc.Replace("{EmailAddress}", supportMessage.msgAdresEmailOd);
-        wiadomosc = wiadomosc.Replace("{Message}", supportMessage.msgWiadomosc);
-
-
-    // supportMessage.msgImie + " " + supportMessage.msgNazwisko + " (" + supportMessage.msgAdresEmailOd + ")" +
-        //     Environment.NewLine + Environment.NewLine + supportMessage.msgWiadomosc;
-
-        using (MailMessage mailMessage = new MailMessage { From = new MailAddress("support@libertyczestochowa.pl") })
+        if (isSending)
         {
-            MailAddress addTo = new MailAddress(supportMessage.msgAdresEmailDo);
-
-            mailMessage.To.Add(addTo);
-            mailMessage.Subject = supportMessage.msgTemat;
-            mailMessage.Body = wiadomosc;
-            mailMessage.IsBodyHtml = true;
-            try
-            {
-                using (SmtpClient clientSMTP = new SmtpClient("poczta.hcz.com.pl", 25) { Credentials = new NetworkCredential("support", "Sup@0928") })
-                {
-                    clientSMTP.Send(mailMessage);
-                }
-            }
-            catch (SmtpException ex)
-            {
-                throw new ApplicationException(String.Format("Klient SMTP wywołał wyjątek {0}", ex.Message));
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return;
         }
 
-        await _dialogService.Alert("Twoja wiadomość została wysłana poprawnie.", "Informacja", new AlertOptions() { OkButtonText = "OK" });
+        _logger.LogInformation("onValidHandleSubmit called");
+        isSending = true;
+        await InvokeAsync(StateHasChanged);
 
-        _navigationManager.NavigateTo("/");
+        try
+        {
+            if (string.IsNullOrWhiteSpace(supportMessage.msgAdresEmailOd))
+            {
+                await _dialogService.Alert("Nie znaleziono adresu email zalogowanego użytkownika.", "Błąd", new AlertOptions() { OkButtonText = "OK" });
+                return;
+            }
+
+            var templatePath = Path.Combine(_webHostEnvironment.WebRootPath, "support.html");
+            var wiadomosc = await File.ReadAllTextAsync(templatePath);
+            wiadomosc = wiadomosc.Replace("{{message}}", FormatMessage(supportMessage.msgWiadomosc));
+            supportMessage.msgAdresEmailDo = SupportRecipient;
+
+            using (MailMessage mailMessage = new MailMessage { From = new MailAddress(supportMessage.msgAdresEmailOd) })
+            {
+                MailAddress addTo = new MailAddress(SupportRecipient);
+
+                mailMessage.To.Add(addTo);
+                mailMessage.Subject = supportMessage.msgTemat;
+                mailMessage.Body = wiadomosc;
+                mailMessage.IsBodyHtml = true;
+                mailMessage.ReplyToList.Add(new MailAddress(supportMessage.msgAdresEmailOd));
+                try
+                {
+                    using (SmtpClient clientSMTP = new SmtpClient(SupportSmtpHost, SupportSmtpPort))
+                    {
+                        clientSMTP.Credentials = new NetworkCredential(SupportSmtpUser, SupportSmtpPassword);
+                        await clientSMTP.SendMailAsync(mailMessage);
+                    }
+                }
+                catch (SmtpException ex)
+                {
+                    throw new ApplicationException(String.Format("Klient SMTP wywołał wyjątek {0}", ex.Message));
+                }
+            }
+
+            await _dialogService.Alert("Twoja wiadomość została wysłana poprawnie.", "Informacja", new AlertOptions() { OkButtonText = "OK" });
+
+            _navigationManager.NavigateTo("/");
+        }
+        finally
+        {
+            isSending = false;
+        }
     }
 
     void Cancel()
     {        
         _navigationManager.NavigateTo("/");
+    }
+
+    private static string FormatMessage(string message)
+    {
+        return WebUtility.HtmlEncode(message ?? string.Empty).Replace("\r\n", "<br />").Replace("\n", "<br />");
     }
 }

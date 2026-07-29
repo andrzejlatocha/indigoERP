@@ -1,0 +1,185 @@
+﻿@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IRolaService _rolaService
+@inject IGrupaService _grupaService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="0.75rem" Class="p-3">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+        <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
+    </RadzenStack>
+
+    @if (data == null)
+    {
+        <Load />
+    }
+    else
+    {
+        <RadzenDataGridApp @ref="grid" Data="@data" TItem="GrupaRolaViewModel" Density="Density.Compact"
+                        SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                        AllowPaging="true" PageSize="18" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                        RowCreate="@OnCreateRow">
+            <Columns>
+                <RadzenDataGridColumn TItem="GrupaRolaViewModel" Property="cwrID" Title="ID" Width="80px" />
+                <RadzenDataGridColumn TItem="GrupaRolaViewModel" Property="groID" Title="Grupa">
+                    <Template Context="row">
+                        @row.groNazwa
+                    </Template>
+                    <EditTemplate Context="row">
+                        <RadzenDropDown Data="@AvailableGroups" TextProperty="groNazwa" ValueProperty="groID" TValue="int"
+                                        @bind-Value="@row.groID" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" />
+                    </EditTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="GrupaRolaViewModel" Property="groStatus" Title="S" Width="70px">
+                    <Template Context="row">
+                        <RadzenImage Path="@($"Images/status/{row.groStatus}.png")" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="GrupaRolaViewModel" Property="uwgDziedziczy" Title="Dz." Width="70px">
+                    <Template Context="row">
+                        <RadzenCheckBox TValue="bool" Value="@row.uwgDziedziczy" Disabled="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="GrupaRolaViewModel" Filterable="false" Sortable="false" Width="120px" TextAlign="TextAlign.Center">
+                    <Template Context="row">
+                        <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Disabled="@(row.uwgDziedziczy || row.cwrID <= 0)" Click="@(_ => DeleteRow(row))" />
+                    </Template>
+                    <EditTemplate Context="row">
+                        <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Click="@(_ => SaveRow(row))" />
+                        <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Click="@(_ => CancelEdit(row))" />
+                    </EditTemplate>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGridApp>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public int RolaID { get; set; }
+
+    private RadzenDataGridApp<GrupaRolaViewModel>? grid;
+    private IList<GrupaRolaViewModel> selectedItems = new List<GrupaRolaViewModel>();
+    private List<GrupaRolaViewModel>? data;
+    private List<GrupaViewModel> groups = new();
+    private IEnumerable<GrupaViewModel> AvailableGroups => groups.Where(w => w.groID > 0 && data?.All(a => a.groID != w.groID) != false);
+
+    protected override async Task OnInitializedAsync()
+    {
+        groups = (await _grupaService.Select("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        data = (await _rolaService.SelectGrupaByRola(-1, RolaID, "*")).ToList();
+    }
+
+    private async Task InsertRow()
+    {
+        if (grid == null)
+        {
+            return;
+        }
+
+        var group = AvailableGroups.FirstOrDefault();
+
+        if (group == null)
+        {
+            ShowResponse(409, string.Empty, "Brak grup możliwych do dodania do tej roli.");
+            return;
+        }
+
+        await grid.InsertRow(new GrupaRolaViewModel { srlID = RolaID, groID = group.groID, groStatus = "2", srlStatus = "2" });
+    }
+
+    private async Task SaveRow(GrupaRolaViewModel row)
+    {
+        if (grid != null)
+        {
+            await grid.UpdateRow(row);
+        }
+    }
+
+    private async Task CancelEdit(GrupaRolaViewModel row)
+    {
+        grid?.CancelEditRow(row);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(GrupaRolaViewModel row)
+    {
+        if (row.groID <= 0)
+        {
+            ShowResponse(400, string.Empty, "Wybierz grupę.");
+            return;
+        }
+
+        var response = await _rolaService.InsertCzlonek(new RolaCzlonkowieDto { cwrRolaID = RolaID, cwrGrupaID = row.groID, cwrStatus = "2" });
+        var success = response.Code >= 200 && response.Code < 300;
+        ShowResponse(response.Code, "Grupa została dodana do roli.", response.Message);
+
+        if (success)
+        {
+            grid?.CancelEditRow(row);
+        }
+
+        await LoadData();
+        SelectRoleGroup(success ? response.Id : null, success ? row.groID : 0);
+
+        if (grid != null)
+        {
+            await grid.Reload();
+        }
+    }
+
+    private async Task DeleteRow(GrupaRolaViewModel row)
+    {
+        if (row.uwgDziedziczy || row.cwrID <= 0)
+        {
+            ShowResponse(400, string.Empty, "Można usunąć tylko bezpośrednio przypisaną grupę.");
+            return;
+        }
+
+        var options = new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" };
+        var confirmed = await _dialogService.Confirm($"Usunąć grupę '{row.groNazwa}' z roli?", "Potwierdzenie", options);
+
+        if (confirmed == true)
+        {
+            var response = await _rolaService.DeleteCzlonek(row.cwrID);
+            ShowResponse(response.Code, "Grupa została usunięta z roli.", response.Message);
+            await LoadData();
+            selectedItems = new List<GrupaRolaViewModel>();
+        }
+    }
+
+    private void SelectRoleGroup(int? cwrID, int groID)
+    {
+        var selected = data?.FirstOrDefault(w => cwrID > 0 ? w.cwrID == cwrID.Value : w.groID == groID);
+        selectedItems = selected == null ? new List<GrupaRolaViewModel>() : new List<GrupaRolaViewModel> { selected };
+    }
+
+    private void Close()
+    {
+        _dialogService.CloseSide(null);
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = code >= 200 && code < 300 ? NotificationSeverity.Success : NotificationSeverity.Error,
+            Summary = code >= 200 && code < 300 ? "Gotowe" : "Błąd",
+            Detail = code >= 200 && code < 300 ? successMessage : errorMessage ?? "Operacja nie powiodła się.",
+            Duration = 5000
+        });
+    }
+}

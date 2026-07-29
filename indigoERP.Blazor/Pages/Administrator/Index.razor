@@ -1,0 +1,51 @@
+﻿@page "/administrator"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+<section class="administrator-home">
+    <div class="administrator-home__header">
+        <h2>Administracja</h2>
+        <p>Wybierz obszar konfiguracji systemu.</p>
+    </div>
+
+    <div class="administrator-home__tiles">
+        <a class="administrator-tile" href="/administrator/aplikacja">
+            <span class="administrator-tile__icon">
+                <RadzenIcon Icon="apps" />
+            </span>
+            <span class="administrator-tile__content">
+                <span class="administrator-tile__title">Aplikacje</span>
+                <span class="administrator-tile__description">Lista aplikacji i podstawowe ustawienia.</span>
+            </span>
+        </a>
+
+        <a class="administrator-tile" href="/administrator/rola">
+            <span class="administrator-tile__icon">
+                <RadzenIcon Icon="admin_panel_settings" />
+            </span>
+            <span class="administrator-tile__content">
+                <span class="administrator-tile__title">Role</span>
+                <span class="administrator-tile__description">Role, uprawnienia oraz powiązania.</span>
+            </span>
+        </a>
+
+        <a class="administrator-tile" href="/administrator/grupa">
+            <span class="administrator-tile__icon">
+                <RadzenIcon Icon="groups" />
+            </span>
+            <span class="administrator-tile__content">
+                <span class="administrator-tile__title">Grupy</span>
+                <span class="administrator-tile__description">Grupy użytkowników i przypisania.</span>
+            </span>
+        </a>
+
+        <a class="administrator-tile" href="/administrator/uzytkownik">
+            <span class="administrator-tile__icon">
+                <RadzenIcon Icon="manage_accounts" />
+            </span>
+            <span class="administrator-tile__content">
+                <span class="administrator-tile__title">Użytkownicy</span>
+                <span class="administrator-tile__description">Konta użytkowników i członkostwa.</span>
+            </span>
+        </a>
+    </div>
+</section>

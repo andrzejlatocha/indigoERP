@@ -1,0 +1,128 @@
+﻿@page "/"
+@page "/home"
+
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JSRuntime
+@inject IHomeService _homeService
+
+@using Microsoft.JSInterop;
+@using indigoERP.Domain.ViewModels;
+@using indigoERP.Service.Interfaces;
+
+<PageTitle>Home</PageTitle>
+
+<div class="home-page main-image">
+    <aside class="home-sidebar">
+        <nav class="navigation" aria-label="Aplikacje">
+            @if (data == null)
+            {
+                <div class="home-loader">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in data)
+                {
+                    <a href="@item.appLink" class="box">
+                        <span class="image">
+                            <img src="@item.appIkona" alt="Ikona" />
+                        </span>
+                        <span class="navigation-copy">
+                            <span class="title">@item.appNazwa</span>
+                            <span class="text">@item.appOpis</span>
+                        </span>
+                    </a>
+                }
+            }
+        </nav>
+    </aside>
+    <main class="home-content">
+        <section class="home-alerts">
+            <RadzenAlert ShowIcon="false" AlertStyle="AlertStyle.Danger" AllowClose="false" Shade="Shade.Light" Size="AlertSize.Small"
+                         Variant="Variant.Filled" Visible=@browserWarrningVisible class="w-100">
+                <i class="fa-solid fa-light-emergency-on fa-lg me-3"></i>
+                Zalecamy używanie przeglądarki Microsoft Edge w celu wykorzystywania wszystkich możliwości Microsoft 365!
+            </RadzenAlert>
+            <div class="home-alert home-alert--legacy" role="alert">
+                <i class="fa-solid fa-info"></i>
+                <span>Dostęp do starszych wersji aplikacji przez stronę <a href="https://intranet.hcz.com.pl" target="_blank">INTRANET</a>.</span>
+            </div>
+            <div class="home-alert home-alert--support" role="alert">
+                <i class="fa-solid fa-envelopes"></i>
+                <span>Masz problem, pytanie, uwagi czy nowy pomysł <a href="/support">napisz wiadomość do Działu IT</a>.</span>
+            </div>
+        </section>
+
+        <section class="workspace-grid" aria-label="Microsoft 365">
+            <a class="workspace-card" href="https://prometeusz.hcz.com.pl">
+                <span class="workspace-card__icon">
+                    <img src="images/helpdesk.png" alt="" />
+                </span>
+                <span class="workspace-card__body">
+                    <span class="workspace-card__title">IT Support</span>
+                    <span class="workspace-card__text">System pomocy Działu IT</span>
+                    <span class="workspace-card__action">Otwórz</span>
+                </span>
+            </a>
+            <a class="workspace-card" href="https://outlook.office.com/mail/">
+                <span class="workspace-card__icon">
+                    <img src="images/outlook.png" alt="" />
+                </span>
+                <span class="workspace-card__body">
+                    <span class="workspace-card__title">Poczta</span>
+                    <span class="workspace-card__text">Zarządzaj swoją pocztą przy pomocy Microsoft Outlook w przeglądarce.</span>
+                    <span class="workspace-card__action">Otwórz</span>
+                </span>
+            </a>
+            <a class="workspace-card" href="https://outlook.office.com/calendar/">
+                <span class="workspace-card__icon">
+                    <img src="images/calendar.png" alt="" />
+                </span>
+                <span class="workspace-card__body">
+                    <span class="workspace-card__title">Kalendarz</span>
+                    <span class="workspace-card__text">Organizuj swój czas. Kalendarz twój i twojego teamu jest zawsze dostępny.</span>
+                    <span class="workspace-card__action">Otwórz</span>
+                </span>
+            </a>
+            <a class="workspace-card" href="https://hutaczestochowa-my.sharepoint.com/">
+                <span class="workspace-card__icon">
+                    <img src="images/onedrive.png" alt="" />
+                </span>
+                <span class="workspace-card__body">
+                    <span class="workspace-card__title">OneDrive</span>
+                    <span class="workspace-card__text">Bądź bezpieczny, trzymaj wszystkie dokumenty w chmurze, gdzie są zawsze dostępne.</span>
+                    <span class="workspace-card__action">Otwórz</span>
+                </span>
+            </a>
+        </section>
+    </main>
+</div>
+
+@code{
+    IEnumerable<AplikacjaViewModel> data ;
+    bool browserWarrningVisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var result = await _homeService.SelectAplikacja("2");
+
+        data = result;
+
+        //await VerifyBrowser();
+    }
+
+    async Task VerifyBrowser()
+    {
+        string verifyInfo = await JSRuntime.InvokeAsync<string>(identifier: "identifyBrowser");
+
+        browserWarrningVisible = verifyInfo == "yes";
+    }
+}

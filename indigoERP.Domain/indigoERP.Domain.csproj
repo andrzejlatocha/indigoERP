@@ -8,24 +8,22 @@
 
   <ItemGroup>
     <Compile Remove="Data\**" />
-    <Compile Remove="Dtos\**" />
-    <Compile Remove="Enumerators\_Autoryzacja\**" />
+    <Compile Remove="Entities\Autoryzacja\**" />
+    <Compile Remove="Enumerators\Autoryzacja\**" />
     <EmbeddedResource Remove="Data\**" />
-    <EmbeddedResource Remove="Dtos\**" />
-    <EmbeddedResource Remove="Enumerators\_Autoryzacja\**" />
+    <EmbeddedResource Remove="Entities\Autoryzacja\**" />
+    <EmbeddedResource Remove="Enumerators\Autoryzacja\**" />
     <None Remove="Data\**" />
-    <None Remove="Dtos\**" />
-    <None Remove="Enumerators\_Autoryzacja\**" />
+    <None Remove="Entities\Autoryzacja\**" />
+    <None Remove="Enumerators\Autoryzacja\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\_Autoryzacja\" />
-    <Folder Include="Enumerators\_Wspolne\" />
+    <Folder Include="Enumerators\Wspolne\" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
   </ItemGroup>
 
 </Project>

@@ -52,3 +52,33 @@ function verifyBrowser() {
 
     return showInfo;
 }
+
+window.indigoTheme = (function () {
+    const storageKey = "indigoERP.darkMode";
+    const lightTheme = "_content/Radzen.Blazor/css/material-base.css";
+    const darkTheme = "_content/Radzen.Blazor/css/material-dark-base.css";
+
+    function setDarkMode(isDarkMode) {
+        const theme = document.getElementById("radzen-theme");
+
+        if (theme) {
+            theme.setAttribute("href", isDarkMode ? darkTheme : lightTheme);
+        }
+
+        document.documentElement.setAttribute("data-bs-theme", isDarkMode ? "dark" : "light");
+        localStorage.setItem(storageKey, isDarkMode ? "true" : "false");
+    }
+
+    function initialize() {
+        const storedValue = localStorage.getItem(storageKey);
+        const isDarkMode = storedValue === "true";
+        setDarkMode(isDarkMode);
+
+        return isDarkMode;
+    }
+
+    return {
+        initialize,
+        setDarkMode
+    };
+})();

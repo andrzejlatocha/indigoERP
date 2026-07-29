@@ -1,0 +1,330 @@
+﻿@page "/administrator/aplikacja"
+@page "/admistrator/aplikacja"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.ViewModels
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IAplikacjaService _aplikacjaService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow" Disabled="@(!HasSelectedApplication)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow" Disabled="@(!HasSelectedApplication)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Anulowane" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="AplikacjaViewModel" Density="Density.Compact"
+                            Class="administrator-grid"
+                            SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And" EditMode="DataGridEditMode.Single"
+                            RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
+                <Columns>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appID" Title="Symbol" Width="100px">
+                        <EditTemplate Context="row">
+                            <RadzenNumeric TValue="int" @bind-Value="@row.appID" Min="101" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appStatus" Title="S" Width="70px">
+                        <Template Context="row">
+                            <RadzenImage Path="@($"Images/status/{row.appStatus}.png")" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@statusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="@row.appStatus" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appNazwa" Title="Nazwa">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.appNazwa" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appWersja" Title="Wersja" Width="140px">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.appWersja" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appOpis" Title="Opis">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.appOpis" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appLink" Title="Link">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.appLink" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appWyswietl" Title="W" Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool" Value="@row.appWyswietl" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool" @bind-Value="@row.appWyswietl" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Context="row" Filterable="false" Sortable="false" Width="110px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => SaveRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => CancelEdit(row))" @onclick:stopPropagation="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<AplikacjaViewModel>? grid;
+    private IList<AplikacjaViewModel> selectedItems = new List<AplikacjaViewModel>();
+    private List<AplikacjaViewModel>? data;
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+    private readonly List<StatusOption> statusOptions = new()
+    {
+        new("Aktywne", "2"),
+        new("Anulowane", "1")
+    };
+
+    private AplikacjaViewModel? SelectedApplication => selectedItems.FirstOrDefault();
+    private bool HasSelectedApplication => SelectedApplication != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _aplikacjaService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private async Task InsertRow()
+    {
+        var aplikacja = new AplikacjaViewModel
+        {
+            appID = 101,
+            appStatus = "2",
+            appNazwa = string.Empty,
+            appWersja = string.Empty,
+            appOpis = string.Empty,
+            appLink = string.Empty,
+            appIkona = string.Empty,
+            appFolder = string.Empty,
+            appWyswietl = true
+        };
+
+        var result = await OpenEditor("Dodaj aplikację", aplikacja, true);
+
+        if (result is AplikacjaViewModel edited)
+        {
+            await OnCreateRow(edited);
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedApplication != null)
+        {
+            await EditRow(SelectedApplication);
+        }
+    }
+
+    private async Task EditRow(AplikacjaViewModel aplikacja)
+    {
+        var result = await OpenEditor("Popraw aplikację", Clone(aplikacja), false);
+
+        if (result is AplikacjaViewModel edited)
+        {
+            await OnUpdateRow(edited);
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, AplikacjaViewModel aplikacja, bool isInsert)
+    {
+        return await _dialogService.OpenSideAsync<Edit>(
+            title,
+            new Dictionary<string, object?> { ["Model"] = aplikacja, ["IsInsert"] = isInsert },
+            GetSideDialogOptions());
+    }
+
+    private async Task SaveRow(AplikacjaViewModel aplikacja)
+    {
+        if (grid != null)
+        {
+            await grid.UpdateRow(aplikacja);
+        }
+    }
+
+    private async Task CancelEdit(AplikacjaViewModel aplikacja)
+    {
+        grid?.CancelEditRow(aplikacja);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(AplikacjaViewModel aplikacja)
+    {
+        if (!ValidateApplication(aplikacja))
+        {
+            return;
+        }
+
+        var response = await _aplikacjaService.Insert(ToDto(aplikacja));
+        ShowResponse(response.Code, "Aplikacja została dodana.", response.Message);
+        await LoadData();
+        SelectApplication(response.Code >= 200 && response.Code < 300 ? response.Id ?? aplikacja.appID : null);
+    }
+
+    private async Task OnUpdateRow(AplikacjaViewModel aplikacja)
+    {
+        if (!ValidateApplication(aplikacja))
+        {
+            return;
+        }
+
+        var response = await _aplikacjaService.Update(aplikacja.appID, ToDto(aplikacja));
+        ShowResponse(response.Code, "Aplikacja została zapisana.", response.Message);
+        await LoadData();
+        SelectApplication(response.Code >= 200 && response.Code < 300 ? aplikacja.appID : null);
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedApplication != null)
+        {
+            await DeleteRow(SelectedApplication);
+        }
+    }
+
+    private async Task DeleteRow(AplikacjaViewModel aplikacja)
+    {
+        var confirmed = await _dialogService.Confirm($"Usunąć aplikację '{aplikacja.appNazwa}'?", "Potwierdzenie", new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _aplikacjaService.Delete(aplikacja.appID);
+            ShowResponse(response.Code, "Aplikacja została usunięta.", response.Message);
+            await LoadData();
+            selectedItems = new List<AplikacjaViewModel>();
+        }
+    }
+
+    private void SelectApplication(int? appID)
+    {
+        var selected = appID.HasValue ? data?.FirstOrDefault(w => w.appID == appID.Value) : null;
+        selectedItems = selected == null ? new List<AplikacjaViewModel>() : new List<AplikacjaViewModel> { selected };
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private bool ValidateApplication(AplikacjaViewModel aplikacja)
+    {
+        if (aplikacja.appID > 100)
+        {
+            return true;
+        }
+
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Error,
+            Summary = "Błąd",
+            Detail = "Symbol aplikacji musi być większy od 100.",
+            Duration = 5000
+        });
+
+        return false;
+    }
+
+    private static AplikacjaDto ToDto(AplikacjaViewModel aplikacja)
+    {
+        return new AplikacjaDto
+        {
+            appID = aplikacja.appID,
+            appNazwa = aplikacja.appNazwa,
+            appWersja = aplikacja.appWersja,
+            appOpis = aplikacja.appOpis,
+            appLink = aplikacja.appLink,
+            appIkona = aplikacja.appIkona,
+            appFolder = aplikacja.appFolder,
+            appWyswietl = aplikacja.appWyswietl,
+            appStatus = aplikacja.appStatus
+        };
+    }
+
+    private static AplikacjaViewModel Clone(AplikacjaViewModel aplikacja)
+    {
+        return new AplikacjaViewModel
+        {
+            appID = aplikacja.appID,
+            appNazwa = aplikacja.appNazwa,
+            appWersja = aplikacja.appWersja,
+            appOpis = aplikacja.appOpis,
+            appLink = aplikacja.appLink,
+            appIkona = aplikacja.appIkona,
+            appFolder = aplikacja.appFolder,
+            appWyswietl = aplikacja.appWyswietl,
+            appStatus = aplikacja.appStatus
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "520px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private sealed record StatusOption(string Text, string Value);
+}

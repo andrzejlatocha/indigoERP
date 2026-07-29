@@ -7,34 +7,29 @@ namespace indigoERP.Service.Extensions
 {
     public static class HttpClientExtensions
     {
-        public static HttpClient CreateClientWithToken(this HttpClient httpClient, string name, IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider)
+        public static async Task<HttpClient> CreateClientWithTokenAsync(this IHttpClientFactory httpClientFactory,
+            AuthenticationStateProvider authenticationStateProvider)
         {
-            httpClient = httpClientFactory.CreateClient("baseApiClient");
+            var httpClient = httpClientFactory.CreateClient("baseApiClient");
+            var authstate = await authenticationStateProvider.GetAuthenticationStateAsync();
+            var accessToken = authstate.User?.FindFirst("accessToken")?.Value;
 
-            if (authenticationStateProvider != null)
+            if (!string.IsNullOrWhiteSpace(accessToken))
             {
-                var authstate = Task.Run(async () => await authenticationStateProvider.GetAuthenticationStateAsync()).Result;
-                if (authstate.User != null)
-                {
-                    string accessToken = authstate.User.FindFirst("accessToken").Value;
-                    httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
-                }
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
 
             return httpClient;
         }
 
-        public static HttpClient AddTokenToHeader(this HttpClient httpClient, AuthenticationStateProvider authenticationStateProvider)
+        public static async Task<HttpClient> AddTokenToHeaderAsync(this HttpClient httpClient, AuthenticationStateProvider authenticationStateProvider)
         {
-            if (authenticationStateProvider != null)
-            {
-                var authstate = Task.Run(async () => await authenticationStateProvider.GetAuthenticationStateAsync()).Result;
+            var authstate = await authenticationStateProvider.GetAuthenticationStateAsync();
+            var accessToken = authstate.User?.FindFirst("accessToken")?.Value;
 
-                if (authstate.User != null)
-                {
-                    string accessToken = authstate.User.FindFirst("accessToken").Value;
-                    httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
-                }
+            if (!string.IsNullOrWhiteSpace(accessToken))
+            {
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
 
             return httpClient;

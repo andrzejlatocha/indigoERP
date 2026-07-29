@@ -1,0 +1,174 @@
+﻿@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Domain.ViewModels._Autoryzacja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IGrupaService _grupaService
+@inject IUzytkownikService _uzytkownikService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="0.75rem" Class="p-3">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+        <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
+    </RadzenStack>
+
+    @if (data == null)
+    {
+        <Load />
+    }
+    else
+    {
+        <RadzenDataGridApp @ref="grid" Data="@data" TItem="UzytkownikGrupaViewModel" Density="Density.Compact"
+                        SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                        AllowPaging="true" PageSize="18" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                        RowCreate="@OnCreateRow">
+            <Columns>
+                <RadzenDataGridColumn TItem="UzytkownikGrupaViewModel" Property="uwgID" Title="ID" Width="80px" />
+                <RadzenDataGridColumn TItem="UzytkownikGrupaViewModel" Property="usrID" Title="Użytkownik">
+                    <Template Context="row">
+                        @row.usrNazwa
+                    </Template>
+                    <EditTemplate Context="row">
+                        <RadzenDropDown Data="@users" TextProperty="usrNazwa" ValueProperty="usrID" TValue="int"
+                                        @bind-Value="@row.usrID" AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" />
+                    </EditTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="UzytkownikGrupaViewModel" Property="usrStatus" Title="S" Width="70px">
+                    <Template Context="row">
+                        <RadzenImage Path="@($"Images/status/{row.usrStatus}.png")" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="UzytkownikGrupaViewModel" Property="uwgDziedziczy" Title="Dz." Width="70px">
+                    <Template Context="row">
+                        <RadzenCheckBox TValue="bool" Value="@row.uwgDziedziczy" Disabled="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="UzytkownikGrupaViewModel" Filterable="false" Sortable="false" Width="120px" TextAlign="TextAlign.Center">
+                    <Template Context="row">
+                        <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Click="@(_ => DeleteRow(row))" />
+                    </Template>
+                    <EditTemplate Context="row">
+                        <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Click="@(_ => SaveRow(row))" />
+                        <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                      Click="@(_ => CancelEdit(row))" />
+                    </EditTemplate>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGridApp>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public int GrupaID { get; set; }
+
+    private RadzenDataGridApp<UzytkownikGrupaViewModel>? grid;
+    private IList<UzytkownikGrupaViewModel> selectedItems = new List<UzytkownikGrupaViewModel>();
+    private List<UzytkownikGrupaViewModel>? data;
+    private List<UzytkownikViewModel> users = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = (await _uzytkownikService.Select("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        data = (await _grupaService.SelectUzytkownikByGrupa(-1, GrupaID, "*")).ToList();
+    }
+
+    private async Task InsertRow()
+    {
+        if (grid == null)
+        {
+            return;
+        }
+
+        await grid.InsertRow(new UzytkownikGrupaViewModel { groID = GrupaID, usrID = users.FirstOrDefault()?.usrID ?? 0, groStatus = "2", usrStatus = "2" });
+    }
+
+    private async Task SaveRow(UzytkownikGrupaViewModel row)
+    {
+        if (grid != null)
+        {
+            await grid.UpdateRow(row);
+        }
+    }
+
+    private async Task CancelEdit(UzytkownikGrupaViewModel row)
+    {
+        grid?.CancelEditRow(row);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(UzytkownikGrupaViewModel row)
+    {
+        var dto = new GrupaCzlonkowieDto { uwgGrupaNadrzednaID = GrupaID, uwgUzytkownikID = row.usrID, uwgStatus = "2" };
+        var response = await _grupaService.InsertCzlonek(dto);
+        var success = response.Code >= 200 && response.Code < 300;
+        ShowResponse(response.Code, "Użytkownik został dodany do grupy.", response.Message);
+
+        if (success)
+        {
+            grid?.CancelEditRow(row);
+        }
+
+        await ReloadDataAfterCreate(success ? response.Id : null, success ? row.usrID : 0);
+    }
+
+    private async Task ReloadDataAfterCreate(int? uwgID, int usrID)
+    {
+        data = new List<UzytkownikGrupaViewModel>();
+        selectedItems = new List<UzytkownikGrupaViewModel>();
+        await InvokeAsync(StateHasChanged);
+        await LoadData();
+        SelectGroupUser(uwgID, usrID);
+
+        if (grid != null)
+        {
+            await grid.Reload();
+        }
+    }
+
+    private async Task DeleteRow(UzytkownikGrupaViewModel row)
+    {
+        var options = new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" };
+        var confirmed = await _dialogService.Confirm($"Usunąć użytkownika '{row.usrNazwa}' z grupy?", "Potwierdzenie", options);
+
+        if (confirmed == true)
+        {
+            var response = await _grupaService.DeleteCzlonek(row.uwgID);
+            ShowResponse(response.Code, "Użytkownik został usunięty z grupy.", response.Message);
+            await LoadData();
+            selectedItems = new List<UzytkownikGrupaViewModel>();
+        }
+    }
+
+    private void SelectGroupUser(int? uwgID, int usrID)
+    {
+        var selected = data?.FirstOrDefault(w => uwgID > 0 ? w.uwgID == uwgID.Value : w.usrID == usrID);
+        selectedItems = selected == null ? new List<UzytkownikGrupaViewModel>() : new List<UzytkownikGrupaViewModel> { selected };
+    }
+
+    private void Close()
+    {
+        _dialogService.CloseSide(null);
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = code >= 200 && code < 300 ? NotificationSeverity.Success : NotificationSeverity.Error,
+            Summary = code >= 200 && code < 300 ? "Gotowe" : "Błąd",
+            Detail = code >= 200 && code < 300 ? successMessage : errorMessage ?? "Operacja nie powiodła się.",
+            Duration = 5000
+        });
+    }
+}

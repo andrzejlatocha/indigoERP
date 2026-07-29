@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "indigoERP.AppHost/indigoERP.AppHost.csproj"
+  }
+}

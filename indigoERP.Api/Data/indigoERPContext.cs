@@ -2,6 +2,8 @@
 using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Wspolne;
+using indigoERP.Domain.Common;
+using indigoERP.Domain.Enumerators._Administrator;
 using indigoERP.Domain.Enumerators._Slownik;
 using indigoERP.Domain.ViewModels;
 using indigoERP.Domain.ViewModels._Administracja;
@@ -9,6 +11,7 @@ using indigoERP.Domain.ViewModels._Autoryzacja;
 using indigoERP.Domain.ViewModels._Slownik;
 using indigoERP.Domain.ViewModels._Wspolne;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace indigoERP.Api.Data
 {
@@ -75,6 +78,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Zdarzenie> Zdarzenie { get; set; }
 
         // Enumerators
+        public virtual DbSet<AplikacjaEnumerator> AplikacjaEnumerator { get; set; }
         public virtual DbSet<BankEnumerator> BankEnumerator { get; set; }
         public virtual DbSet<GminaEnumerator> GminaEnumerator { get; set; }
         public virtual DbSet<GodzinaEnumerator> GodzinaEnumerator { get; set; }
@@ -86,6 +90,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<PlecEnumerator> PlecEnumerator { get; set; }
         public virtual DbSet<PocztaEnumerator> PocztaEnumerator { get; set; }
         public virtual DbSet<PowiatEnumerator> PowiatEnumerator { get; set; }
+        public virtual DbSet<PracownikEnumerator> PracownikEnumerator { get; set; }
         public virtual DbSet<RodzajDokumentTozsamoscEnumerator> RodzajDokumentTozsamoscEnumerator { get; set; }
         public virtual DbSet<TypKontaktEnumerator> TypKontaktEnumerator { get; set; }
         public virtual DbSet<TypPlikEnumerator> TypPlikEnumerator { get; set; }
@@ -101,6 +106,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<AplikacjaUzytkownikViewModel> AplikacjaUzytkownikViewModel { get; set; }
         public virtual DbSet<DaneFirmaAdresViewModel> DaneFirmaAdresViewModel { get; set; }
         public virtual DbSet<DaneFirmaKontaktViewModel> DaneFirmaKontaktViewModel { get; set; }
+        public virtual DbSet<GrupaViewModel> GrupaViewModel { get; set; }
         public virtual DbSet<GminaViewModel> GminaViewModel { get; set; }
         public virtual DbSet<GrupaAplikacjaViewModel> GrupaAplikacjaViewModel { get; set; }
         public virtual DbSet<GrupaRolaViewModel> GrupaRolaViewModel { get; set; }
@@ -110,9 +116,11 @@ namespace indigoERP.Api.Data
         public virtual DbSet<MiejscowoscViewModel> MiejscowoscViewModel { get; set; }
         public virtual DbSet<PocztaViewModel> PocztaViewModel { get; set; }
         public virtual DbSet<PowiatViewModel> PowiatViewModel { get; set; }
+        public virtual DbSet<RolaViewModel> RolaViewModel { get; set; }
         public virtual DbSet<RolaAplikacjaViewModel> RolaAplikacjaViewModel { get; set; }
         public virtual DbSet<UzytkownikAplikacjaViewModel> UzytkownikAplikacjaViewModel { get; set; }
         public virtual DbSet<UzytkownikGrupaViewModel> UzytkownikGrupaViewModel { get; set; }
+        public virtual DbSet<UzytkownikLoginViewModel> UzytkownikLoginViewModel { get; set; }
         public virtual DbSet<UzytkownikRolaViewModel> UzytkownikRolaViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<WiadomoscViewModel> WiadomoscViewModel { get; set; }
@@ -132,10 +140,62 @@ namespace indigoERP.Api.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasAnnotation("Relational:Collation", "Polish_CI_AS");
+            modelBuilder.Entity<Aplikacja>().ToTable("Aplikacja", "dbo");
+            modelBuilder.Entity<Grupa>().ToTable("Grupa", "dbo");
+            modelBuilder.Entity<GrupaCzlonkowie>().ToTable("GrupaCzlonkowie", "dbo");
+            modelBuilder.Entity<Rola>().ToTable("Rola", "dbo");
+            modelBuilder.Entity<RolaCzlonkowie>().ToTable("RolaCzlonkowie", "dbo");
+            var uzytkownik = modelBuilder.Entity<Uzytkownik>();
+            uzytkownik.ToTable("Uzytkownik", "dbo");
+
+            var usrImieNazwisko = uzytkownik.Property(p => p.usrImieNazwisko).ValueGeneratedOnAddOrUpdate();
+            usrImieNazwisko.Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Ignore);
+            usrImieNazwisko.Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
             OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+        public override int SaveChanges()
+        {
+            ApplyAuditFields();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            ApplyAuditFields();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void ApplyAuditFields()
+        {
+            var now = DateTime.Now;
+
+            foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.DataUtworzenie ??= now;
+                    entry.Entity.DataModyfikacja ??= now;
+                    entry.Entity.Usuniety ??= false;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.DataModyfikacja = now;
+                    entry.Property(p => p.DataUtworzenie).IsModified = false;
+                    entry.Property(p => p.UtworzenieID).IsModified = false;
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.Entity.DataModyfikacja = now;
+                    entry.Entity.Usuniety = true;
+                    entry.Property(p => p.DataUtworzenie).IsModified = false;
+                    entry.Property(p => p.UtworzenieID).IsModified = false;
+                }
+            }
+        }
     }
 }

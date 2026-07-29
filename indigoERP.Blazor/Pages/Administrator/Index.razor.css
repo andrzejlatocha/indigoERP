@@ -1,0 +1,108 @@
+﻿.administrator-home {
+    padding: 24px;
+}
+
+.administrator-home__header {
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.administrator-home__header h2 {
+    margin: 0;
+    color: #343a40;
+    font-size: 1.45rem;
+    font-weight: 600;
+}
+
+.administrator-home__header p {
+    margin: 4px 0 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.administrator-home__tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.administrator-tile {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 116px;
+    padding: 18px;
+    color: #343a40;
+    text-decoration: none;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(33, 37, 41, 0.06);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.administrator-tile:hover,
+.administrator-tile:focus {
+    color: #212529;
+    text-decoration: none;
+    border-color: #adb5bd;
+    box-shadow: 0 10px 24px rgba(33, 37, 41, 0.10);
+    transform: translateY(-2px);
+}
+
+.administrator-tile:focus-visible {
+    outline: 3px solid rgba(87, 87, 86, 0.25);
+    outline-offset: 3px;
+}
+
+.administrator-tile__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    color: #fff;
+    background: #575756;
+    border-radius: 8px;
+}
+
+.administrator-tile__icon ::deep .rz-icon {
+    font-size: 24px;
+}
+
+.administrator-tile__content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.administrator-tile__title {
+    color: #212529;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.administrator-tile__description {
+    margin-top: 6px;
+    color: #6c757d;
+    font-size: 0.87rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 1199.98px) {
+    .administrator-home__tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .administrator-home {
+        padding: 16px;
+    }
+
+    .administrator-home__tiles {
+        grid-template-columns: 1fr;
+    }
+}

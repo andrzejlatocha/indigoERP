@@ -1,4 +1,4 @@
-using EntityFrameworkCore.UseRowNumberForPaging;
+﻿using EntityFrameworkCore.UseRowNumberForPaging;
 using indigoERP.Api.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +7,8 @@ using Microsoft.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
 var configuration = builder.Configuration;
 var services = builder.Services;
 var connectionString = builder.Configuration.GetConnectionString("indigoERPConnection");
@@ -83,6 +85,8 @@ services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+app.MapDefaultEndpoints();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -95,6 +99,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

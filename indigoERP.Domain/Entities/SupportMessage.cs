@@ -6,7 +6,7 @@ namespace indigoERP.Domain.Entities
     {
         public SupportMessage()
         {
-            msgAdresEmailDo = "itsupport.czestochowa@libertysteelgroup.com"; 
+            msgAdresEmailDo = "itsupport@hutaczestochowa.com.pl";
         }
 
         public string msgImie { get; set; }
