@@ -26,6 +26,33 @@
     gap: 14px;
 }
 
+.administrator-tile--featured {
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.administrator-tile--success {
+    background: #d1e7dd;
+    border-color: #a3cfbb;
+}
+
+.administrator-tile--success:hover,
+.administrator-tile--success:focus {
+    border-color: #75b798;
+}
+
+.administrator-tile--success .administrator-tile__icon {
+    background: #198754;
+}
+
+.administrator-tile--success .administrator-tile__title {
+    color: #0f5132;
+}
+
+.administrator-tile--success .administrator-tile__description {
+    color: #146c43;
+}
+
 .administrator-tile {
     display: flex;
     align-items: flex-start;

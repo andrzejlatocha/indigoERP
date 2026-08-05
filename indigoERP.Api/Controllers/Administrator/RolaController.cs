@@ -56,42 +56,30 @@ namespace indigoERP.Api.Controllers._Administrator
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<UzytkownikRolaViewModel>>> SelectUzytkownikByRola(int appID, int srlID, string usrStatus)
         {
-            var inheritedUsers = await _context.UzytkownikRolaViewModel
-                .Where(w => (w.appID == appID || appID == -1) && w.srlID == srlID && (w.usrStatus == usrStatus || usrStatus == "*"))
+            // Widok mvw.vUzytkownikRolaEfektywna trzyma już całą logikę (bezpośrednie + dziedziczone
+            // członkostwo przez grupę, deduplikacja z priorytetem dla wiersza z widoku) — patrz analogiczne
+            // użycie w UzytkownikController.SelectRolaByUzytkownik (ten sam widok, filtrowany z drugiej strony).
+            return await _context.UzytkownikRolaEfektywnaViewModel
+                .Where(w => w.srlID == srlID
+                    && (w.appID == appID || appID == -1)
+                    && (w.usrStatus == usrStatus || usrStatus == "*"))
+                .Select(w => new UzytkownikRolaViewModel
+                {
+                    cwrID = w.cwrID,
+                    appID = w.appID,
+                    usrID = w.usrID,
+                    usrNazwa = w.usrNazwa,
+                    usrNazwaAD = w.usrNazwaAD,
+                    usrStatus = w.usrStatus,
+                    srlID = w.srlID,
+                    srlNazwa = w.srlNazwa,
+                    srlOpis = w.srlOpis,
+                    srlStatus = w.srlStatus,
+                    uwgPoziom = w.uwgPoziom,
+                    uwgDziedziczy = w.uwgDziedziczy
+                })
+                .AsNoTracking()
                 .ToListAsync();
-
-            var directUsers = await _context.RolaCzlonkowie
-                .Where(w => w.cwrRolaID == srlID && w.cwrUzytkownikID != null && (w.cwrStatus == "2" || w.cwrStatus == null))
-                .Join(_context.Uzytkownik,
-                    c => c.cwrUzytkownikID,
-                    u => u.usrID,
-                    (c, u) => new { Czlonek = c, Uzytkownik = u })
-                .Join(_context.Rola,
-                    cu => cu.Czlonek.cwrRolaID,
-                    r => r.srlID,
-                    (cu, r) => new UzytkownikRolaViewModel
-                    {
-                        cwrID = cu.Czlonek.cwrID,
-                        appID = r.srlAplikacjaID ?? 0,
-                        usrID = cu.Uzytkownik.usrID,
-                        usrNazwa = cu.Uzytkownik.usrNazwa,
-                        usrNazwaAD = null,
-                        usrStatus = cu.Uzytkownik.usrStatus,
-                        srlID = r.srlID,
-                        srlNazwa = r.srlNazwa,
-                        srlOpis = r.srlOpis,
-                        srlStatus = r.srlStatus,
-                        uwgPoziom = 0,
-                        uwgDziedziczy = false
-                    })
-                .Where(w => (w.appID == appID || appID == -1) && (w.usrStatus == usrStatus || usrStatus == "*"))
-                .ToListAsync();
-
-            return inheritedUsers
-                .Concat(directUsers)
-                .GroupBy(g => new { g.cwrID, g.usrID, g.srlID })
-                .Select(s => s.First())
-                .ToList();
         }
 
         [HttpGet("{srlID}")]

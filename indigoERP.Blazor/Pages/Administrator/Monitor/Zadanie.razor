@@ -1,0 +1,130 @@
+﻿@page "/administrator/monitor/zadanie/{srvID:int}"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject ISerwerService _serwerService
+@inject NavigationManager _navigationManager
+
+<div class="administrator-index-page">
+    <div class="row w-100 ms-1 pt-2">
+        <div class="col-8">
+            <RadzenButton Text="Powrót do Monitoringu" Icon="arrow_back" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                          Click="@(() => _navigationManager.NavigateTo("/administrator/monitor"))" />
+            <h4 class="mt-2">JOB-y SQL Agenta @(serwerNazwa != null ? $"— {serwerNazwa}" : "")</h4>
+            <p class="text-muted">Zadania rozpoczynające się od "ujb" i "MaintenancePlan".</p>
+        </div>
+        <div class="col-4">
+            <div class="float-end">
+                <RadzenButton Text="Zarządzaj serwerami" Icon="dns" ButtonStyle="ButtonStyle.Light"
+                              Click="@(() => _navigationManager.NavigateTo("/administrator/serwer"))" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row w-100 mt-2 ms-1 me-2">
+        @if (loading)
+        {
+            <Load />
+        }
+        else if (errorMessage != null)
+        {
+            <div class="col-12">
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Light" ShowIcon="true" AllowClose="false">
+                    @errorMessage
+                </RadzenAlert>
+            </div>
+        }
+        else
+        {
+            <div class="col-6">
+                <h5>ujb*</h5>
+                <RadzenDataGrid Data="@ujbJoby" TItem="SqlAgentJobViewModel" AllowSorting="true" AllowFiltering="true" FilterMode="FilterMode.Simple" Density="Density.Compact">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="JobName" Title="Nazwa" />
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="Enabled" Title="Włączony" Width="100px" TextAlign="TextAlign.Center">
+                            <Template Context="row">
+                                <RadzenCheckBox TValue="bool" Value="@row.Enabled" Disabled="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="OstatniStatus" Title="Ostatni status" Width="130px">
+                            <Template Context="row">
+                                <span class="@StatusClass(row.OstatniStatus)">@row.OstatniStatus</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="OstatnieUruchomienie" Title="Ostatnie uruchomienie" Width="170px">
+                            <Template Context="row">
+                                @(row.OstatnieUruchomienie?.ToString("dd.MM.yyyy HH:mm:ss") ?? "-")
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+            <div class="col-6">
+                <h5>MaintenancePlan*</h5>
+                <RadzenDataGrid Data="@maintenanceJoby" TItem="SqlAgentJobViewModel" AllowSorting="true" AllowFiltering="true" FilterMode="FilterMode.Simple" Density="Density.Compact">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="JobName" Title="Nazwa" />
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="Enabled" Title="Włączony" Width="100px" TextAlign="TextAlign.Center">
+                            <Template Context="row">
+                                <RadzenCheckBox TValue="bool" Value="@row.Enabled" Disabled="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="OstatniStatus" Title="Ostatni status" Width="130px">
+                            <Template Context="row">
+                                <span class="@StatusClass(row.OstatniStatus)">@row.OstatniStatus</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="OstatnieUruchomienie" Title="Ostatnie uruchomienie" Width="170px">
+                            <Template Context="row">
+                                @(row.OstatnieUruchomienie?.ToString("dd.MM.yyyy HH:mm:ss") ?? "-")
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int srvID { get; set; }
+
+    private bool loading = true;
+    private string? errorMessage;
+    private string? serwerNazwa;
+    private List<SqlAgentJobViewModel> ujbJoby = new();
+    private List<SqlAgentJobViewModel> maintenanceJoby = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var serwer = await _serwerService.Get(srvID);
+            serwerNazwa = serwer?.srvNazwa;
+
+            var joby = (await _serwerService.SelectJoby(srvID)).ToList();
+
+            ujbJoby = joby.Where(w => w.JobName.StartsWith("ujb", StringComparison.OrdinalIgnoreCase)).ToList();
+            maintenanceJoby = joby.Where(w => w.JobName.StartsWith("MaintenancePlan", StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Nie udało się pobrać listy JOB-ów: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private static string StatusClass(string status) => status switch
+    {
+        "Sukces" => "text-success fw-bold",
+        "Błąd" => "text-danger fw-bold",
+        "W trakcie" => "text-primary fw-bold",
+        _ => "text-muted"
+    };
+}

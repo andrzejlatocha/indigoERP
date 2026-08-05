@@ -1,0 +1,174 @@
+﻿@page "/administrator/monitor"
+@page "/admistrator/monitor"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+@implements IDisposable
+
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject ISerwerService _serwerService
+@inject NavigationManager _navigationManager
+
+<div class="administrator-index-page monitor-page">
+    <div class="row w-100 ms-1 pt-2 monitor-row-fixed">
+        <div class="col-8">
+            <h4>Monitoring</h4>
+            <p>Status serwerów i API, odświeżany automatycznie co 30 s.</p>
+        </div>
+        <div class="col-4">
+            <div class="float-end">
+                <RadzenButton Text="Zarządzaj serwerami" Icon="dns" ButtonStyle="ButtonStyle.Light" Click="@(() => _navigationManager.NavigateTo("/administrator/serwer"))" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row w-100 mt-2 ms-1 me-2 monitor-row-fixed">
+        <div class="col-12">
+            <div class="monitor-card monitor-card--api @(apiOk == true ? "monitor-card--ok" : apiOk == false ? "monitor-card--down" : "monitor-card--unknown")">
+                <span class="monitor-card__dot"></span>
+                <span class="monitor-card__typ-icon monitor-card__typ-icon--api">
+                    <RadzenIcon Icon="cloud" />
+                </span>
+                <div class="monitor-card__body">
+                    <div class="monitor-card__title">API</div>
+                    @if (apiOk == true)
+                    {
+                        <div class="monitor-card__details">
+                            Wersja: @apiInfo?.WersjaApi &nbsp;·&nbsp; Serwer SQL: @apiInfo?.SerwerSql &nbsp;·&nbsp; Baza: @apiInfo?.BazaDanych
+                        </div>
+                    }
+                    else if (apiOk == false)
+                    {
+                        <div class="monitor-card__details">API niedostępne.</div>
+                    }
+                    else
+                    {
+                        <div class="monitor-card__details">Sprawdzanie…</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row w-100 mt-3 ms-1 me-2 monitor-row-grow">
+        <div class="col-12 monitor-columns-col">
+            @if (serwery == null)
+            {
+                <Load />
+            }
+            else if (serwery.Count == 0)
+            {
+                <p class="text-muted">Brak zarejestrowanych serwerów. Dodaj je w sekcji "Zarządzaj serwerami".</p>
+            }
+            else
+            {
+                <div class="monitor-columns">
+                    @foreach (var column in Columns)
+                    {
+                        <div class="monitor-column">
+                            <h6 class="monitor-column__title">@column.Title</h6>
+                            @if (column.Servers.Count == 0)
+                            {
+                                <p class="text-muted monitor-column__empty">Brak.</p>
+                            }
+                            else
+                            {
+                                <div class="monitor-column__list">
+                                    @foreach (var serwer in column.Servers)
+                                    {
+                                        <ServerCard Serwer="@serwer" Clickable="@column.Clickable" OnCardClick="@OnServerClick" />
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<MonitorSerwerStatusViewModel>? serwery;
+    private indigoERP.Domain.ViewModels._Administracja.SerwerInfoViewModel? apiInfo;
+    private bool? apiOk;
+    private System.Timers.Timer? _timer;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+
+        _timer = new System.Timers.Timer(30000);
+        _timer.Elapsed += async (_, _) => await InvokeAsync(LoadAsync);
+        _timer.AutoReset = true;
+        _timer.Start();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (_loading)
+        {
+            return;
+        }
+
+        _loading = true;
+
+        try
+        {
+            apiInfo = await _serwerService.GetInfo();
+            apiOk = apiInfo != null;
+
+            serwery = (await _serwerService.SelectStatus()).ToList();
+
+            StateHasChanged();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static readonly (string[] TypyKOD, string Title, bool Clickable)[] ColumnDefinitions =
+    {
+        (new[] { "WIN" }, "Serwery Windows", false),
+        (new[] { "SQL" }, "Serwery SQL", true),
+        (new[] { "API" }, "API", false),
+        (new[] { "WEB", "BLZ" }, "WebForms / Blazor", false)
+    };
+
+    private List<(string Title, bool Clickable, List<MonitorSerwerStatusViewModel> Servers)> Columns =>
+        ColumnDefinitions
+            .Select(c => (c.Title, c.Clickable, Servers: (serwery ?? new())
+                .Where(w => c.TypyKOD.Contains(w.srvSerwerTypKOD))
+                .OrderBy(w => JestBlad(w) ? 0 : 1)
+                .ThenBy(w => w.srvNazwa, StringComparer.OrdinalIgnoreCase)
+                .ToList()))
+            .ToList();
+
+    // "Błąd" = padło (slgDostepny == false) albo brak świeżego wyniku (>15 min) — ten sam próg
+    // co Stan.Unknown/Down w ServerCard, żeby kolejność na liście odpowiadała kolorowi kropki.
+    private static bool JestBlad(MonitorSerwerStatusViewModel serwer)
+    {
+        if (serwer.slgDataSprawdzenie == null || serwer.slgDataSprawdzenie < DateTime.Now.AddMinutes(-15))
+        {
+            return true;
+        }
+
+        return serwer.slgDostepny != true;
+    }
+
+    private void OnServerClick(MonitorSerwerStatusViewModel serwer)
+    {
+        if (serwer.srvSerwerTypKOD == "SQL")
+        {
+            _navigationManager.NavigateTo($"/administrator/monitor/zadanie/{serwer.srvID}");
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Stop();
+        _timer?.Dispose();
+    }
+}

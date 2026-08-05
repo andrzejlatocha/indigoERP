@@ -1,0 +1,76 @@
+﻿@using indigoERP.Domain.ViewModels._Administracja
+
+<div class="monitor-card @StanClass() @(Clickable ? "monitor-card--clickable" : "")"
+     @onclick="@(() => OnCardClick.InvokeAsync(Serwer))">
+    <span class="monitor-card__dot"></span>
+    <span class="monitor-card__typ-icon monitor-card__typ-icon--@Serwer.srvSerwerTypKOD.ToLowerInvariant()">
+        <RadzenIcon Icon="@TypIcon(Serwer.srvSerwerTypKOD)" />
+    </span>
+    <div class="monitor-card__body">
+        <div class="monitor-card__title">@Serwer.srvNazwa</div>
+        <div class="monitor-card__details">
+            @Serwer.srvAdres
+            @if (Serwer.slgDataSprawdzenie != null)
+            {
+                <text> · ostatnie sprawdzenie: @Serwer.slgDataSprawdzenie?.ToString("dd.MM.yyyy HH:mm:ss")</text>
+                @if (Serwer.slgCzasOdpowiedzMs != null)
+                {
+                    <text> (@(Serwer.slgCzasOdpowiedzMs) ms)</text>
+                }
+            }
+            else
+            {
+                <text> · brak jeszcze wyniku sprawdzenia</text>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Serwer.slgBlad))
+        {
+            <div class="monitor-card__error">@Serwer.slgBlad</div>
+        }
+    </div>
+    @if (Clickable)
+    {
+        <RadzenIcon Icon="chevron_right" class="monitor-card__chevron" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public MonitorSerwerStatusViewModel Serwer { get; set; } = null!;
+
+    [Parameter]
+    public bool Clickable { get; set; }
+
+    [Parameter]
+    public EventCallback<MonitorSerwerStatusViewModel> OnCardClick { get; set; }
+
+    private enum Stan { Ok, Down, Unknown }
+
+    private Stan GetStan()
+    {
+        if (Serwer.slgDataSprawdzenie == null || Serwer.slgDataSprawdzenie < DateTime.Now.AddMinutes(-15))
+        {
+            return Stan.Unknown;
+        }
+
+        return Serwer.slgDostepny == true ? Stan.Ok : Stan.Down;
+    }
+
+    private string StanClass() => GetStan() switch
+    {
+        Stan.Ok => "monitor-card--ok",
+        Stan.Down => "monitor-card--down",
+        _ => "monitor-card--unknown"
+    };
+
+    private static string TypIcon(string typKOD) => typKOD switch
+    {
+        "WIN" => "desktop_windows",
+        "SQL" => "storage",
+        "ORA" => "database",
+        "API" => "cloud",
+        "WEB" => "language",
+        "BLZ" => "bolt",
+        _ => "dns"
+    };
+}

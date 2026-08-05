@@ -2,9 +2,11 @@
 using indigoERP.Service.Interfaces;
 using indigoERP.Service.Interfaces._Administrator;
 using indigoERP.Service.Interfaces._Autoryzacja;
+using indigoERP.Service.Interfaces._Slownik;
 using indigoERP.Service.Services;
 using indigoERP.Service.Services._Administrator;
 using indigoERP.Service.Services._Autoryzacja;
+using indigoERP.Service.Services._Slownik;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Components;
@@ -67,6 +69,8 @@ services.AddScoped<IGrupaService, GrupaService>();
 services.AddScoped<IPracownikService, PracownikService>();
 services.AddScoped<IRolaService, RolaService>();
 services.AddScoped<IUzytkownikService, UzytkownikService>();
+services.AddScoped<ISerwerService, SerwerService>();
+services.AddScoped<ISerwerTypService, SerwerTypService>();
 
 // Home
 services.AddScoped<IHomeService, HomeService>();

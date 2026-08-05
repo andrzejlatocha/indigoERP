@@ -1,0 +1,196 @@
+﻿.monitor-row-fixed {
+    flex: 0 0 auto;
+}
+
+.monitor-row-grow {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.monitor-columns-col {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.monitor-columns {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.monitor-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+}
+
+.monitor-column__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.monitor-column__title {
+    margin: 0 0 2px;
+    color: #343a40;
+    font-weight: 600;
+}
+
+.monitor-column__empty {
+    margin: 0;
+}
+
+.monitor-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-left: 6px solid #adb5bd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(33, 37, 41, 0.06);
+}
+
+.monitor-card--api {
+    max-width: 100%;
+}
+
+.monitor-card--clickable {
+    cursor: pointer;
+    transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.monitor-card--clickable:hover {
+    box-shadow: 0 8px 20px rgba(33, 37, 41, 0.12);
+    transform: translateY(-2px);
+}
+
+.monitor-card--ok {
+    border-left-color: #28a745;
+}
+
+.monitor-card--ok .monitor-card__dot {
+    background: #28a745;
+}
+
+.monitor-card--down {
+    border-left-color: #dc3545;
+}
+
+.monitor-card--down .monitor-card__dot {
+    background: #dc3545;
+}
+
+.monitor-card--unknown {
+    border-left-color: #ffc107;
+}
+
+.monitor-card--unknown .monitor-card__dot {
+    background: #ffc107;
+}
+
+.monitor-card__dot {
+    flex: 0 0 12px;
+    width: 12px;
+    height: 12px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: #adb5bd;
+}
+
+.monitor-card__typ-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    margin-top: -2px;
+    color: #fff;
+    background: #575756;
+    border-radius: 8px;
+}
+
+.monitor-card__typ-icon ::deep .rz-icon {
+    font-size: 20px;
+}
+
+.monitor-card__typ-icon--win {
+    background: #0078d4;
+}
+
+.monitor-card__typ-icon--sql {
+    background: #a52440;
+}
+
+.monitor-card__typ-icon--ora {
+    background: #f80000;
+}
+
+.monitor-card__typ-icon--api {
+    background: #6f42c1;
+}
+
+.monitor-card__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.monitor-card__title {
+    font-weight: 600;
+    color: #212529;
+}
+
+.monitor-card__typ {
+    font-weight: 400;
+    color: #6c757d;
+}
+
+.monitor-card__details {
+    margin-top: 4px;
+    color: #6c757d;
+    font-size: 0.87rem;
+}
+
+.monitor-card__error {
+    margin-top: 4px;
+    color: #dc3545;
+    font-size: 0.82rem;
+}
+
+.monitor-card__chevron {
+    align-self: center;
+    color: #adb5bd;
+}
+
+@media (max-width: 1599.98px) {
+    .monitor-columns {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .monitor-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .monitor-columns {
+        grid-template-columns: 1fr;
+    }
+}

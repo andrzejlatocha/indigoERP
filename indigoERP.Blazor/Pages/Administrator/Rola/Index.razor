@@ -69,7 +69,7 @@
                                             @bind-Value="@row.srlAplikacjaID" Style="width:100%" />
                         </EditTemplate>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlNazwa" Title="Nazwa">
+                    <RadzenDataGridColumn TItem="RolaViewModel" Property="srlNazwa" Title="Nazwa" SortOrder="Radzen.SortOrder.Ascending">
                         <EditTemplate Context="row">
                             <RadzenTextBox @bind-Value="@row.srlNazwa" Style="width:100%" />
                         </EditTemplate>
@@ -259,7 +259,7 @@
             return;
         }
 
-        await _dialogService.OpenSideAsync<RolaGrupy>(
+        await _dialogService.OpenSideAsync<RolaGrupa>(
             $"Grupy roli: {SelectedRole.srlNazwa}",
             new Dictionary<string, object?> { ["RolaID"] = SelectedRole.srlID },
             GetRelationSideDialogOptions());
@@ -272,7 +272,7 @@
             return;
         }
 
-        await _dialogService.OpenSideAsync<RolaUzytkownicy>(
+        await _dialogService.OpenSideAsync<RolaUzytkownik>(
             $"Użytkownicy roli: {SelectedRole.srlNazwa}",
             new Dictionary<string, object?> { ["RolaID"] = SelectedRole.srlID },
             GetRelationSideDialogOptions());

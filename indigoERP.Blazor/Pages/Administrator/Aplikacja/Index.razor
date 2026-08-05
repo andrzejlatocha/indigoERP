@@ -61,7 +61,7 @@
                             <RadzenDropDown Data="@statusOptions" TextProperty="Text" ValueProperty="Value" @bind-Value="@row.appStatus" Style="width:100%" />
                         </EditTemplate>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appNazwa" Title="Nazwa">
+                    <RadzenDataGridColumn TItem="AplikacjaViewModel" Property="appNazwa" Title="Nazwa" SortOrder="Radzen.SortOrder.Ascending">
                         <EditTemplate Context="row">
                             <RadzenTextBox @bind-Value="@row.appNazwa" Style="width:100%" />
                         </EditTemplate>

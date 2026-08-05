@@ -65,6 +65,9 @@ namespace indigoERP.Api.Data
         public virtual DbSet<RodzajDokumentTozsamosc> RodzajDokumentTozsamosc { get; set; }
         public virtual DbSet<RolaCzlonkowie> RolaCzlonkowie { get; set; }
         public virtual DbSet<RolaMenu> RolaMenu { get; set; }
+        public virtual DbSet<Serwer> Serwer { get; set; }
+        public virtual DbSet<SerwerLog> SerwerLog { get; set; }
+        public virtual DbSet<SerwerTyp> SerwerTyp { get; set; }
         public virtual DbSet<TypKontakt> TypKontakt { get; set; }
         public virtual DbSet<TypPlik> TypPlik { get; set; }
         public virtual DbSet<UrzadSkarbowy> UrzadSkarbowy { get; set; }
@@ -92,6 +95,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<PowiatEnumerator> PowiatEnumerator { get; set; }
         public virtual DbSet<PracownikEnumerator> PracownikEnumerator { get; set; }
         public virtual DbSet<RodzajDokumentTozsamoscEnumerator> RodzajDokumentTozsamoscEnumerator { get; set; }
+        public virtual DbSet<SerwerTypEnumerator> SerwerTypEnumerator { get; set; }
         public virtual DbSet<TypKontaktEnumerator> TypKontaktEnumerator { get; set; }
         public virtual DbSet<TypPlikEnumerator> TypPlikEnumerator { get; set; }
         public virtual DbSet<UrzadSkarbowyEnumerator> UrzadSkarbowyEnumerator { get; set; }
@@ -118,10 +122,14 @@ namespace indigoERP.Api.Data
         public virtual DbSet<PowiatViewModel> PowiatViewModel { get; set; }
         public virtual DbSet<RolaViewModel> RolaViewModel { get; set; }
         public virtual DbSet<RolaAplikacjaViewModel> RolaAplikacjaViewModel { get; set; }
+        public virtual DbSet<SerwerViewModel> SerwerViewModel { get; set; }
+        public virtual DbSet<MonitorSerwerStatusViewModel> MonitorSerwerStatusViewModel { get; set; }
         public virtual DbSet<UzytkownikAplikacjaViewModel> UzytkownikAplikacjaViewModel { get; set; }
         public virtual DbSet<UzytkownikGrupaViewModel> UzytkownikGrupaViewModel { get; set; }
+        public virtual DbSet<UzytkownikListaViewModel> UzytkownikListaViewModel { get; set; }
         public virtual DbSet<UzytkownikLoginViewModel> UzytkownikLoginViewModel { get; set; }
         public virtual DbSet<UzytkownikRolaViewModel> UzytkownikRolaViewModel { get; set; }
+        public virtual DbSet<UzytkownikRolaEfektywnaViewModel> UzytkownikRolaEfektywnaViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<WiadomoscViewModel> WiadomoscViewModel { get; set; }
         public virtual DbSet<WojewodztwoViewModel> WojewodztwoViewModel { get; set; }
@@ -145,6 +153,8 @@ namespace indigoERP.Api.Data
             modelBuilder.Entity<GrupaCzlonkowie>().ToTable("GrupaCzlonkowie", "dbo");
             modelBuilder.Entity<Rola>().ToTable("Rola", "dbo");
             modelBuilder.Entity<RolaCzlonkowie>().ToTable("RolaCzlonkowie", "dbo");
+            modelBuilder.Entity<Serwer>().ToTable("Serwer", "dbo");
+            modelBuilder.Entity<SerwerLog>().ToTable("SerwerLog", "dbo");
             var uzytkownik = modelBuilder.Entity<Uzytkownik>();
             uzytkownik.ToTable("Uzytkownik", "dbo");
 

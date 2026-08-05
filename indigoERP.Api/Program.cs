@@ -1,5 +1,6 @@
 ﻿using EntityFrameworkCore.UseRowNumberForPaging;
 using indigoERP.Api.Data;
+using indigoERP.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +10,42 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// Zmienne środowiskowe indigoERP_MonitoringIntervalMinutes / indigoERP_MonitoringSqlLogin /
+// indigoERP_MonitoringSqlPassword nadpisują appSettings:MonitoringIntervalMinutes/MonitoringSqlLogin/
+// MonitoringSqlPassword z appsettings.json. Prefiks indigoERP_ (nie goły appSettings_) — kilka aplikacji
+// na tym samym serwerze może mieć sekcję "appSettings" w swoim appsettings.json, więc bez prefiksu
+// zmienna środowiskowa ustawiona na poziomie systemu nadpisywałaby appSettings:X we wszystkich z nich.
+// Wbudowany dostawca zmiennych środowiskowych ASP.NET Core wymaga podwójnego podkreślenia jako
+// separatora sekcji, więc przy pojedynczym podkreśleniu mapujemy je ręcznie zamiast AddEnvironmentVariables.
+var monitoringEnvOverrides = new Dictionary<string, string?>();
+var missingMonitoringEnvVars = new List<string>();
+
+void MapMonitoringEnvVar(string envVarName, string configKey)
+{
+    var value = Environment.GetEnvironmentVariable(envVarName);
+
+    if (!string.IsNullOrEmpty(value))
+    {
+        monitoringEnvOverrides[configKey] = value;
+    }
+    else
+    {
+        missingMonitoringEnvVars.Add(envVarName);
+    }
+}
+
+MapMonitoringEnvVar("indigoERP_MonitoringIntervalMinutes", "appSettings:MonitoringIntervalMinutes");
+MapMonitoringEnvVar("indigoERP_MonitoringSqlLogin", "appSettings:MonitoringSqlLogin");
+MapMonitoringEnvVar("indigoERP_MonitoringSqlPassword", "appSettings:MonitoringSqlPassword");
+MapMonitoringEnvVar("indigoERP_JwtKey", "Jwt:Key");
+MapMonitoringEnvVar("indigoERP_ApiKey", "appSettings:ApiKey");
+
+if (monitoringEnvOverrides.Count > 0)
+{
+    builder.Configuration.AddInMemoryCollection(monitoringEnvOverrides);
+}
+
 var configuration = builder.Configuration;
 var services = builder.Services;
 var connectionString = builder.Configuration.GetConnectionString("indigoERPConnection");
@@ -26,6 +63,10 @@ else
 {
     services.AddDbContext<indigoERPContext>(options => options.UseSqlServer(connectionString, o => o.UseRowNumberForPaging()));
 }
+
+services.AddHttpClient();
+services.AddSingleton<IServerCheckService, ServerCheckService>();
+services.AddHostedService<ServerMonitoringHostedService>();
 
 services.AddAuthentication(options =>
 {
@@ -84,6 +125,27 @@ services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Diagnostyka konfiguracji — wrażliwe wartości mogą pochodzić z appsettings.json (dev) albo ze zmiennych
+// środowiskowych indigoERP_MonitoringSqlLogin / indigoERP_MonitoringSqlPassword / indigoERP_JwtKey /
+// indigoERP_ApiKey (produkcja). Log nie ujawnia haseł/kluczy, tylko potwierdza że są ustawione.
+var startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+startupLogger.LogInformation(
+    "Konfiguracja monitoringu: MonitoringSqlLogin={Login}, MonitoringSqlPassword ustawione={PasswordSet}, MonitoringIntervalMinutes={IntervalMinutes}.",
+    configuration["appSettings:MonitoringSqlLogin"],
+    !string.IsNullOrWhiteSpace(configuration["appSettings:MonitoringSqlPassword"]),
+    configuration["appSettings:MonitoringIntervalMinutes"]);
+startupLogger.LogInformation(
+    "Konfiguracja bezpieczeństwa: Jwt:Key ustawiony={JwtKeySet}, appSettings:ApiKey ustawiony={ApiKeySet}.",
+    !string.IsNullOrWhiteSpace(configuration["Jwt:Key"]),
+    !string.IsNullOrWhiteSpace(configuration["appSettings:ApiKey"]));
+
+if (missingMonitoringEnvVars.Count > 0)
+{
+    startupLogger.LogError(
+        "Zmienne środowiskowe nieustawione, użyto wartości z appsettings.json: {MissingEnvVars}.",
+        string.Join(", ", missingMonitoringEnvVars));
+}
 
 app.MapDefaultEndpoints();
 

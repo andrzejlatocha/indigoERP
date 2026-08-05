@@ -1,0 +1,236 @@
+﻿@page "/administrator/serwer"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.Enumerators._Slownik
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+@using indigoERP.Service.Interfaces._Slownik
+
+@inject ISerwerService _serwerService
+@inject ISerwerTypService _serwerTypService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow" Disabled="@(!HasSelectedServer)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow" Disabled="@(!HasSelectedServer)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Anulowane" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="SerwerViewModel" Density="Density.Compact"
+                            Class="administrator-grid"
+                            SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And">
+                <Columns>
+                    <RadzenDataGridColumn TItem="SerwerViewModel" Property="srvSerwerTypKOD" Title="Typ" Width="110px">
+                        <Template Context="row">
+                            @GetTypOpis(row.srvSerwerTypKOD)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="SerwerViewModel" Property="srvNazwa" Title="Nazwa" />
+                    <RadzenDataGridColumn TItem="SerwerViewModel" Property="srvAdres" Title="IP / host / URL" Width="200px" />
+                    <RadzenDataGridColumn TItem="SerwerViewModel" Property="srvPort" Title="Port" Width="90px" />
+                    <RadzenDataGridColumn TItem="SerwerViewModel" Property="srvOpis" Title="Opis" />
+                    <RadzenDataGridColumn TItem="SerwerViewModel" Context="row" Filterable="false" Sortable="false" Width="110px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<SerwerViewModel>? grid;
+    private IList<SerwerViewModel> selectedItems = new List<SerwerViewModel>();
+    private List<SerwerViewModel>? data;
+    private List<SerwerTypEnumerator> typy = new();
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+
+    private SerwerViewModel? SelectedServer => selectedItems.FirstOrDefault();
+    private bool HasSelectedServer => SelectedServer != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        typy = (await _serwerTypService.SelectLookup("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _serwerService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private string GetTypOpis(string typKOD)
+    {
+        return typy.FirstOrDefault(w => w.styKOD == typKOD)?.styOpis ?? typKOD;
+    }
+
+    private async Task InsertRow()
+    {
+        var serwer = new SerwerViewModel
+        {
+            srvSerwerTypKOD = typy.FirstOrDefault()?.styKOD ?? "WIN",
+            srvNazwa = string.Empty,
+            srvAdres = string.Empty,
+            srvStatus = "2"
+        };
+
+        var result = await OpenEditor("Dodaj serwer", serwer, true);
+
+        if (result is SerwerViewModel edited)
+        {
+            await OnCreateRow(edited);
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedServer != null)
+        {
+            await EditRow(SelectedServer);
+        }
+    }
+
+    private async Task EditRow(SerwerViewModel serwer)
+    {
+        var result = await OpenEditor("Popraw serwer", Clone(serwer), false);
+
+        if (result is SerwerViewModel edited)
+        {
+            await OnUpdateRow(edited);
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, SerwerViewModel serwer, bool isInsert)
+    {
+        return await _dialogService.OpenSideAsync<Update>(
+            title,
+            new Dictionary<string, object?> { ["Model"] = serwer, ["IsInsert"] = isInsert, ["Typy"] = typy },
+            GetSideDialogOptions());
+    }
+
+    private async Task OnCreateRow(SerwerViewModel serwer)
+    {
+        var response = await _serwerService.Insert(ToDto(serwer));
+        ShowResponse(response.Code, "Serwer został dodany.", response.Message);
+        await LoadData();
+    }
+
+    private async Task OnUpdateRow(SerwerViewModel serwer)
+    {
+        var response = await _serwerService.Update(serwer.srvID, ToDto(serwer));
+        ShowResponse(response.Code, "Serwer został zapisany.", response.Message);
+        await LoadData();
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedServer != null)
+        {
+            await DeleteRow(SelectedServer);
+        }
+    }
+
+    private async Task DeleteRow(SerwerViewModel serwer)
+    {
+        var confirmed = await _dialogService.Confirm($"Usunąć serwer '{serwer.srvNazwa}'?", "Potwierdzenie", new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _serwerService.Delete(serwer.srvID);
+            ShowResponse(response.Code, "Serwer został usunięty.", response.Message);
+            await LoadData();
+            selectedItems = new List<SerwerViewModel>();
+        }
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private static SerwerDto ToDto(SerwerViewModel serwer)
+    {
+        return new SerwerDto
+        {
+            srvID = serwer.srvID,
+            srvSerwerTypKOD = serwer.srvSerwerTypKOD,
+            srvNazwa = serwer.srvNazwa,
+            srvAdres = serwer.srvAdres,
+            srvPort = serwer.srvPort,
+            srvOpis = serwer.srvOpis,
+            srvStatus = serwer.srvStatus
+        };
+    }
+
+    private static SerwerViewModel Clone(SerwerViewModel serwer)
+    {
+        return new SerwerViewModel
+        {
+            srvID = serwer.srvID,
+            srvSerwerTypKOD = serwer.srvSerwerTypKOD,
+            srvNazwa = serwer.srvNazwa,
+            srvAdres = serwer.srvAdres,
+            srvPort = serwer.srvPort,
+            srvOpis = serwer.srvOpis,
+            srvStatus = serwer.srvStatus
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "480px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+}

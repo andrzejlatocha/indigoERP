@@ -29,8 +29,44 @@ namespace indigoERP.Api.Controllers._Administrator
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UzytkownikViewModel>>> Select(string usrStatus)
         {
-            return await BuildAdministrationUserQuery()
+            return await _context.UzytkownikListaViewModel
                 .Where(w => w.usrStatus == usrStatus || usrStatus == "*")
+                .Select(w => new UzytkownikViewModel
+                {
+                    usrID = w.usrID,
+                    usrPracownikID = w.usrPracownikID,
+                    prcKod = w.prcKod,
+                    usrNazwa = w.usrNazwa,
+                    usrImie = w.usrImie,
+                    usrNazwisko = w.usrNazwisko,
+                    usrImieNazwisko = w.usrImieNazwisko,
+                    usrInicjal = w.usrInicjal,
+                    usrJezyk = w.usrJezyk,
+                    usrTelefon = w.usrTelefon,
+                    usrKomorka = w.usrKomorka,
+                    usrEmail = w.usrEmail,
+                    usrDataWaznoscHaslo = w.usrDataWaznoscHaslo,
+                    usrNowy = w.usrNowy,
+                    usrBlokada = w.usrBlokada,
+                    usrEdycja = w.usrEdycja,
+                    usrStatus = w.usrStatus,
+                    appID = w.appID,
+                    appFolder = w.appFolder,
+                    usrFolder = w.usrFolder,
+                    usrZdjecie = w.usrZdjecie,
+                    wdzID = w.wdzID,
+                    wdzKod = w.wdzKod,
+                    wdzSymbol = w.wdzSymbol,
+                    wdzNazwa = w.wdzNazwa,
+                    stnKod = w.stnKod,
+                    stnSymbol = w.stnSymbol,
+                    stnNazwa = w.stnNazwa,
+                    srlID = w.srlID,
+                    srlNazwa = w.srlNazwa,
+                    usrGuid = w.usrGuid,
+                    usrToken = w.usrToken
+                })
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -38,27 +74,17 @@ namespace indigoERP.Api.Controllers._Administrator
         [HttpGet("{rola}")]
         public async Task<ActionResult<IEnumerable<UzytkownikViewModel>>> SelectByRola(string rola, string usrStatus)
         {
+            // "userIds" korzysta z gotowego widoku mvw.vUzytkownikRolaEfektywna (bezpośrednie +
+            // dziedziczone członkostwo, już zdeduplikowane) zamiast duplikować tu tę samą logikę UNION —
+            // patrz RolaController.SelectUzytkownikByRola / UzytkownikController.SelectRolaByUzytkownik.
             return await _context.UzytkownikViewModel
                 .FromSqlInterpolated($"""
                     WITH userIds AS
                     (
-                        SELECT DISTINCT
-                            usrID
-                        FROM mvw.vUzytkownikRolaLista
+                        SELECT DISTINCT usrID
+                        FROM mvw.vUzytkownikRolaEfektywna
                         WHERE srlNazwa = {rola}
                             AND (usrStatus = {usrStatus} OR {usrStatus} = '*')
-                        UNION
-                        SELECT DISTINCT
-                            c.cwrUzytkownikID AS usrID
-                        FROM dbo.RolaCzlonkowie AS c
-                        INNER JOIN dbo.Rola AS r ON c.cwrRolaID = r.srlID
-                        INNER JOIN dbo.Uzytkownik AS u ON c.cwrUzytkownikID = u.usrID
-                        WHERE c.cwrUzytkownikID IS NOT NULL
-                            AND r.srlNazwa = {rola}
-                            AND (c.cwrStatus = '2' OR c.cwrStatus IS NULL)
-                            AND (r.srlStatus = '2' OR r.srlStatus IS NULL)
-                            AND ISNULL(u.Usuniety, 0) = 0
-                            AND (u.usrStatus = {usrStatus} OR {usrStatus} = '*')
                     )
                     SELECT
                         u.usrID,
@@ -137,42 +163,30 @@ namespace indigoERP.Api.Controllers._Administrator
         [HttpGet("{appID}/{usrID}")]
         public async Task<ActionResult<IEnumerable<UzytkownikRolaViewModel>>> SelectRolaByUzytkownik(int appID, int usrID, string srlStatus)
         {
-            var inheritedRoles = await _context.UzytkownikRolaViewModel
-                .Where(w => (w.appID == appID || appID == -1) && w.usrID == usrID && (w.srlStatus == srlStatus || srlStatus == "*"))
+            // Widok mvw.vUzytkownikRolaEfektywna trzyma już całą logikę (bezpośrednie + dziedziczone
+            // członkostwo, deduplikacja z priorytetem) — patrz analogiczne użycie w
+            // RolaController.SelectUzytkownikByRola (ten sam widok, filtrowany z drugiej strony).
+            return await _context.UzytkownikRolaEfektywnaViewModel
+                .Where(w => w.usrID == usrID
+                    && (w.appID == appID || appID == -1)
+                    && (w.srlStatus == srlStatus || srlStatus == "*"))
+                .Select(w => new UzytkownikRolaViewModel
+                {
+                    cwrID = w.cwrID,
+                    appID = w.appID,
+                    usrID = w.usrID,
+                    usrNazwa = w.usrNazwa,
+                    usrNazwaAD = w.usrNazwaAD,
+                    usrStatus = w.usrStatus,
+                    srlID = w.srlID,
+                    srlNazwa = w.srlNazwa,
+                    srlOpis = w.srlOpis,
+                    srlStatus = w.srlStatus,
+                    uwgPoziom = w.uwgPoziom,
+                    uwgDziedziczy = w.uwgDziedziczy
+                })
+                .AsNoTracking()
                 .ToListAsync();
-
-            var directRoles = await _context.RolaCzlonkowie
-                .Where(w => w.cwrUzytkownikID == usrID && w.cwrRolaID != null && (w.cwrStatus == "2" || w.cwrStatus == null))
-                .Join(_context.Uzytkownik,
-                    c => c.cwrUzytkownikID,
-                    u => u.usrID,
-                    (c, u) => new { Czlonek = c, Uzytkownik = u })
-                .Join(_context.Rola,
-                    cu => cu.Czlonek.cwrRolaID,
-                    r => r.srlID,
-                    (cu, r) => new UzytkownikRolaViewModel
-                    {
-                        cwrID = cu.Czlonek.cwrID,
-                        appID = r.srlAplikacjaID ?? 0,
-                        usrID = usrID,
-                        usrNazwa = cu.Uzytkownik.usrNazwa,
-                        usrNazwaAD = null,
-                        usrStatus = cu.Uzytkownik.usrStatus,
-                        srlID = r.srlID,
-                        srlNazwa = r.srlNazwa,
-                        srlOpis = r.srlOpis,
-                        srlStatus = r.srlStatus,
-                        uwgPoziom = 0,
-                        uwgDziedziczy = false
-                    })
-                .Where(w => (w.appID == appID || appID == -1) && (w.srlStatus == srlStatus || srlStatus == "*"))
-                .ToListAsync();
-
-            return inheritedRoles
-                .Concat(directRoles)
-                .GroupBy(g => new { g.cwrID, g.usrID, g.srlID })
-                .Select(s => s.First())
-                .ToList();
         }
 
         [AllowAnonymous]
@@ -274,128 +288,6 @@ namespace indigoERP.Api.Controllers._Administrator
         private bool UzytkownikExists(int usrID)
         {
             return _context.Uzytkownik.Any(e => e.usrID == usrID);
-        }
-
-        private IQueryable<UzytkownikViewModel> BuildAdministrationUserQuery(int? appID = null)
-        {
-            var appIdParameter = appID.HasValue ? (object)appID.Value : DBNull.Value;
-
-            var details = _context.UzytkownikViewModel
-                .FromSqlRaw("""
-                    WITH details AS
-                    (
-                        SELECT
-                            usrID,
-                            usrPracownikID,
-                            prcKod,
-                            usrNazwa,
-                            usrImie,
-                            usrNazwisko,
-                            usrInicjal,
-                            usrTelefon,
-                            usrKomorka,
-                            usrEmail,
-                            CAST(NULL AS int) AS usrKlientID,
-                            CAST(NULL AS int) AS usrDostawcaID,
-                            CAST(NULL AS int) AS usrOdbiorcaID,
-                            CAST(NULL AS int) AS usrSpedytorID,
-                            appID,
-                            appFolder,
-                            usrFolder,
-                            usrZdjecie,
-                            wdzID,
-                            wdzKod,
-                            wdzSymbol,
-                            wdzNazwa,
-                            stnKod,
-                            stnSymbol,
-                            stnNazwa,
-                            usrDataWaznoscHaslo,
-                            srlID,
-                            srlNazwa,
-                            usrGuid,
-                            usrToken,
-                            CAST(NULL AS uniqueidentifier) AS sesGuid,
-                            ROW_NUMBER() OVER (PARTITION BY usrID ORDER BY usrID) AS rowNumber
-                        FROM mvw.vUzytkownik
-                        WHERE ({0} IS NULL OR appID = {0})
-                    )
-                    SELECT
-                        usrID,
-                        usrPracownikID,
-                        prcKod,
-                        usrNazwa,
-                        usrImie,
-                        usrNazwisko,
-                        usrInicjal,
-                        usrTelefon,
-                        usrKomorka,
-                        usrEmail,
-                        usrKlientID,
-                        usrDostawcaID,
-                        usrOdbiorcaID,
-                        usrSpedytorID,
-                        appID,
-                        appFolder,
-                        usrFolder,
-                        usrZdjecie,
-                        wdzID,
-                        wdzKod,
-                        wdzSymbol,
-                        wdzNazwa,
-                        stnKod,
-                        stnSymbol,
-                        stnNazwa,
-                        usrDataWaznoscHaslo,
-                        srlID,
-                        srlNazwa,
-                        usrGuid,
-                        usrToken,
-                        sesGuid
-                    FROM details
-                    WHERE rowNumber = 1
-                    """, appIdParameter)
-                .AsNoTracking();
-
-            return from u in _context.Uzytkownik.AsNoTracking()
-                   join d in details on u.usrID equals d.usrID into userDetails
-                   from d in userDetails.DefaultIfEmpty()
-                   where u.Usuniety != true
-                   select new UzytkownikViewModel
-                   {
-                       usrID = u.usrID,
-                       usrPracownikID = u.usrPracownikID ?? 0,
-                       prcKod = d.prcKod,
-                       usrNazwa = u.usrNazwa,
-                       usrImie = u.usrImie,
-                       usrNazwisko = u.usrNazwisko,
-                       usrImieNazwisko = u.usrImieNazwisko,
-                       usrInicjal = u.usrInicjal,
-                       usrJezyk = u.usrJezyk,
-                       usrTelefon = u.usrTelefon,
-                       usrKomorka = d.usrKomorka,
-                       usrEmail = u.usrEmail,
-                       usrDataWaznoscHaslo = d.usrDataWaznoscHaslo ?? u.usrDataWaznoscHaslo ?? new DateTime(2099, 12, 31),
-                       usrNowy = u.usrNowy,
-                       usrBlokada = u.usrBlokada,
-                       usrEdycja = u.usrEdycja,
-                       usrStatus = u.usrStatus,
-                       appID = (int?)d.appID ?? 0,
-                       appFolder = d.appFolder,
-                       usrFolder = d.usrFolder,
-                       usrZdjecie = d.usrZdjecie,
-                       wdzID = d.wdzID,
-                       wdzKod = d.wdzKod,
-                       wdzSymbol = d.wdzSymbol,
-                       wdzNazwa = d.wdzNazwa,
-                       stnKod = d.stnKod,
-                       stnSymbol = d.stnSymbol,
-                       stnNazwa = d.stnNazwa,
-                       srlID = d.srlID,
-                       srlNazwa = d.srlNazwa,
-                       usrGuid = d.usrGuid,
-                       usrToken = d.usrToken
-                   };
         }
 
         private static void PrepareUserData(UzytkownikDto uzytkownikDto)

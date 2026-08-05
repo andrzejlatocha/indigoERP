@@ -56,7 +56,7 @@
                             EditMode="DataGridEditMode.Single" RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
                 <Columns>
                     <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrID" Title="Symbol" Visible="false" />
-                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrNazwa" Title="Nazwa" Width="160px">
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrNazwa" Title="Nazwa" Width="160px" SortOrder="Radzen.SortOrder.Ascending">
                         <EditTemplate Context="row">
                             <RadzenTextBox @bind-Value="@row.usrNazwa" Style="width:100%" />
                         </EditTemplate>
@@ -333,7 +333,7 @@
             return;
         }
 
-        await _dialogService.OpenSideAsync<UzytkownikGrupy>(
+        await _dialogService.OpenSideAsync<UzytkownikGrupa>(
             $"Grupy użytkownika: {SelectedUser.usrNazwa}",
             new Dictionary<string, object?> { ["UzytkownikID"] = SelectedUser.usrID },
             GetWideRelationSideDialogOptions());
@@ -346,7 +346,7 @@
             return;
         }
 
-        await _dialogService.OpenSideAsync<UzytkownikRole>(
+        await _dialogService.OpenSideAsync<UzytkownikRola>(
             $"Role użytkownika: {SelectedUser.usrNazwa}",
             new Dictionary<string, object?> { ["UzytkownikID"] = SelectedUser.usrID },
             GetRelationSideDialogOptions());

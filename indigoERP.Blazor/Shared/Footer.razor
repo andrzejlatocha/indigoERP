@@ -1,4 +1,9 @@
-﻿<footer class="border-top footer text-muted">
+﻿@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject ISerwerService _serwerService
+
+<footer class="border-top footer text-muted">
     <div class="container">
         <div class="row">
             <div class="col-12 text-light">
@@ -6,8 +11,23 @@
                     Copyright&copy; Huta Częstochowa
                     <img src="images/logo/Logo16.png" /> 1993 - @DateTime.Now.Year All Rights Reserved
                 </div>
+                @if (serwerInfo != null)
+                {
+                    <div class="d-inline-block float-end">
+                        Wersja API: @serwerInfo.WersjaApi &nbsp;·&nbsp; Serwer: @serwerInfo.SerwerSql &nbsp;·&nbsp; Baza: @serwerInfo.BazaDanych
+                    </div>
+                }
             </div>
         </div>
     </div>
 </footer>
+
+@code {
+    private SerwerInfoViewModel? serwerInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        serwerInfo = await _serwerService.GetInfo();
+    }
+}
 
