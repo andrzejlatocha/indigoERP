@@ -1,51 +1,55 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Dtos._Wspolne;
 using indigoERP.Domain.Entities._Wspolne;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
-    //[Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class PlikController : ControllerBase
     {
         private readonly indigoERPContext _context;
+        private readonly ILogger<PlikController> _logger;
 
-        public PlikController(indigoERPContext context)
+        public PlikController(indigoERPContext context, ILogger<PlikController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        // GET: api/Plik/5
         [HttpGet("{plkID}")]
-        public async Task<ActionResult<Plik>> Get(int plkID)
+        public async Task<ActionResult<PlikDto>> Get(int plkID)
         {
-          if (_context.Plik == null)
-          {
-              return NotFound();
-          }
             var plik = await _context.Plik.FindAsync(plkID);
 
             if (plik == null)
             {
                 return NotFound();
-            }            
+            }
 
-            return plik;
+            return plik.Adapt<PlikDto>();
         }
 
-        // PUT: api/Plik/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{plkID}")]
-        public async Task<IActionResult> Update(int plkID, Plik plik)
+        public async Task<IActionResult> Update(int plkID, PlikDto plikDto)
         {
-            if (plkID != plik.plkID)
+            if (plkID != plikDto.plkID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(plik).State = EntityState.Modified;
+            var plik = await _context.Plik.FindAsync(plkID);
+
+            if (plik == null)
+            {
+                return NotFound();
+            }
+
+            plikDto.Adapt(plik);
+            PreparePlikData(plik, false);
 
             try
             {
@@ -57,39 +61,43 @@ namespace indigoERP.Api.Controllers._Wspolne
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
-            return Ok(200);
+            return NoContent();
         }
 
-        // POST: api/Plik
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Plik>> Insert(Plik plik)
+        public async Task<ActionResult<PlikDto>> Insert(PlikDto plikDto)
         {
-          if (_context.Plik == null)
-          {
-              return Problem("Entity set 'indigoERPContext.Plik' is null.");
-          }
-            _context.Plik.Add(plik);
-            await _context.SaveChangesAsync();
+            var plik = plikDto.Adapt<Plik>();
+            PreparePlikData(plik, true);
 
-            return CreatedAtAction("Get", new { plkID = plik.plkID }, plik);
+            _context.Plik.Add(plik);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                const string message = "Błąd bazy danych podczas zapisu pliku.";
+                _logger.LogError(ex, "{Message} Aplikacja {ApplicationId}, użytkownik {UserId}.", message, plik.plkAplikacjaID,
+                    plik.UtworzenieID);
+                indigoERP.Api.Services.ApplicationFileLogger.LogError("File insert", message, ex);
+
+                return Problem(statusCode: StatusCodes.Status500InternalServerError, title: message);
+            }
+
+            return CreatedAtAction("Get", new { plkID = plik.plkID }, plik.Adapt<PlikDto>());
         }
 
-        // DELETE: api/Plik/5
         [HttpDelete("{plkID}")]
         public async Task<IActionResult> Delete(int plkID)
         {
-            if (_context.Plik == null)
-            {
-                return NotFound();
-            }
             var plik = await _context.Plik.FindAsync(plkID);
+
             if (plik == null)
             {
                 return NotFound();
@@ -98,12 +106,20 @@ namespace indigoERP.Api.Controllers._Wspolne
             plik.Usuniety = true;
             await _context.SaveChangesAsync();
 
-            return Ok(200);
+            return NoContent();
         }
 
         private bool PlikExists(int plkID)
         {
-            return (_context.Plik?.Any(e => e.plkID == plkID)).GetValueOrDefault();
+            return _context.Plik.Any(e => e.plkID == plkID);
+        }
+
+        private static void PreparePlikData(Plik plik, bool isNew)
+        {
+            if (isNew)
+            {
+                plik.plkID = 0;
+            }
         }
     }
 }

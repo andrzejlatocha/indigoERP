@@ -1,10 +1,11 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Dtos._Wspolne;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.ViewModels._Wspolne;
+using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
@@ -12,6 +13,8 @@ namespace indigoERP.Api.Controllers._Wspolne
     [ApiController]
     public class WiadomoscController : ControllerBase
     {
+        private const string BearerScheme = "Bearer";
+
         private readonly indigoERPContext _context;
 
         public WiadomoscController(indigoERPContext context)
@@ -19,39 +22,53 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context = context;
         }
 
-        // GET: api/Wiadomosc
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> Select(int wiaAplikacjaID, string wiaStatus)
         {
             return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Wiadomosc
-        [HttpGet("{wiaAplikacjaID}/{wuzUzytkownikID}")]
-        public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectByUzytkownik(int wiaAplikacjaID, int wuzUzytkownikID, string wiaStatus)
+        // Filtruje po appID + usrID (porównanie do wuzUzytkownikID), wiaStatus opcjonalny (domyślnie "*" = bez filtra).
+        [AllowAnonymous]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectByUzytkownik(int appID, int usrID, string wiaStatus = "*")
         {
-            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
+            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == appID && w.wuzUzytkownikID == usrID && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Wiadomosc
+        // Licznik nieprzeczytanych (wuzOdczyt = false) dla danego użytkownika w danej aplikacji — pod badge w UI,
+        // żeby nie trzeba było ściągać całej listy tylko po liczbę.
+        [AllowAnonymous]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<int>> SelectCountByUzytkownik(int appID, int usrID)
+        {
+            return await _context.WiadomoscViewModel.CountAsync(w => w.wiaAplikacjaID == appID && w.wuzUzytkownikID == usrID && w.wuzOdczyt == false);
+        }
+
+        [AllowAnonymous]
         [HttpGet("{wiaAplikacjaID}/{wuzUzytkownikID}")]
         public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectOdczytByUzytkownik(int wiaAplikacjaID, int wuzUzytkownikID, string wiaStatus)
         {
             return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && w.wuzOdczyt == true && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Wiadomosc
+        [AllowAnonymous]
         [HttpGet("{wiaAplikacjaID}/{wuzUzytkownikID}")]
         public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectBrakOdczytByUzytkownik(int wiaAplikacjaID, int wuzUzytkownikID, string wiaStatus)
         {
             return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && w.wuzOdczyt == false && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Wiadomosc/5
-        [HttpGet("{wiaID}")]
-        public async Task<ActionResult<Wiadomosc>> Get(int wiaID)
+        // Jeden wiersz z widoku (wiadomość + konkretny odbiorca) — mvw.vWiadomosc ma teraz jeden wiersz
+        // na parę wiadomość/odbiorca (INNER JOIN do WiadomoscUzytkownik), stąd klucz złożony.
+        [AllowAnonymous]
+        [HttpGet("{wiaID}/{usrID}")]
+        public async Task<ActionResult<WiadomoscViewModel>> Detail(int wiaID, int usrID)
         {
-            var wiadomosc = await _context.Wiadomosc.FindAsync(wiaID);
+            var wiadomosc = await _context.WiadomoscViewModel
+                .AsNoTracking()
+                .FirstOrDefaultAsync(w => w.wiaID == wiaID && w.wuzUzytkownikID == usrID);
 
             if (wiadomosc == null)
             {
@@ -61,17 +78,37 @@ namespace indigoERP.Api.Controllers._Wspolne
             return wiadomosc;
         }
 
-        // PUT: api/Wiadomosc/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{wiaID}")]
-        public async Task<IActionResult> Update(int wiaID, Wiadomosc wiadomosc)
+        [AllowAnonymous]
+        [HttpGet("{wiaID}")]
+        public async Task<ActionResult<WiadomoscDto>> Get(int wiaID)
         {
-            if (wiaID != wiadomosc.wiaID)
+            var wiadomosc = await _context.Wiadomosc.FindAsync(wiaID);
+
+            if (wiadomosc == null)
+            {
+                return NotFound();
+            }
+
+            return wiadomosc.Adapt<WiadomoscDto>();
+        }
+
+        [Authorize(AuthenticationSchemes = BearerScheme)]
+        [HttpPut("{wiaID}")]
+        public async Task<IActionResult> Update(int wiaID, WiadomoscDto wiadomoscDto)
+        {
+            if (wiaID != wiadomoscDto.wiaID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(wiadomosc).State = EntityState.Modified;
+            var wiadomosc = await _context.Wiadomosc.FindAsync(wiaID);
+
+            if (wiadomosc == null)
+            {
+                return NotFound();
+            }
+
+            wiadomoscDto.Adapt(wiadomosc);
 
             try
             {
@@ -83,27 +120,26 @@ namespace indigoERP.Api.Controllers._Wspolne
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
         }
 
-        // POST: api/Wiadomosc
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(AuthenticationSchemes = BearerScheme)]
         [HttpPost]
-        public async Task<ActionResult<Wiadomosc>> Insert(Wiadomosc wiadomosc)
+        public async Task<ActionResult<WiadomoscDto>> Insert(WiadomoscDto wiadomoscDto)
         {
+            var wiadomosc = wiadomoscDto.Adapt<Wiadomosc>();
+
             _context.Wiadomosc.Add(wiadomosc);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { wiaID = wiadomosc.wiaID }, wiadomosc);
+            return CreatedAtAction("Get", new { wiaID = wiadomosc.wiaID }, wiadomosc.Adapt<WiadomoscDto>());
         }
 
-        // DELETE: api/Wiadomosc/5
+        [Authorize(AuthenticationSchemes = BearerScheme)]
         [HttpDelete("{wiaID}")]
         public async Task<IActionResult> Delete(int wiaID)
         {

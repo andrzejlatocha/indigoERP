@@ -1,10 +1,11 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Dtos._Wspolne;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.ViewModels._Wspolne;
+using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
@@ -12,6 +13,8 @@ namespace indigoERP.Api.Controllers._Wspolne
     [ApiController]
     public class ZdarzenieController : ControllerBase
     {
+        private const string BearerScheme = "Bearer";
+
         private readonly indigoERPContext _context;
 
         public ZdarzenieController(indigoERPContext context)
@@ -19,39 +22,53 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context = context;
         }
 
-        // GET: api/Zdarzenie
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ZdarzenieViewModel>>> Select(int zdaAplikacjaID, string zdaStatus)
         {
             return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == zdaAplikacjaID && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Zdarzenie
-        [HttpGet("{zdaAplikacjaID}/{zurUzytkownikID}")]
-        public async Task<ActionResult<IEnumerable<ZdarzenieViewModel>>> SelectByUzytkownik(int zdaAplikacjaID, int zurUzytkownikID, string zdaStatus)
+        // Filtruje po appID + usrID (porównanie do zurUzytkownikID), zdaStatus opcjonalny (domyślnie "*" = bez filtra).
+        [AllowAnonymous]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<IEnumerable<ZdarzenieViewModel>>> SelectByUzytkownik(int appID, int usrID, string zdaStatus = "*")
         {
-            return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == zdaAplikacjaID && w.zurUzytkownikID == zurUzytkownikID && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
+            return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == appID && w.zurUzytkownikID == usrID && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Zdarzenie
+        // Licznik nieprzeczytanych (zurOdczyt = false) dla danego użytkownika w danej aplikacji — pod badge w UI,
+        // żeby nie trzeba było ściągać całej listy tylko po liczbę.
+        [AllowAnonymous]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<int>> SelectCountByUzytkownik(int appID, int usrID)
+        {
+            return await _context.ZdarzenieViewModel.CountAsync(w => w.zdaAplikacjaID == appID && w.zurUzytkownikID == usrID && w.zurOdczyt == false);
+        }
+
+        [AllowAnonymous]
         [HttpGet("{zdaAplikacjaID}/{zurUzytkownikID}")]
         public async Task<ActionResult<IEnumerable<ZdarzenieViewModel>>> SelectOdczytByUzytkownik(int zdaAplikacjaID, int zurUzytkownikID, string zdaStatus)
         {
             return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == zdaAplikacjaID && w.zurUzytkownikID == zurUzytkownikID && w.zurOdczyt == true && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Zdarzenie
+        [AllowAnonymous]
         [HttpGet("{zdaAplikacjaID}/{zurUzytkownikID}")]
         public async Task<ActionResult<IEnumerable<ZdarzenieViewModel>>> SelectBrakOdczytByUzytkownik(int zdaAplikacjaID, int zurUzytkownikID, string zdaStatus)
         {
             return await _context.ZdarzenieViewModel.Where(w => w.zdaAplikacjaID == zdaAplikacjaID && w.zurUzytkownikID == zurUzytkownikID && w.zurOdczyt == false && (w.zdaStatus == zdaStatus || zdaStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Zdarzenie/5
-        [HttpGet("{zdaID}")]
-        public async Task<ActionResult<Zdarzenie>> Get(int zdaID)
+        // Jeden wiersz z widoku (zdarzenie + konkretny odbiorca) — mvw.vZdarzenie ma jeden wiersz
+        // na parę zdarzenie/odbiorca (INNER JOIN do ZdarzenieUzytkownik), stąd klucz złożony.
+        [AllowAnonymous]
+        [HttpGet("{zdaID}/{usrID}")]
+        public async Task<ActionResult<ZdarzenieViewModel>> Detail(int zdaID, int usrID)
         {
-            var zdarzenie = await _context.Zdarzenie.FindAsync(zdaID);
+            var zdarzenie = await _context.ZdarzenieViewModel
+                .AsNoTracking()
+                .FirstOrDefaultAsync(w => w.zdaID == zdaID && w.zurUzytkownikID == usrID);
 
             if (zdarzenie == null)
             {
@@ -61,17 +78,37 @@ namespace indigoERP.Api.Controllers._Wspolne
             return zdarzenie;
         }
 
-        // PUT: api/Zdarzenie/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{zdaID}")]
-        public async Task<IActionResult> Update(int zdaID, Zdarzenie zdarzenie)
+        [AllowAnonymous]
+        [HttpGet("{zdaID}")]
+        public async Task<ActionResult<ZdarzenieDto>> Get(int zdaID)
         {
-            if (zdaID != zdarzenie.zdaID)
+            var zdarzenie = await _context.Zdarzenie.FindAsync(zdaID);
+
+            if (zdarzenie == null)
+            {
+                return NotFound();
+            }
+
+            return zdarzenie.Adapt<ZdarzenieDto>();
+        }
+
+        [Authorize(AuthenticationSchemes = BearerScheme)]
+        [HttpPut("{zdaID}")]
+        public async Task<IActionResult> Update(int zdaID, ZdarzenieDto zdarzenieDto)
+        {
+            if (zdaID != zdarzenieDto.zdaID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(zdarzenie).State = EntityState.Modified;
+            var zdarzenie = await _context.Zdarzenie.FindAsync(zdaID);
+
+            if (zdarzenie == null)
+            {
+                return NotFound();
+            }
+
+            zdarzenieDto.Adapt(zdarzenie);
 
             try
             {
@@ -83,27 +120,26 @@ namespace indigoERP.Api.Controllers._Wspolne
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
         }
 
-        // POST: api/Zdarzenie
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(AuthenticationSchemes = BearerScheme)]
         [HttpPost]
-        public async Task<ActionResult<Zdarzenie>> Insert(Zdarzenie zdarzenie)
+        public async Task<ActionResult<ZdarzenieDto>> Insert(ZdarzenieDto zdarzenieDto)
         {
+            var zdarzenie = zdarzenieDto.Adapt<Zdarzenie>();
+
             _context.Zdarzenie.Add(zdarzenie);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { zdaID = zdarzenie.zdaID }, zdarzenie);
+            return CreatedAtAction("Get", new { zdaID = zdarzenie.zdaID }, zdarzenie.Adapt<ZdarzenieDto>());
         }
 
-        // DELETE: api/Zdarzenie/5
+        [Authorize(AuthenticationSchemes = BearerScheme)]
         [HttpDelete("{zdaID}")]
         public async Task<IActionResult> Delete(int zdaID)
         {

@@ -11,6 +11,7 @@ namespace indigoERP.Domain.Entities._Wspolne
     {
         public Plik()
         {
+            plkStatus = "2";
         }
 
         [Key]
@@ -39,10 +40,6 @@ namespace indigoERP.Domain.Entities._Wspolne
         public string? plkFolder { get; set; }
         [Display(Name = "Wersja")]
         public byte? plkWersja { get; set; }
-        public DateTime plkDataUtworzenie { get; set; }
-        public int plkUtworzenieUzytkownikID { get; set; }
-        public DateTime plkDataModyfikacja { get; set; }
-        public int plkModyfikacjaUzytkownikID { get; set; }
         [Display(Name = "Opis")]
         public string? plkOpis { get; set; }
         public string? plkStatus { get; set; }

@@ -10,8 +10,10 @@ using indigoERP.Domain.ViewModels._Administracja;
 using indigoERP.Domain.ViewModels._Autoryzacja;
 using indigoERP.Domain.ViewModels._Slownik;
 using indigoERP.Domain.ViewModels._Wspolne;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using System.Security.Claims;
 
 namespace indigoERP.Api.Data
 {
@@ -24,8 +26,15 @@ namespace indigoERP.Api.Data
         {
         }
 
+        private readonly IHttpContextAccessor? _httpContextAccessor;
+
         public indigoERPContext(DbContextOptions<indigoERPContext> options) : base(options)
         {
+        }
+
+        public indigoERPContext(DbContextOptions<indigoERPContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
+        {
+            _httpContextAccessor = httpContextAccessor;
         }
 
         //Entities
@@ -76,9 +85,12 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Uzytkownik> Uzytkownik { get; set; }
         public virtual DbSet<UzytkownikGrupa> UzytkownikGrupa { get; set; }
         public virtual DbSet<Wiadomosc> Wiadomosc { get; set; }
+        public virtual DbSet<WiadomoscUzytkownik> WiadomoscUzytkownik { get; set; }
         public virtual DbSet<Wojewodztwo> Wojewodztwo { get; set; }
         public virtual DbSet<Zadanie> Zadanie { get; set; }
+        public virtual DbSet<ZadanieUzytkownik> ZadanieUzytkownik { get; set; }
         public virtual DbSet<Zdarzenie> Zdarzenie { get; set; }
+        public virtual DbSet<ZdarzenieUzytkownik> ZdarzenieUzytkownik { get; set; }
 
         // Enumerators
         public virtual DbSet<AplikacjaEnumerator> AplikacjaEnumerator { get; set; }
@@ -182,6 +194,7 @@ namespace indigoERP.Api.Data
         private void ApplyAuditFields()
         {
             var now = DateTime.Now;
+            var currentUserId = GetCurrentUserId();
 
             foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
             {
@@ -189,11 +202,14 @@ namespace indigoERP.Api.Data
                 {
                     entry.Entity.DataUtworzenie ??= now;
                     entry.Entity.DataModyfikacja ??= now;
+                    entry.Entity.UtworzenieID ??= currentUserId;
+                    entry.Entity.ModyfikacjaID ??= currentUserId;
                     entry.Entity.Usuniety ??= false;
                 }
                 else if (entry.State == EntityState.Modified)
                 {
                     entry.Entity.DataModyfikacja = now;
+                    entry.Entity.ModyfikacjaID = currentUserId ?? entry.Entity.ModyfikacjaID;
                     entry.Property(p => p.DataUtworzenie).IsModified = false;
                     entry.Property(p => p.UtworzenieID).IsModified = false;
                 }
@@ -201,11 +217,20 @@ namespace indigoERP.Api.Data
                 {
                     entry.State = EntityState.Modified;
                     entry.Entity.DataModyfikacja = now;
+                    entry.Entity.ModyfikacjaID = currentUserId ?? entry.Entity.ModyfikacjaID;
                     entry.Entity.Usuniety = true;
                     entry.Property(p => p.DataUtworzenie).IsModified = false;
                     entry.Property(p => p.UtworzenieID).IsModified = false;
                 }
             }
+        }
+
+        private int? GetCurrentUserId()
+        {
+            var value = _httpContextAccessor?.HttpContext?.User?.FindFirst("usrID")?.Value
+                ?? _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            return int.TryParse(value, out var userId) ? userId : null;
         }
     }
 }

@@ -52,6 +52,7 @@ var connectionString = builder.Configuration.GetConnectionString("indigoERPConne
 
 // Add services to the container.
 
+services.AddHttpContextAccessor();
 services.AddControllers();
 int serverVersion = configuration.GetSection("appSettings").GetValue<int>(key: "serverVer");
 

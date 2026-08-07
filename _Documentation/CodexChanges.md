@@ -460,6 +460,27 @@ Brak.
 - Wykonano `dotnet build indigoERP.AppHost.csproj --no-restore -v:minimal` do `.codex-build/apphost-aspire-13-4-6`.
 - Kompilacja zakończyła się bez błędów; pozostały istniejące ostrzeżenia projektu.
 
+## 2026-08-07
+
+### Zgłoszenie
+
+Dodanie dokumentu pracownika przez `Plik/Insert` zwracało pustą odpowiedź HTTP `500`.
+
+### Zmienione obszary
+
+- `indigoERP.Api/Controllers/Wspolne/PlikController.cs`
+- `indigoERP.Api/Services/ApplicationFileLogger.cs`
+- `Documentation/CodexChanges.md`
+
+### Decyzje techniczne
+
+- `DbUpdateException` podczas zapisu pliku jest logowany do `Logs/application-errors-YYYY-MM.log` obok uruchomionego API.
+- Endpoint zwraca `ProblemDetails` z komunikatem, zamiast pozostawić klientowi pustą odpowiedź `500`.
+
+### Zmiany bazy danych
+
+Brak.
+
 ## 2026-07-22
 
 ### Zgłoszenie

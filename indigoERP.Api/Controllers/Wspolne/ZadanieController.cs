@@ -1,10 +1,11 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Domain.Dtos._Wspolne;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.ViewModels._Wspolne;
+using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
 
 namespace indigoERP.Api.Controllers._Wspolne
 {
@@ -12,6 +13,8 @@ namespace indigoERP.Api.Controllers._Wspolne
     [ApiController]
     public class ZadanieController : ControllerBase
     {
+        private const string BearerScheme = "Bearer";
+
         private readonly indigoERPContext _context;
 
         public ZadanieController(indigoERPContext context)
@@ -19,25 +22,39 @@ namespace indigoERP.Api.Controllers._Wspolne
             _context = context;
         }
 
-        // GET: api/Zadanie
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ZadanieViewModel>>> Select(int tskAplikacjaID, string tskStatus)
         {
             return await _context.ZadanieViewModel.Where(w => w.tskAplikacjaID == tskAplikacjaID && (w.tskStatus == tskStatus || tskStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Zadanie        
-        [HttpGet("{tskAplikacjaID}/{tusUzytkownikID}")]
-        public async Task<ActionResult<IEnumerable<ZadanieViewModel>>> SelectByUzytkownik(int tskAplikacjaID, int tusUzytkownikID, string tusStatus)
+        // Filtruje po appID + usrID (porównanie do tusUzytkownikID), tskStatus opcjonalny (domyślnie "*" = bez filtra).
+        [AllowAnonymous]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<IEnumerable<ZadanieViewModel>>> SelectByUzytkownik(int appID, int usrID, string tskStatus = "*")
         {
-            return await _context.ZadanieViewModel.Where(w => w.tskAplikacjaID == tskAplikacjaID && w.tusUzytkownikID == tusUzytkownikID && (w.tusStatus == tusStatus || tusStatus == "*")).ToListAsync();
+            return await _context.ZadanieViewModel.Where(w => w.tskAplikacjaID == appID && w.tusUzytkownikID == usrID && (w.tskStatus == tskStatus || tskStatus == "*")).ToListAsync();
         }
 
-        // GET: api/Zadanie/5
-        [HttpGet("{tskID}")]
-        public async Task<ActionResult<Zadanie>> Get(int tskID)
+        // Licznik nieprzeczytanych (tusOdczyt = false) dla danego użytkownika w danej aplikacji — pod badge w UI,
+        // żeby nie trzeba było ściągać całej listy tylko po liczbę.
+        [AllowAnonymous]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<int>> SelectCountByUzytkownik(int appID, int usrID)
         {
-            var zadanie = await _context.Zadanie.FindAsync(tskID);
+            return await _context.ZadanieViewModel.CountAsync(w => w.tskAplikacjaID == appID && w.tusUzytkownikID == usrID && w.tusOdczyt == false);
+        }
+
+        // Jeden wiersz z widoku (zadanie + konkretny przypisany użytkownik) — mvw.vZadanie ma jeden wiersz
+        // na parę zadanie/użytkownik (INNER JOIN do ZadanieUzytkownik), stąd klucz złożony.
+        [AllowAnonymous]
+        [HttpGet("{tskID}/{usrID}")]
+        public async Task<ActionResult<ZadanieViewModel>> Detail(int tskID, int usrID)
+        {
+            var zadanie = await _context.ZadanieViewModel
+                .AsNoTracking()
+                .FirstOrDefaultAsync(w => w.tskID == tskID && w.tusUzytkownikID == usrID);
 
             if (zadanie == null)
             {
@@ -47,17 +64,37 @@ namespace indigoERP.Api.Controllers._Wspolne
             return zadanie;
         }
 
-        // PUT: api/Zadanie/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{tskID}")]
-        public async Task<IActionResult> Update(int tskID, Zadanie zadanie)
+        [AllowAnonymous]
+        [HttpGet("{tskID}")]
+        public async Task<ActionResult<ZadanieDto>> Get(int tskID)
         {
-            if (tskID != zadanie.tskID)
+            var zadanie = await _context.Zadanie.FindAsync(tskID);
+
+            if (zadanie == null)
+            {
+                return NotFound();
+            }
+
+            return zadanie.Adapt<ZadanieDto>();
+        }
+
+        [Authorize(AuthenticationSchemes = BearerScheme)]
+        [HttpPut("{tskID}")]
+        public async Task<IActionResult> Update(int tskID, ZadanieDto zadanieDto)
+        {
+            if (tskID != zadanieDto.tskID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(zadanie).State = EntityState.Modified;
+            var zadanie = await _context.Zadanie.FindAsync(tskID);
+
+            if (zadanie == null)
+            {
+                return NotFound();
+            }
+
+            zadanieDto.Adapt(zadanie);
 
             try
             {
@@ -69,27 +106,26 @@ namespace indigoERP.Api.Controllers._Wspolne
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
         }
 
-        // POST: api/Zadanie
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(AuthenticationSchemes = BearerScheme)]
         [HttpPost]
-        public async Task<ActionResult<Zadanie>> Insert(Zadanie zadanie)
+        public async Task<ActionResult<ZadanieDto>> Insert(ZadanieDto zadanieDto)
         {
+            var zadanie = zadanieDto.Adapt<Zadanie>();
+
             _context.Zadanie.Add(zadanie);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("Get", new { tskID = zadanie.tskID }, zadanie);
+            return CreatedAtAction("Get", new { tskID = zadanie.tskID }, zadanie.Adapt<ZadanieDto>());
         }
 
-        // DELETE: api/Zadanie/5
+        [Authorize(AuthenticationSchemes = BearerScheme)]
         [HttpDelete("{tskID}")]
         public async Task<IActionResult> Delete(int tskID)
         {
