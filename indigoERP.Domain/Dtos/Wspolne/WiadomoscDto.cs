@@ -15,5 +15,6 @@ namespace indigoERP.Domain.Dtos._Wspolne
         public string? wiaGrupa { get; set; }
         public Guid? wiaSesja { get; set; }
         public string? wiaStatus { get; set; }
+        public bool? wiaPubliczna { get; set; }
     }
 }

@@ -22,10 +22,9 @@ namespace indigoERP.Blazor.Utils
             if (principal.Identity == null || string.IsNullOrEmpty(principal.Identity.Name))
                 return principal;
 
-            UzytkownikLoginModel uzytkownikModel = new UzytkownikLoginModel(principal.Identity.Name, "masterKEY1");
-            uzytkownikModel.appID = _configuration["appSettings:appID"];
+            string appID = _configuration["appSettings:appID"];
 
-            UzytkownikViewModel uzytkownik = await _loginService.Get(uzytkownikModel);
+            UzytkownikViewModel uzytkownik = await _loginService.GetSso(principal.Identity.Name, "WebBrowser", appID);
 
             if (uzytkownik == null)
                 return principal;

@@ -12,7 +12,7 @@ namespace indigoERP.Domain.Entities._Wspolne
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int nusID { get; set; }
-        public int? nusNowosciID { get; set; }
+        public int? nusNowoscID { get; set; }
         public int? nusUzytkownikID { get; set; }
         public string nusStatus { get; set; }
     }

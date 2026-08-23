@@ -1,0 +1,66 @@
+﻿@page "/podpis/podglad"
+
+@using indigoERP.Domain.ViewModels._Autoryzacja
+@using indigoERP.Service.Interfaces._Administrator
+@using indigoERP.Service.Interfaces._Podpis
+
+@inject IPodpisService _podpisService
+@inject IUzytkownikService _uzytkownikService
+@inject NotificationService _notificationService
+@inject IJSRuntime _jsRuntime
+
+<RadzenStack Gap="1rem" Class="p-3">
+    <RadzenText TextStyle="TextStyle.H5">Podgląd podpisu użytkownika</RadzenText>
+
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+        <RadzenDropDown Data="@users" TextProperty="usrImieNazwisko" ValueProperty="usrID" TValue="int"
+                        @bind-Value="@wybranyUzytkownikID" AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:320px" Placeholder="Wybierz użytkownika" />
+        <RadzenButton Text="Pokaż podgląd" Icon="visibility" ButtonStyle="ButtonStyle.Primary" Click="@LoadPreview" Disabled="@(wybranyUzytkownikID <= 0)" />
+        <RadzenButton Text="Kopiuj HTML" Icon="content_copy" ButtonStyle="ButtonStyle.Secondary" Click="@CopyHtml" Disabled="@(string.IsNullOrEmpty(html))" />
+    </RadzenStack>
+
+    @if (searched)
+    {
+        @if (string.IsNullOrEmpty(html))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter">
+                Ten użytkownik nie ma przypisanego żadnego szablonu podpisu (brak przypisania bezpośredniego, grupowego ani szablonu domyślnego).
+            </RadzenAlert>
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle2">Podgląd</RadzenText>
+            <div style="border:1px solid var(--rz-border); border-radius:4px; padding:1rem;">
+                @((MarkupString)html)
+            </div>
+
+            <RadzenText TextStyle="TextStyle.Subtitle2">Kod HTML (do ręcznego wklejenia w Outlooku)</RadzenText>
+            <RadzenTextArea Value="@html" ReadOnly="true" Rows="8" Style="width:100%; font-family:monospace;" />
+        }
+    }
+</RadzenStack>
+
+@code {
+    private List<UzytkownikViewModel> users = new();
+    private int wybranyUzytkownikID;
+    private string html = string.Empty;
+    private bool searched;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = (await _uzytkownikService.Select("*")).ToList();
+    }
+
+    private async Task LoadPreview()
+    {
+        html = await _podpisService.Preview(wybranyUzytkownikID);
+        searched = true;
+    }
+
+    private async Task CopyHtml()
+    {
+        await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", html);
+        _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Skopiowano", Detail = "HTML podpisu skopiowany do schowka.", Duration = 3000 });
+    }
+}

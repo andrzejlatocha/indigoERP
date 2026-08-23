@@ -26,6 +26,8 @@
                           Click="@ShowGroupsForSelectedUser" Disabled="@(!HasSelectedUser)" />
             <RadzenButton Text="Pokaż role" Icon="assignment_ind" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info"
                           Click="@ShowRolesForSelectedUser" Disabled="@(!HasSelectedUser)" />
+            <RadzenButton Text="Odblokuj logowanie" Icon="lock_open" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning"
+                          Click="@OdblokujLogowanieSelectedUser" Disabled="@(SelectedUser?.usrZablokowanyLogowaniem != true)" />
         </RadzenStack>
     </div>
     <div class="col-4">
@@ -117,6 +119,14 @@
                         <EditTemplate Context="row">
                             <RadzenCheckBox TValue="bool?" @bind-Value="@row.usrEdycja" />
                         </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="UzytkownikViewModel" Property="usrZablokowanyLogowaniem" Title="Zabl." Width="60px" Filterable="false">
+                        <Template Context="row">
+                            @if (row.usrZablokowanyLogowaniem == true)
+                            {
+                                <RadzenIcon Icon="lock" Style="color:var(--rz-danger);" title="Konto zablokowane po nieudanych próbach logowania" />
+                            }
+                        </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="UzytkownikViewModel" Context="row" Filterable="false" Sortable="false"
                                           Width="110px" TextAlign="TextAlign.Center">
@@ -349,7 +359,28 @@
         await _dialogService.OpenSideAsync<UzytkownikRola>(
             $"Role użytkownika: {SelectedUser.usrNazwa}",
             new Dictionary<string, object?> { ["UzytkownikID"] = SelectedUser.usrID },
-            GetRelationSideDialogOptions());
+            GetWideRelationSideDialogOptions());
+    }
+
+    private async Task OdblokujLogowanieSelectedUser()
+    {
+        if (SelectedUser?.usrNazwa == null)
+        {
+            return;
+        }
+
+        var options = new ConfirmOptions { OkButtonText = "Odblokuj", CancelButtonText = "Anuluj" };
+        var confirmed = await _dialogService.Confirm($"Odblokować logowanie dla '{SelectedUser.usrNazwa}'?", "Potwierdzenie", options);
+
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        var response = await _uzytkownikService.OdblokujLogowanie(SelectedUser.usrNazwa);
+        ShowResponse(response.Code, "Logowanie zostało odblokowane.", response.Message);
+        await LoadData();
+        SelectUser(response.Code >= 200 && response.Code < 300 ? SelectedUser.usrID : null);
     }
 
     private void ShowResponse(int code, string successMessage, string? errorMessage)

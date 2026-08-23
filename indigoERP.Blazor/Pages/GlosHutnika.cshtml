@@ -1,0 +1,72 @@
+﻿@page "/gloshutnika"
+@model indigoERP.Blazor.Pages.GlosHutnikaModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Głos Hutnika</title>
+    <link href="~/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/fontawesome.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark header-color header-navbar">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <img class="app-header-logo" src="~/images/logo_white.svg" />
+                Głos Hutnika
+            </span>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        @if (Model.Wybrana != null)
+        {
+            <a asp-page="GlosHutnika" class="d-inline-block mb-3">&larr; Wróć do listy</a>
+            <h2>@Model.Wybrana.wiaTemat</h2>
+            <p class="text-muted">@Model.Wybrana.wiaData?.ToString("g")</p>
+            <div class="border rounded p-3 mb-3">
+                @Html.Raw(Model.Wybrana.wiaTresc)
+            </div>
+
+            @if (Model.Zalaczniki.Count > 0)
+            {
+                <h5>Załączniki</h5>
+                <ul class="list-unstyled">
+                    @foreach (var zalacznik in Model.Zalaczniki)
+                    {
+                        <li>
+                            <a asp-page-handler="Download" asp-route-wdoID="@zalacznik.wdoID">@zalacznik.wdoNazwa</a>
+                        </li>
+                    }
+                </ul>
+            }
+        }
+        else if (Model.Wiadomosci.Count == 0)
+        {
+            <p>Brak aktualnych ogłoszeń.</p>
+        }
+        else
+        {
+            <h2 class="mb-3">Ogłoszenia</h2>
+            <div class="list-group">
+                @foreach (var wiadomosc in Model.Wiadomosci)
+                {
+                    <a asp-page="GlosHutnika" asp-route-wiaID="@wiadomosc.wiaID" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">@wiadomosc.wiaTemat</h5>
+                            <small class="text-muted">@wiadomosc.wiaData?.ToString("d")</small>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</body>
+</html>

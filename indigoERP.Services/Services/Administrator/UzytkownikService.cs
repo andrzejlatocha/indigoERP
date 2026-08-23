@@ -114,5 +114,22 @@ namespace indigoERP.Service.Services._Administrator
                 return new ResponseMessage(600, ex.Message, null);
             }
         }
+
+        public async Task<ResponseMessage> OdblokujLogowanie(string usrNazwa)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+
+            try
+            {
+                var response = await httpClient.PostAsync($"Uzytkownik/OdblokujLogowanie?usrNazwa={Uri.EscapeDataString(usrNazwa)}", null);
+                string apiResponse = await response.Content.ReadAsStringAsync();
+
+                return new ResponseMessage((int)response.StatusCode, apiResponse, null);
+            }
+            catch (Exception ex)
+            {
+                return new ResponseMessage(600, ex.Message, null);
+            }
+        }
     }
 }

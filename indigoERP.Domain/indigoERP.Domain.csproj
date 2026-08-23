@@ -8,18 +8,11 @@
 
   <ItemGroup>
     <Compile Remove="Data\**" />
-    <Compile Remove="Entities\Autoryzacja\**" />
     <Compile Remove="Enumerators\Autoryzacja\**" />
     <EmbeddedResource Remove="Data\**" />
-    <EmbeddedResource Remove="Entities\Autoryzacja\**" />
     <EmbeddedResource Remove="Enumerators\Autoryzacja\**" />
     <None Remove="Data\**" />
-    <None Remove="Entities\Autoryzacja\**" />
     <None Remove="Enumerators\Autoryzacja\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Enumerators\Wspolne\" />
   </ItemGroup>
 
   <ItemGroup>

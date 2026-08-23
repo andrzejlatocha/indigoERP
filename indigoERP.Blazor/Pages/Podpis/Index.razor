@@ -1,0 +1,263 @@
+﻿@page "/podpis"
+
+@using indigoERP.Domain.Dtos._Podpis
+@using indigoERP.Domain.ViewModels._Podpis
+@using indigoERP.Service.Interfaces._Podpis
+
+@inject IPodpisService _podpisService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow" Disabled="@(!HasSelectedPodpis)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow" Disabled="@(!HasSelectedPodpis)" />
+            <RadzenButton Text="Pokaż użytkowników" Icon="manage_accounts" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@ShowUsersForSelected" Disabled="@(!HasSelectedPodpis)" />
+            <RadzenButton Text="Pokaż grupy" Icon="groups" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@ShowGroupsForSelected" Disabled="@(!HasSelectedPodpis)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Anulowane" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="PodpisViewModel" Density="Density.Compact"
+                            Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And">
+                <Columns>
+                    <RadzenDataGridColumn TItem="PodpisViewModel" Property="pdpID" Title="Symbol" Width="80px" />
+                    <RadzenDataGridColumn TItem="PodpisViewModel" Property="pdpStatus" Title="S" Width="70px">
+                        <Template Context="row">
+                            <RadzenImage Path="@($"Images/status/{row.pdpStatus}.png")" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PodpisViewModel" Property="pdpNazwa" Title="Nazwa" SortOrder="Radzen.SortOrder.Ascending" />
+                    <RadzenDataGridColumn TItem="PodpisViewModel" Property="pdpOpis" Title="Opis" />
+                    <RadzenDataGridColumn TItem="PodpisViewModel" Property="pdpDomyslny" Title="Domyślny" Width="100px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool" Value="@row.pdpDomyslny" Disabled="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PodpisViewModel" Context="row" Filterable="false" Sortable="false" Width="90px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<PodpisViewModel>? grid;
+    private IList<PodpisViewModel> selectedItems = new List<PodpisViewModel>();
+    private List<PodpisViewModel>? data;
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+    private readonly List<StatusOption> statusOptions = new()
+    {
+        new("Aktywne", "2"),
+        new("Anulowane", "1")
+    };
+
+    private PodpisViewModel? SelectedPodpis => selectedItems.FirstOrDefault();
+    private bool HasSelectedPodpis => SelectedPodpis != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _podpisService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private async Task InsertRow()
+    {
+        var podpis = new PodpisViewModel
+        {
+            pdpStatus = "2",
+            pdpNazwa = string.Empty,
+            pdpOpis = string.Empty,
+            pdpTresc = string.Empty,
+            pdpDomyslny = false
+        };
+
+        var result = await OpenEditor("Dodaj szablon podpisu", podpis);
+
+        if (result is PodpisViewModel edited)
+        {
+            var response = await _podpisService.Insert(ToDto(edited));
+            ShowResponse(response.Code, "Szablon podpisu został dodany.", response.Message);
+            await LoadData();
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedPodpis != null)
+        {
+            await EditRow(SelectedPodpis);
+        }
+    }
+
+    private async Task EditRow(PodpisViewModel podpis)
+    {
+        var result = await OpenEditor("Popraw szablon podpisu", Clone(podpis));
+
+        if (result is PodpisViewModel edited)
+        {
+            var response = await _podpisService.Update(edited.pdpID, ToDto(edited));
+            ShowResponse(response.Code, "Szablon podpisu został zapisany.", response.Message);
+            await LoadData();
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, PodpisViewModel podpis)
+    {
+        return await _dialogService.OpenSideAsync<Update>(
+            title,
+            new Dictionary<string, object?> { ["Model"] = podpis },
+            GetSideDialogOptions());
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedPodpis != null)
+        {
+            await DeleteRow(SelectedPodpis);
+        }
+    }
+
+    private async Task DeleteRow(PodpisViewModel podpis)
+    {
+        var confirmed = await _dialogService.Confirm($"Usunąć szablon '{podpis.pdpNazwa}'?", "Potwierdzenie", new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _podpisService.Delete(podpis.pdpID);
+            ShowResponse(response.Code, "Szablon podpisu został usunięty.", response.Message);
+            await LoadData();
+            selectedItems = new List<PodpisViewModel>();
+        }
+    }
+
+    private async Task ShowUsersForSelected()
+    {
+        if (SelectedPodpis == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<PodpisUzytkownicy>(
+            $"Użytkownicy szablonu: {SelectedPodpis.pdpNazwa}",
+            new Dictionary<string, object?> { ["PodpisID"] = SelectedPodpis.pdpID },
+            GetRelationSideDialogOptions());
+    }
+
+    private async Task ShowGroupsForSelected()
+    {
+        if (SelectedPodpis == null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<PodpisGrupy>(
+            $"Grupy szablonu: {SelectedPodpis.pdpNazwa}",
+            new Dictionary<string, object?> { ["PodpisID"] = SelectedPodpis.pdpID },
+            GetRelationSideDialogOptions());
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private static PodpisDto ToDto(PodpisViewModel podpis)
+    {
+        return new PodpisDto
+        {
+            pdpID = podpis.pdpID,
+            pdpNazwa = podpis.pdpNazwa,
+            pdpOpis = podpis.pdpOpis,
+            pdpTresc = podpis.pdpTresc,
+            pdpDomyslny = podpis.pdpDomyslny,
+            pdpStatus = podpis.pdpStatus
+        };
+    }
+
+    private static PodpisViewModel Clone(PodpisViewModel podpis)
+    {
+        return new PodpisViewModel
+        {
+            pdpID = podpis.pdpID,
+            pdpNazwa = podpis.pdpNazwa,
+            pdpOpis = podpis.pdpOpis,
+            pdpTresc = podpis.pdpTresc,
+            pdpDomyslny = podpis.pdpDomyslny,
+            pdpStatus = podpis.pdpStatus
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "760px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private static SideDialogOptions GetRelationSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "560px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+
+    private sealed record StatusOption(string Text, string Value);
+}

@@ -8,21 +8,21 @@
 
   <ItemGroup>
     <Compile Remove="Data\**" />
-    <Compile Remove="Pages\Wiadomosc\**" />
     <Compile Remove="Pages\Zadanie\**" />
     <Compile Remove="Pages\Zdarzenie\**" />
+    <Compile Remove="wwwroot\_documents\**" />
     <Content Remove="Data\**" />
-    <Content Remove="Pages\Wiadomosc\**" />
     <Content Remove="Pages\Zadanie\**" />
     <Content Remove="Pages\Zdarzenie\**" />
+    <Content Remove="wwwroot\_documents\**" />
     <EmbeddedResource Remove="Data\**" />
-    <EmbeddedResource Remove="Pages\Wiadomosc\**" />
     <EmbeddedResource Remove="Pages\Zadanie\**" />
     <EmbeddedResource Remove="Pages\Zdarzenie\**" />
+    <EmbeddedResource Remove="wwwroot\_documents\**" />
     <None Remove="Data\**" />
-    <None Remove="Pages\Wiadomosc\**" />
     <None Remove="Pages\Zadanie\**" />
     <None Remove="Pages\Zdarzenie\**" />
+    <None Remove="wwwroot\_documents\**" />
   </ItemGroup>
 
   <ItemGroup>

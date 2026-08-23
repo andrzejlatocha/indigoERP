@@ -85,6 +85,64 @@ namespace indigoERP.Controllers
             return NotFound("Błędne hasło lub nazwa użytkownika.");
         }
 
+        /// <summary>
+        /// Loguje uzytkownika bez hasla - wylacznie dla trusted subsystem (SSO z Windows Authentication).
+        /// Chronione sekretem w naglowku X-Internal-Sso-Key, nie haslem uzytkownika.
+        /// </summary>
+        [HttpGet]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        public ActionResult<UzytkownikViewModel> GetSso(string usrNazwa, string? usrKomputer, string? appID)
+        {
+            string? providedKey = Request.Headers["X-Internal-Sso-Key"];
+            string? expectedKey = _configuration["InternalSso:Key"];
+
+            if (string.IsNullOrWhiteSpace(expectedKey) || !string.Equals(providedKey, expectedKey, StringComparison.Ordinal))
+            {
+                _logger.LogWarning($"LoginControler [GetSso] - nieautoryzowana proba, usrNazwa {usrNazwa}");
+                return Unauthorized();
+            }
+
+            _logger.LogInformation($"LoginControler [GetSso] - parameters {usrNazwa}, {appID}");
+
+            if (usrKomputer == null)
+            {
+                usrKomputer = "WebBrowser";
+            }
+
+            if (appID == null)
+            {
+                appID = _configuration["appSettings:appID"];
+
+                if (appID == null)
+                {
+                    appID = "900";
+                }
+            }
+
+            var uzytkownik = AuthenticateSso(usrNazwa, usrKomputer, appID);
+
+            if (uzytkownik != null)
+            {
+                var token = GenerateToken(uzytkownik);
+
+                if (token != null)
+                {
+                    uzytkownik.usrToken = token.ToString();
+                    return uzytkownik;
+                }
+                else
+                {
+                    _logger.LogInformation("User token is null (SSO)");
+                }
+            }
+            else
+            {
+                _logger.LogInformation("User authenticate object is null (SSO)");
+            }
+
+            return NotFound("Nie znaleziono użytkownika.");
+        }
+
         private object? GenerateToken(UzytkownikViewModel uzytkownikViewModel)
         {
             SymmetricSecurityKey? securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt:Key"]));
@@ -162,6 +220,81 @@ namespace indigoERP.Controllers
             }
 
             return null;
+        }
+
+        private UzytkownikViewModel? AuthenticateSso(string usrNazwa, string usrComputer, string appID)
+        {
+            try
+            {
+                if (!int.TryParse(appID, out int applicationID))
+                {
+                    _logger.LogInformation($"User authenticate SSO appID is invalid {appID}");
+                    return null;
+                }
+
+                List<UzytkownikViewModel> uzytkownik = ReadSsoLoginUsers(usrNazwa, usrComputer, applicationID);
+
+                if (uzytkownik != null)
+                {
+                    if (uzytkownik.Count == 1)
+                    {
+                        return uzytkownik.FirstOrDefault();
+                    }
+                    else
+                    {
+                        _logger.LogInformation("User exists more than one times (SSO)");
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("User object is null (SSO)");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"User authenticate SSO error {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private List<UzytkownikViewModel> ReadSsoLoginUsers(string usrNazwa, string usrComputer, int appID)
+        {
+            var connection = _context.Database.GetDbConnection();
+            var closeConnection = connection.State != ConnectionState.Open;
+            var users = new List<UzytkownikViewModel>();
+
+            if (closeConnection)
+            {
+                connection.Open();
+            }
+
+            try
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "EXEC uspGetUzytkownikSso @usrNazwa, @sesKomputer, @appID";
+                command.CommandType = CommandType.Text;
+
+                AddParameter(command, "@usrNazwa", usrNazwa);
+                AddParameter(command, "@sesKomputer", usrComputer);
+                AddParameter(command, "@appID", appID);
+
+                using var reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    users.Add(MapLoginUser(reader));
+                }
+            }
+            finally
+            {
+                if (closeConnection)
+                {
+                    connection.Close();
+                }
+            }
+
+            return users;
         }
 
         private List<UzytkownikViewModel> ReadLoginUsers(string usrNazwa, string usrHaslo, string usrComputer, int appID)

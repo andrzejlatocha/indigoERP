@@ -60,6 +60,32 @@ namespace indigoERP.Api.Controllers._Wspolne
             return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && w.wuzOdczyt == false && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
         }
 
+        // Biuletyn publiczny (Głos Hutnika) — bez żadnej autoryzacji, serwowany osobnej,
+        // nie-Blazorowej stronie Razor Pages (Pages/GlosHutnika.cshtml), żeby nie trzeba
+        // było otwierać całego kręgu Blazor na anonimowy dostęp. Widok mvw.vWiadomoscPubliczna
+        // już ogranicza wynik do wiaAplikacjaID=900 + wiaPubliczna=1 + wiaStatus='2'.
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<WiadomoscPublicznaViewModel>>> SelectPubliczna()
+        {
+            return await _context.WiadomoscPublicznaViewModel.OrderByDescending(w => w.wiaData).ToListAsync();
+        }
+
+        // Historia wiadomości wysłanych z danej aplikacji (opcjonalnie przez konkretnego użytkownika) —
+        // mvw.vWiadomoscHistoria łączy Wiadomosc + WiadomoscWysylka, bez zależności od WiadomoscUzytkownik
+        // (ta ostatnia tabela w praktyce nie jest używana przez istniejące, systemowe wiadomości).
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<WiadomoscHistoriaViewModel>>> SelectHistoria(int wiaAplikacjaID, int? wiaUzytkownikID, string wiaStatus = "*")
+        {
+            return await _context.WiadomoscHistoriaViewModel
+                .Where(w => w.wiaAplikacjaID == wiaAplikacjaID
+                    && (wiaUzytkownikID == null || w.wiaUzytkownikID == wiaUzytkownikID)
+                    && (w.wiaStatus == wiaStatus || wiaStatus == "*"))
+                .OrderByDescending(w => w.wiaData)
+                .ToListAsync();
+        }
+
         // Jeden wiersz z widoku (wiadomość + konkretny odbiorca) — mvw.vWiadomosc ma teraz jeden wiersz
         // na parę wiadomość/odbiorca (INNER JOIN do WiadomoscUzytkownik), stąd klucz złożony.
         [AllowAnonymous]

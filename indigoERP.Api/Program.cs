@@ -40,6 +40,9 @@ MapMonitoringEnvVar("indigoERP_MonitoringSqlLogin", "appSettings:MonitoringSqlLo
 MapMonitoringEnvVar("indigoERP_MonitoringSqlPassword", "appSettings:MonitoringSqlPassword");
 MapMonitoringEnvVar("indigoERP_JwtKey", "Jwt:Key");
 MapMonitoringEnvVar("indigoERP_ApiKey", "appSettings:ApiKey");
+// InternalSso to jedyny wyjątek od konwencji "indigoERP_" powyżej — to celowo JEDNA, wspólna
+// zmienna systemowa, z której korzystają wszystkie aplikacje na tym serwerze (nie per-appka).
+MapMonitoringEnvVar("InternalSso", "InternalSso:Key");
 
 if (monitoringEnvOverrides.Count > 0)
 {
@@ -137,9 +140,10 @@ startupLogger.LogInformation(
     !string.IsNullOrWhiteSpace(configuration["appSettings:MonitoringSqlPassword"]),
     configuration["appSettings:MonitoringIntervalMinutes"]);
 startupLogger.LogInformation(
-    "Konfiguracja bezpieczeństwa: Jwt:Key ustawiony={JwtKeySet}, appSettings:ApiKey ustawiony={ApiKeySet}.",
+    "Konfiguracja bezpieczeństwa: Jwt:Key ustawiony={JwtKeySet}, appSettings:ApiKey ustawiony={ApiKeySet}, InternalSso:Key ustawiony={InternalSsoKeySet}.",
     !string.IsNullOrWhiteSpace(configuration["Jwt:Key"]),
-    !string.IsNullOrWhiteSpace(configuration["appSettings:ApiKey"]));
+    !string.IsNullOrWhiteSpace(configuration["appSettings:ApiKey"]),
+    !string.IsNullOrWhiteSpace(configuration["InternalSso:Key"]));
 
 if (missingMonitoringEnvVars.Count > 0)
 {

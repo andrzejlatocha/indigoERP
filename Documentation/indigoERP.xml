@@ -86,6 +86,12 @@
             Klasa UzytkownikViewModel
             </returns>
         </member>
+        <member name="M:indigoERP.Controllers.LoginController.GetSso(System.String,System.String,System.String)">
+            <summary>
+            Loguje uzytkownika bez hasla - wylacznie dla trusted subsystem (SSO z Windows Authentication).
+            Chronione sekretem w naglowku X-Internal-Sso-Key, nie haslem uzytkownika.
+            </summary>
+        </member>
         <member name="T:Program">
             <summary>
             Auto-generated public partial Program class for top-level statement apps.

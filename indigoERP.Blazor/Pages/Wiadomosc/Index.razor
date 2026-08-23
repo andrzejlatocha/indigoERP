@@ -1,0 +1,137 @@
+﻿@page "/wiadomosc"
+
+@using indigoERP.Blazor.Pages.Wiadomosc.Wzorzec
+
+@inject IWiadomoscService _wiadomoscService
+@inject IConfiguration _configuration
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Nowa wiadomość" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <AuthorizeView Roles="HCZ-indigoERP-Wiadomość">
+                <RadzenButton Text="Wzorce wiadomości" Icon="description" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@(() => _navigationManager.NavigateTo("/wiadomosc/wzorzec"))" />
+            </AuthorizeView>
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="1" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="WiadomoscHistoriaViewModel" Density="Density.Compact"
+                            Class="administrator-grid" RowClick="@(args => OpenDetail(args.Data))"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And">
+                <Columns>
+                    <RadzenDataGridColumn TItem="WiadomoscHistoriaViewModel" Property="wiaTemat" Title="Temat" SortOrder="Radzen.SortOrder.Descending" />
+                    <RadzenDataGridColumn TItem="WiadomoscHistoriaViewModel" Property="wiaEmail" Title="Adres e-mail" Width="260px" />
+                    <RadzenDataGridColumn TItem="WiadomoscHistoriaViewModel" Property="wiaData" Title="Data" Width="160px" FormatString="{0:g}" />
+                    <RadzenDataGridColumn TItem="WiadomoscHistoriaViewModel" Property="wwyStatus" Title="Status wysyłki" Width="130px" />
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<WiadomoscHistoriaViewModel>? grid;
+    private List<WiadomoscHistoriaViewModel>? data;
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "*" };
+    private int usrID;
+    private int appID;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        usrID = int.TryParse(authState.User.FindFirst("usrID")?.Value, out var parsedUsrID) ? parsedUsrID : 0;
+        appID = int.TryParse(_configuration["appSettings:AppID"], out var parsedAppID) ? parsedAppID : 0;
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _wiadomoscService.SelectHistoria(appID, null, status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private async Task InsertRow()
+    {
+        var wiadomosc = new Update.WiadomoscComposeModel
+        {
+            wiaAplikacjaID = appID,
+            wiaUzytkownikID = usrID
+        };
+
+        var result = await _dialogService.OpenSideAsync<Update>(
+            "Nowa wiadomość",
+            new Dictionary<string, object?> { ["Model"] = wiadomosc },
+            GetSideDialogOptions());
+
+        if (result is bool sent && sent)
+        {
+            ShowResponse(200, "Wiadomość została zapisana.", null);
+            await LoadData();
+        }
+    }
+
+    private async Task OpenDetail(WiadomoscHistoriaViewModel wiadomosc)
+    {
+        await _dialogService.OpenSideAsync<Detail>(
+            wiadomosc.wiaTemat ?? "Wiadomość",
+            new Dictionary<string, object?> { ["Model"] = wiadomosc },
+            GetSideDialogOptions());
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "760px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+}

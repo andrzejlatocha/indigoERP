@@ -1,0 +1,103 @@
+﻿@using indigoERP.Domain.Dtos._Podpis
+@using indigoERP.Domain.ViewModels._Autoryzacja
+@using indigoERP.Domain.ViewModels._Podpis
+@using indigoERP.Service.Interfaces._Administrator
+@using indigoERP.Service.Interfaces._Podpis
+
+@inject IPodpisUzytkownikService _podpisUzytkownikService
+@inject IUzytkownikService _uzytkownikService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="0.75rem" Class="p-3">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+        <RadzenDropDown Data="@users" TextProperty="usrImieNazwisko" ValueProperty="usrID" TValue="int"
+                        @bind-Value="@wybranyUzytkownikID" AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:280px" Placeholder="Wybierz użytkownika" />
+        <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" Disabled="@(wybranyUzytkownikID <= 0)" />
+        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
+    </RadzenStack>
+
+    @if (data == null)
+    {
+        <Load />
+    }
+    else
+    {
+        <RadzenDataGridApp @ref="grid" Data="@data" TItem="PodpisUzytkownikViewModel" Density="Density.Compact"
+                        AllowPaging="true" PageSize="18" AllowSorting="true">
+            <Columns>
+                <RadzenDataGridColumn TItem="PodpisUzytkownikViewModel" Property="pduID" Title="ID" Width="70px" />
+                <RadzenDataGridColumn TItem="PodpisUzytkownikViewModel" Property="usrImieNazwisko" Title="Użytkownik" />
+                <RadzenDataGridColumn TItem="PodpisUzytkownikViewModel" Filterable="false" Sortable="false" Width="90px" TextAlign="TextAlign.Center">
+                    <Template Context="row">
+                        <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGridApp>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public int PodpisID { get; set; }
+
+    private RadzenDataGridApp<PodpisUzytkownikViewModel>? grid;
+    private List<PodpisUzytkownikViewModel>? data;
+    private List<UzytkownikViewModel> users = new();
+    private int wybranyUzytkownikID;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = (await _uzytkownikService.Select("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        data = (await _podpisUzytkownikService.SelectByPodpis(PodpisID, "*")).ToList();
+    }
+
+    private async Task InsertRow()
+    {
+        var dto = new PodpisUzytkownikDto { pduPodpisID = PodpisID, pduUzytkownikID = wybranyUzytkownikID, pduStatus = "2" };
+        var response = await _podpisUzytkownikService.Insert(dto);
+        ShowResponse(response.Code, "Użytkownik został przypisany do szablonu.", response.Message);
+
+        if (response.Code >= 200 && response.Code < 300)
+        {
+            wybranyUzytkownikID = 0;
+        }
+
+        await LoadData();
+    }
+
+    private async Task DeleteRow(PodpisUzytkownikViewModel row)
+    {
+        var confirmed = await _dialogService.Confirm($"Usunąć przypisanie użytkownika '{row.usrImieNazwisko}'?", "Potwierdzenie", new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _podpisUzytkownikService.Delete(row.pduID);
+            ShowResponse(response.Code, "Przypisanie zostało usunięte.", response.Message);
+            await LoadData();
+        }
+    }
+
+    private void Close()
+    {
+        _dialogService.CloseSide(null);
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = code >= 200 && code < 300 ? NotificationSeverity.Success : NotificationSeverity.Error,
+            Summary = code >= 200 && code < 300 ? "Gotowe" : "Błąd",
+            Detail = code >= 200 && code < 300 ? successMessage : errorMessage ?? "Operacja nie powiodła się.",
+            Duration = 5000
+        });
+    }
+}

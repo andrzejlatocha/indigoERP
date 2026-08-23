@@ -14,5 +14,6 @@ namespace indigoERP.Service.Interfaces._Administrator
         Task<ResponseMessage> Insert(UzytkownikDto uzytkownik);
         Task<ResponseMessage> Update(int usrID, UzytkownikDto uzytkownik);
         Task<ResponseMessage> Delete(int usrID);
+        Task<ResponseMessage> OdblokujLogowanie(string usrNazwa);
     }
 }

@@ -84,5 +84,8 @@ namespace indigoERP.Domain.ViewModels._Autoryzacja
 
         [NotMapped]
         public string? usrStatus { get; set; }
+
+        [NotMapped]
+        public bool? usrZablokowanyLogowaniem { get; set; }
     }
 }

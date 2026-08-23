@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\indigoERP.Api\indigoERP.Api.csproj" />
     <ProjectReference Include="..\indigoERP.Blazor\indigoERP.Blazor.csproj" />
+    <ProjectReference Include="..\indigoERP.Gateway\indigoERP.Gateway.csproj" />
   </ItemGroup>
 
 </Project>

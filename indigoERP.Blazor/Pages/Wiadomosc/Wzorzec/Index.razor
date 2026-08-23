@@ -1,0 +1,218 @@
+﻿@page "/wiadomosc/wzorzec"
+
+@attribute [Authorize(Roles = "HCZ-indigoERP-Wiadomość")]
+
+@inject IWiadomoscWzorzecService _wiadomoscWzorzecService
+@inject IConfiguration _configuration
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow" Disabled="@(!HasSelectedWzorzec)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow" Disabled="@(!HasSelectedWzorzec)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Anulowane" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="WiadomoscWzorzecViewModel" Density="Density.Compact"
+                            Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And">
+                <Columns>
+                    <RadzenDataGridColumn TItem="WiadomoscWzorzecViewModel" Property="msgID" Title="Symbol" Width="80px" />
+                    <RadzenDataGridColumn TItem="WiadomoscWzorzecViewModel" Property="msgStatus" Title="S" Width="70px">
+                        <Template Context="row">
+                            <RadzenImage Path="@($"Images/status/{row.msgStatus}.png")" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="WiadomoscWzorzecViewModel" Property="msgTemat" Title="Temat" SortOrder="Radzen.SortOrder.Ascending" />
+                    <RadzenDataGridColumn TItem="WiadomoscWzorzecViewModel" Property="msgTyp" Title="Typ" Width="80px" />
+                    <RadzenDataGridColumn TItem="WiadomoscWzorzecViewModel" Property="msgJezyk" Title="Język" Width="90px" />
+                    <RadzenDataGridColumn TItem="WiadomoscWzorzecViewModel" Context="row" Filterable="false" Sortable="false" Width="90px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<WiadomoscWzorzecViewModel>? grid;
+    private IList<WiadomoscWzorzecViewModel> selectedItems = new List<WiadomoscWzorzecViewModel>();
+    private List<WiadomoscWzorzecViewModel>? data;
+    private int valStatus;
+    private int appID;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+
+    private WiadomoscWzorzecViewModel? SelectedWzorzec => selectedItems.FirstOrDefault();
+    private bool HasSelectedWzorzec => SelectedWzorzec != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        appID = int.TryParse(_configuration["appSettings:AppID"], out var parsedAppID) ? parsedAppID : 0;
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _wiadomoscWzorzecService.Select(appID, status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private async Task InsertRow()
+    {
+        var wzorzec = new WiadomoscWzorzecViewModel
+        {
+            msgAplikacjaID = appID,
+            msgStatus = "2",
+            msgJezyk = "pl-PL",
+            msgTyp = 0,
+            msgTemat = string.Empty,
+            msgTresc = string.Empty
+        };
+
+        var result = await OpenEditor("Dodaj wzorzec wiadomości", wzorzec);
+
+        if (result is WiadomoscWzorzecViewModel edited)
+        {
+            var response = await _wiadomoscWzorzecService.Insert(ToDto(edited));
+            ShowResponse(response.Code, "Wzorzec wiadomości został dodany.", response.Message);
+            await LoadData();
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedWzorzec != null)
+        {
+            await EditRow(SelectedWzorzec);
+        }
+    }
+
+    private async Task EditRow(WiadomoscWzorzecViewModel wzorzec)
+    {
+        var result = await OpenEditor("Popraw wzorzec wiadomości", Clone(wzorzec));
+
+        if (result is WiadomoscWzorzecViewModel edited)
+        {
+            var response = await _wiadomoscWzorzecService.Update(edited.msgID, ToDto(edited));
+            ShowResponse(response.Code, "Wzorzec wiadomości został zapisany.", response.Message);
+            await LoadData();
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, WiadomoscWzorzecViewModel wzorzec)
+    {
+        return await _dialogService.OpenSideAsync<Update>(
+            title,
+            new Dictionary<string, object?> { ["Model"] = wzorzec },
+            GetSideDialogOptions());
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedWzorzec != null)
+        {
+            await DeleteRow(SelectedWzorzec);
+        }
+    }
+
+    private async Task DeleteRow(WiadomoscWzorzecViewModel wzorzec)
+    {
+        var confirmed = await _dialogService.Confirm($"Usunąć wzorzec '{wzorzec.msgTemat}'?", "Potwierdzenie", new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _wiadomoscWzorzecService.Delete(wzorzec.msgID);
+            ShowResponse(response.Code, "Wzorzec wiadomości został usunięty.", response.Message);
+            await LoadData();
+            selectedItems = new List<WiadomoscWzorzecViewModel>();
+        }
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private static WiadomoscWzorzecDto ToDto(WiadomoscWzorzecViewModel wzorzec)
+    {
+        return new WiadomoscWzorzecDto
+        {
+            msgID = wzorzec.msgID,
+            msgAplikacjaID = wzorzec.msgAplikacjaID,
+            msgTyp = wzorzec.msgTyp,
+            msgJezyk = wzorzec.msgJezyk,
+            msgTemat = wzorzec.msgTemat,
+            msgTresc = wzorzec.msgTresc,
+            msgStatus = wzorzec.msgStatus
+        };
+    }
+
+    private static WiadomoscWzorzecViewModel Clone(WiadomoscWzorzecViewModel wzorzec)
+    {
+        return new WiadomoscWzorzecViewModel
+        {
+            msgID = wzorzec.msgID,
+            msgAplikacjaID = wzorzec.msgAplikacjaID,
+            msgTyp = wzorzec.msgTyp,
+            msgJezyk = wzorzec.msgJezyk,
+            msgTemat = wzorzec.msgTemat,
+            msgTresc = wzorzec.msgTresc,
+            msgStatus = wzorzec.msgStatus
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "760px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+}

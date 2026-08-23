@@ -1,0 +1,232 @@
+﻿@inject IWiadomoscService _wiadomoscService
+@inject IWiadomoscWysylkaService _wiadomoscWysylkaService
+@inject IWiadomoscWzorzecService _wiadomoscWzorzecService
+@inject IWiadomoscDokumentService _wiadomoscDokumentService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<RadzenStack Gap="1rem" Class="p-3">
+    <RadzenFormField Text="Wzorzec wiadomości" Style="width:100%">
+        <RadzenDropDown Data="@wzorce" TextProperty="msgTemat" ValueProperty="msgID" TValue="int?" AllowClear="true"
+                        @bind-Value="@wybranyWzorzecID" Change="@OnWzorzecChange" Style="width:100%" Placeholder="(bez wzorca)" />
+    </RadzenFormField>
+    <RadzenFormField Text="Temat" Style="width:100%">
+        <RadzenTextBox @bind-Value="@Model.wiaTemat" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Odbiorcy (adresy e-mail, rozdzielone przecinkiem lub średnikiem — opcjonalnie)" Style="width:100%">
+        <RadzenTextArea @bind-Value="@odbiorcyTekst" Rows="2" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+        <RadzenCheckBox TValue="bool" @bind-Value="@publikujPublicznie" />
+        <RadzenLabel Text="Publikuj publicznie (Głos Hutnika — widoczne bez logowania)" />
+    </RadzenStack>
+    <RadzenFormField Text="Treść" Style="width:100%">
+        <RadzenHtmlEditor @bind-Value="@Model.wiaTresc" Style="height:280px" />
+    </RadzenFormField>
+    <RadzenFormField Text="Załączniki" Style="width:100%">
+        <InputFile OnChange="@OnFilesSelected" multiple class="rz-w-100" />
+    </RadzenFormField>
+    @if (pendingFiles.Count > 0)
+    {
+        <RadzenStack Gap="0.25rem">
+            @foreach (var file in pendingFiles)
+            {
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                    <RadzenText TextStyle="TextStyle.Body2">@file.Name (@FormatSize(file.Size))</RadzenText>
+                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" Click="@(() => pendingFiles.Remove(file))" />
+                </RadzenStack>
+            }
+        </RadzenStack>
+    }
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" Disabled="@isSending" />
+        <RadzenButton Text='@(isSending ? "Zapisywanie..." : "Wyślij")' Icon="send" ButtonStyle="ButtonStyle.Primary" Click="@Save"
+                      Disabled="@(isSending || (string.IsNullOrWhiteSpace(odbiorcyTekst) && !publikujPublicznie) || string.IsNullOrWhiteSpace(Model.wiaTemat))" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public WiadomoscComposeModel Model { get; set; } = new();
+
+    private List<WiadomoscWzorzecEnumerator> wzorce = new();
+    private List<IBrowserFile> pendingFiles = new();
+    private string odbiorcyTekst = string.Empty;
+    private bool publikujPublicznie;
+    private int? wybranyWzorzecID;
+    private bool isSending;
+
+    protected override async Task OnInitializedAsync()
+    {
+        wzorce = (await _wiadomoscWzorzecService.SelectLookup(Model.wiaAplikacjaID, "2")).ToList();
+    }
+
+    private async Task OnWzorzecChange()
+    {
+        if (wybranyWzorzecID is not int msgID)
+        {
+            return;
+        }
+
+        var wzorzec = await _wiadomoscWzorzecService.Get(msgID);
+
+        if (wzorzec == null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Model.wiaTemat))
+        {
+            Model.wiaTemat = wzorzec.msgTemat;
+        }
+
+        if (string.IsNullOrWhiteSpace(Model.wiaTresc))
+        {
+            Model.wiaTresc = wzorzec.msgTresc;
+        }
+    }
+
+    private void OnFilesSelected(InputFileChangeEventArgs args)
+    {
+        foreach (var file in args.GetMultipleFiles(10))
+        {
+            pendingFiles.Add(file);
+        }
+    }
+
+    private static IEnumerable<string> ParseRecipients(string tekst)
+    {
+        return (tekst ?? string.Empty)
+            .Split(new[] { ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(w => w.Contains('@'))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private async Task Save()
+    {
+        if (isSending)
+        {
+            return;
+        }
+
+        var odbiorcy = ParseRecipients(odbiorcyTekst).ToList();
+
+        if (odbiorcy.Count == 0 && !publikujPublicznie)
+        {
+            ShowResponse(600, string.Empty, "Podaj przynajmniej jeden adres e-mail albo zaznacz publikację publiczną.");
+            return;
+        }
+
+        isSending = true;
+
+        try
+        {
+            foreach (var email in odbiorcy)
+            {
+                var wiaID = await InsertWiadomosc(email, publiczna: false);
+
+                if (wiaID == null)
+                {
+                    continue;
+                }
+
+                var zalaczone = await UploadZalaczniki(wiaID.Value);
+
+                await _wiadomoscWysylkaService.Insert(new WiadomoscWysylkaDto
+                {
+                    wwyWiadomoscID = wiaID,
+                    wwyEmail = email,
+                    wwyData = DateTime.Now,
+                    wwyZalacznik = zalaczone.Count > 0 ? string.Join(", ", zalaczone) : null,
+                    wwyStatus = "2"
+                });
+            }
+
+            if (publikujPublicznie)
+            {
+                var wiaID = await InsertWiadomosc(email: null, publiczna: true);
+
+                if (wiaID != null)
+                {
+                    await UploadZalaczniki(wiaID.Value);
+                }
+            }
+
+            _dialogService.CloseSide(true);
+        }
+        finally
+        {
+            isSending = false;
+        }
+    }
+
+    private async Task<int?> InsertWiadomosc(string? email, bool publiczna)
+    {
+        var insertResponse = await _wiadomoscService.Insert(new WiadomoscDto
+        {
+            wiaAplikacjaID = Model.wiaAplikacjaID,
+            wiaUzytkownikID = Model.wiaUzytkownikID,
+            wiaEmail = email,
+            wiaTemat = Model.wiaTemat,
+            wiaTresc = Model.wiaTresc,
+            wiaData = DateTime.Now,
+            wiaStatus = "2",
+            wiaPubliczna = publiczna
+        });
+
+        if (insertResponse.Code < 200 || insertResponse.Code >= 300 || insertResponse.Id == null)
+        {
+            ShowResponse(insertResponse.Code, string.Empty, $"Nie udało się zapisać wiadomości{(email != null ? $" do {email}" : string.Empty)}: {insertResponse.Message}");
+            return null;
+        }
+
+        return insertResponse.Id.Value;
+    }
+
+    private async Task<List<string>> UploadZalaczniki(int wiaID)
+    {
+        var zalaczone = new List<string>();
+
+        foreach (var file in pendingFiles)
+        {
+            var uploadResponse = await _wiadomoscDokumentService.Upload(wiaID, file);
+
+            if (uploadResponse.Code >= 200 && uploadResponse.Code < 300)
+            {
+                zalaczone.Add(file.Name);
+            }
+        }
+
+        return zalaczone;
+    }
+
+    private void Cancel()
+    {
+        _dialogService.CloseSide(false);
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        return bytes < 1024 * 1024 ? $"{bytes / 1024.0:0.#} KB" : $"{bytes / 1024.0 / 1024.0:0.#} MB";
+    }
+
+    public class WiadomoscComposeModel
+    {
+        public int wiaAplikacjaID { get; set; }
+        public int wiaUzytkownikID { get; set; }
+        public string? wiaTemat { get; set; }
+        public string? wiaTresc { get; set; }
+    }
+}

@@ -2,11 +2,15 @@
 using indigoERP.Service.Interfaces;
 using indigoERP.Service.Interfaces._Administrator;
 using indigoERP.Service.Interfaces._Autoryzacja;
+using indigoERP.Service.Interfaces._Podpis;
 using indigoERP.Service.Interfaces._Slownik;
+using indigoERP.Service.Interfaces._Wspolne;
 using indigoERP.Service.Services;
 using indigoERP.Service.Services._Administrator;
 using indigoERP.Service.Services._Autoryzacja;
+using indigoERP.Service.Services._Podpis;
 using indigoERP.Service.Services._Slownik;
+using indigoERP.Service.Services._Wspolne;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Components;
@@ -17,6 +21,16 @@ using Radzen;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Zmienna środowiskowa InternalSso nadpisuje InternalSso:Key z appsettings.json — jedna, wspólna
+// zmienna systemowa dla wszystkich aplikacji na tym serwerze (nie per-appka), patrz też indigoERP.Api\Program.cs.
+var internalSsoKeyFromEnv = Environment.GetEnvironmentVariable("InternalSso");
+
+if (!string.IsNullOrEmpty(internalSsoKeyFromEnv))
+{
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["InternalSso:Key"] = internalSsoKeyFromEnv });
+}
+
 var configuration = builder.Configuration;
 var services = builder.Services;
 
@@ -75,6 +89,18 @@ services.AddScoped<ISerwerTypService, SerwerTypService>();
 // Home
 services.AddScoped<IHomeService, HomeService>();
 
+// Podpisy
+services.AddScoped<IPodpisService, PodpisService>();
+services.AddScoped<IPodpisUzytkownikService, PodpisUzytkownikService>();
+services.AddScoped<IPodpisGrupaService, PodpisGrupaService>();
+
+// Wiadomości
+services.AddScoped<IWiadomoscService, WiadomoscService>();
+services.AddScoped<IWiadomoscUzytkownikService, WiadomoscUzytkownikService>();
+services.AddScoped<IWiadomoscWzorzecService, WiadomoscWzorzecService>();
+services.AddScoped<IWiadomoscDokumentService, WiadomoscDokumentService>();
+services.AddScoped<IWiadomoscWysylkaService, WiadomoscWysylkaService>();
+
 //Aplikacja
 
 
@@ -89,6 +115,11 @@ CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 services.AddMemoryCache();
 
 var app = builder.Build();
+
+// Diagnostyka konfiguracji — nie ujawnia wartości sekretu, tylko potwierdza że jest ustawiony
+// (ten sam log co w indigoERP.Api\Program.cs, żeby od razu było widać brak klucza na obu stronach).
+app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup")
+    .LogInformation("Konfiguracja bezpieczeństwa: InternalSso:Key ustawiony={InternalSsoKeySet}.", !string.IsNullOrWhiteSpace(configuration["InternalSso:Key"]));
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

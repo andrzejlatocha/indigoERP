@@ -1,13 +1,18 @@
 ﻿using epicaHR.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Administrator;
+using indigoERP.Domain.Entities._Autoryzacja;
 using indigoERP.Domain.Entities._Slownik;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.Common;
+using indigoERP.Domain.Entities._Podpis;
 using indigoERP.Domain.Enumerators._Administrator;
+using indigoERP.Domain.Enumerators._Podpis;
 using indigoERP.Domain.Enumerators._Slownik;
+using indigoERP.Domain.Enumerators._Wspolne;
 using indigoERP.Domain.ViewModels;
 using indigoERP.Domain.ViewModels._Administracja;
 using indigoERP.Domain.ViewModels._Autoryzacja;
+using indigoERP.Domain.ViewModels._Podpis;
 using indigoERP.Domain.ViewModels._Slownik;
 using indigoERP.Domain.ViewModels._Wspolne;
 using Microsoft.AspNetCore.Http;
@@ -54,6 +59,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Godzina> Godzina { get; set; }
         public virtual DbSet<Grupa> Grupa { get; set; }
         public virtual DbSet<GrupaCzlonkowie> GrupaCzlonkowie { get; set; }
+        public virtual DbSet<JednostkaMiara> JednostkaMiara { get; set; }
         public virtual DbSet<Kraj> Kraj { get; set; }
         public virtual DbSet<Kontakt> Kontakt { get; set; }
         public virtual DbSet<Notatka> Notatka { get; set; }
@@ -66,10 +72,14 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Nowosc> Nowosc { get; set; }
         public virtual DbSet<NowoscUzytkownik> NowoscUzytkownik { get; set; }
         public virtual DbSet<Rola> Rola { get; set; }
+        public virtual DbSet<LoginBlokada> LoginBlokada { get; set; }
         public virtual DbSet<Obywatelstwo> Obywatelstwo { get; set; }
         public virtual DbSet<Plec> Plec { get; set; }
         public virtual DbSet<Plik> Plik { get; set; }
         public virtual DbSet<Poczta> Poczta { get; set; }
+        public virtual DbSet<Podpis> Podpis { get; set; }
+        public virtual DbSet<PodpisUzytkownik> PodpisUzytkownik { get; set; }
+        public virtual DbSet<PodpisGrupa> PodpisGrupa { get; set; }
         public virtual DbSet<Powiat> Powiat { get; set; }
         public virtual DbSet<RodzajDokumentTozsamosc> RodzajDokumentTozsamosc { get; set; }
         public virtual DbSet<RolaCzlonkowie> RolaCzlonkowie { get; set; }
@@ -86,6 +96,9 @@ namespace indigoERP.Api.Data
         public virtual DbSet<UzytkownikGrupa> UzytkownikGrupa { get; set; }
         public virtual DbSet<Wiadomosc> Wiadomosc { get; set; }
         public virtual DbSet<WiadomoscUzytkownik> WiadomoscUzytkownik { get; set; }
+        public virtual DbSet<WiadomoscWzorzec> WiadomoscWzorzec { get; set; }
+        public virtual DbSet<WiadomoscDokument> WiadomoscDokument { get; set; }
+        public virtual DbSet<WiadomoscWysylka> WiadomoscWysylka { get; set; }
         public virtual DbSet<Wojewodztwo> Wojewodztwo { get; set; }
         public virtual DbSet<Zadanie> Zadanie { get; set; }
         public virtual DbSet<ZadanieUzytkownik> ZadanieUzytkownik { get; set; }
@@ -97,6 +110,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<BankEnumerator> BankEnumerator { get; set; }
         public virtual DbSet<GminaEnumerator> GminaEnumerator { get; set; }
         public virtual DbSet<GodzinaEnumerator> GodzinaEnumerator { get; set; }
+        public virtual DbSet<JednostkaMiaraEnumerator> JednostkaMiaraEnumerator { get; set; }
         public virtual DbSet<KrajEnumerator> KrajEnumerator { get; set; }
         public virtual DbSet<MarkaPojazdEnumerator> MarkaPojazdEnumerator { get; set; }
         public virtual DbSet<MiejscowoscEnumerator> MiejscowoscEnumerator { get; set; }
@@ -104,10 +118,13 @@ namespace indigoERP.Api.Data
         public virtual DbSet<ObywatelstwoEnumerator> ObywatelstwoEnumerator { get; set; }
         public virtual DbSet<PlecEnumerator> PlecEnumerator { get; set; }
         public virtual DbSet<PocztaEnumerator> PocztaEnumerator { get; set; }
+        public virtual DbSet<PodpisEnumerator> PodpisEnumerator { get; set; }
+        public virtual DbSet<WiadomoscWzorzecEnumerator> WiadomoscWzorzecEnumerator { get; set; }
         public virtual DbSet<PowiatEnumerator> PowiatEnumerator { get; set; }
         public virtual DbSet<PracownikEnumerator> PracownikEnumerator { get; set; }
         public virtual DbSet<RodzajDokumentTozsamoscEnumerator> RodzajDokumentTozsamoscEnumerator { get; set; }
         public virtual DbSet<SerwerTypEnumerator> SerwerTypEnumerator { get; set; }
+        public virtual DbSet<TypNowoscEnumerator> TypNowoscEnumerator { get; set; }
         public virtual DbSet<TypKontaktEnumerator> TypKontaktEnumerator { get; set; }
         public virtual DbSet<TypPlikEnumerator> TypPlikEnumerator { get; set; }
         public virtual DbSet<UrzadSkarbowyEnumerator> UrzadSkarbowyEnumerator { get; set; }
@@ -128,9 +145,14 @@ namespace indigoERP.Api.Data
         public virtual DbSet<GrupaRolaViewModel> GrupaRolaViewModel { get; set; }
         public virtual DbSet<KrajViewModel> KrajViewModel { get; set; }
         public virtual DbSet<NotatkaViewModel> NotatkaViewModel { get; set; }
+        public virtual DbSet<NowoscViewModel> NowoscViewModel { get; set; }
+        public virtual DbSet<NowoscUzytkownikViewModel> NowoscUzytkownikViewModel { get; set; }
         public virtual DbSet<MarkaPojazdViewModel> MarkaPojazdViewModel { get; set; }
         public virtual DbSet<MiejscowoscViewModel> MiejscowoscViewModel { get; set; }
         public virtual DbSet<PocztaViewModel> PocztaViewModel { get; set; }
+        public virtual DbSet<PodpisViewModel> PodpisViewModel { get; set; }
+        public virtual DbSet<PodpisUzytkownikViewModel> PodpisUzytkownikViewModel { get; set; }
+        public virtual DbSet<PodpisGrupaViewModel> PodpisGrupaViewModel { get; set; }
         public virtual DbSet<PowiatViewModel> PowiatViewModel { get; set; }
         public virtual DbSet<RolaViewModel> RolaViewModel { get; set; }
         public virtual DbSet<RolaAplikacjaViewModel> RolaAplikacjaViewModel { get; set; }
@@ -144,6 +166,9 @@ namespace indigoERP.Api.Data
         public virtual DbSet<UzytkownikRolaEfektywnaViewModel> UzytkownikRolaEfektywnaViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<WiadomoscViewModel> WiadomoscViewModel { get; set; }
+        public virtual DbSet<WiadomoscWzorzecViewModel> WiadomoscWzorzecViewModel { get; set; }
+        public virtual DbSet<WiadomoscHistoriaViewModel> WiadomoscHistoriaViewModel { get; set; }
+        public virtual DbSet<WiadomoscPublicznaViewModel> WiadomoscPublicznaViewModel { get; set; }
         public virtual DbSet<WojewodztwoViewModel> WojewodztwoViewModel { get; set; }
         public virtual DbSet<WalutaViewModel> WalutaViewModel { get; set; }
         public virtual DbSet<ZadanieViewModel> ZadanieViewModel { get; set; }

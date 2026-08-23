@@ -61,13 +61,42 @@ namespace indigoERP.Api.Controllers._Administrator
                     stnKod = w.stnKod,
                     stnSymbol = w.stnSymbol,
                     stnNazwa = w.stnNazwa,
-                    srlID = w.srlID,
-                    srlNazwa = w.srlNazwa,
                     usrGuid = w.usrGuid,
-                    usrToken = w.usrToken
+                    usrZablokowanyLogowaniem = w.usrZablokowanyLogowaniem
                 })
                 .AsNoTracking()
                 .ToListAsync();
+        }
+
+        // Odblokowuje logowanie zablokowane przez ban managera (authorizationSRV, app.LoginBlokada) —
+        // ustawia lgbDataOdblokowania/lgbOdblokowanoUsrID na wszystkich aktualnie aktywnych blokadach
+        // dla danej nazwy użytkownika. To NIE dotyczy dbo.Uzytkownik.usrBlokada (osobna, ręczna flaga).
+        [Authorize(Roles = IndigoAdministratorRole, AuthenticationSchemes = BearerScheme)]
+        [HttpPost]
+        public async Task<IActionResult> OdblokujLogowanie(string usrNazwa)
+        {
+            var teraz = DateTime.Now;
+
+            var aktywneBlokady = await _context.LoginBlokada
+                .Where(b => b.lgbUsrNazwa == usrNazwa && b.lgbDataOdblokowania == null && b.lgbDataOd <= teraz && b.lgbDataDo >= teraz)
+                .ToListAsync();
+
+            if (aktywneBlokady.Count == 0)
+            {
+                return NotFound();
+            }
+
+            int? adminUsrID = int.TryParse(User.FindFirst("usrID")?.Value, out var parsed) ? parsed : null;
+
+            foreach (var blokada in aktywneBlokady)
+            {
+                blokada.lgbDataOdblokowania = teraz;
+                blokada.lgbOdblokowanoUsrID = adminUsrID;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         [AllowAnonymous]

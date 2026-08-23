@@ -36,9 +36,7 @@ namespace indigoERP.Domain.ViewModels._Administracja
         public string? stnKod { get; set; }
         public string? stnSymbol { get; set; }
         public string? stnNazwa { get; set; }
-        public string? srlID { get; set; }
-        public string? srlNazwa { get; set; }
         public Guid? usrGuid { get; set; }
-        public string? usrToken { get; set; }
+        public bool? usrZablokowanyLogowaniem { get; set; }
     }
 }
