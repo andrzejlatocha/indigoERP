@@ -20,7 +20,7 @@ namespace indigoERP.Api.Controllers._Administrator
 
         // SQL Server 2005+ (w tym 2008, 2008 R2, 2012 ... 2022) — OUTER APPLY / TOP (n) są dostępne od 2005.
         private const string ModernJobsQuery = @"
-            SELECT j.name AS JobName, j.enabled AS Enabled, h.run_status, h.run_date, h.run_time
+            SELECT j.name AS JobName, CAST(j.enabled AS bit) AS Enabled, h.run_status, h.run_date, h.run_time
             FROM msdb.dbo.sysjobs j
             OUTER APPLY (
                 SELECT TOP (1) run_status, run_date, run_time
@@ -34,7 +34,7 @@ namespace indigoERP.Api.Controllers._Administrator
         // SQL Server 2000 (ProductMajorVersion <= 8) — brak APPLY, więc "ostatni wpis historii" liczony
         // przez LEFT JOIN + skorelowany podzapytanie MAX zamiast APPLY/TOP(1)/ROW_NUMBER (też niedostępne w 2000).
         private const string Sql2000JobsQuery = @"
-            SELECT j.name AS JobName, j.enabled AS Enabled, h.run_status, h.run_date, h.run_time
+            SELECT j.name AS JobName, CAST(j.enabled AS bit) AS Enabled, h.run_status, h.run_date, h.run_time
             FROM msdb.dbo.sysjobs j
             LEFT JOIN msdb.dbo.sysjobhistory h
                 ON h.job_id = j.job_id

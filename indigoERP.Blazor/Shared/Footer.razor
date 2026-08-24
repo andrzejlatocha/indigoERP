@@ -3,8 +3,8 @@
 
 @inject ISerwerService _serwerService
 
-<footer class="border-top footer text-muted">
-    <div class="container">
+<footer class="footer text-muted mt-auto">
+    <div class="container-fluid w-100">
         <div class="row">
             <div class="col-12 text-light">
                 <div class="d-inline-block">
@@ -13,8 +13,10 @@
                 </div>
                 @if (serwerInfo != null)
                 {
-                    <div class="d-inline-block float-end">
-                        Wersja API: @serwerInfo.WersjaApi &nbsp;·&nbsp; Serwer: @serwerInfo.SerwerSql &nbsp;·&nbsp; Baza: @serwerInfo.BazaDanych
+                    <div class="d-inline-block ms-5 footer-serwer-panel">
+                        <span>Wersja API: @serwerInfo.WersjaApi</span>
+                        <span class="ms-3">Serwer: @serwerInfo.SerwerSql</span>
+                        <span class="ms-3">Baza: @serwerInfo.BazaDanych</span>
                     </div>
                 }
             </div>

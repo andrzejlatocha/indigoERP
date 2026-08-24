@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <div class="row w-100 mt-2 ms-1 me-2">
+    <div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
         @if (loading)
         {
             <Load />
@@ -38,9 +38,9 @@
         }
         else
         {
-            <div class="col-6">
+            <div class="col-6 administrator-grid-column">
                 <h5>ujb*</h5>
-                <RadzenDataGrid Data="@ujbJoby" TItem="SqlAgentJobViewModel" AllowSorting="true" AllowFiltering="true" FilterMode="FilterMode.Simple" Density="Density.Compact">
+                <RadzenDataGridApp Data="@ujbJoby" TItem="SqlAgentJobViewModel" AllowSorting="true" AllowFiltering="true" FilterMode="FilterMode.Simple" Density="Density.Compact" Class="administrator-grid">
                     <Columns>
                         <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="JobName" Title="Nazwa" />
                         <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="Enabled" Title="Włączony" Width="100px" TextAlign="TextAlign.Center">
@@ -59,11 +59,11 @@
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
-                </RadzenDataGrid>
+                </RadzenDataGridApp>
             </div>
-            <div class="col-6">
+            <div class="col-6 administrator-grid-column">
                 <h5>MaintenancePlan*</h5>
-                <RadzenDataGrid Data="@maintenanceJoby" TItem="SqlAgentJobViewModel" AllowSorting="true" AllowFiltering="true" FilterMode="FilterMode.Simple" Density="Density.Compact">
+                <RadzenDataGridApp Data="@maintenanceJoby" TItem="SqlAgentJobViewModel" AllowSorting="true" AllowFiltering="true" FilterMode="FilterMode.Simple" Density="Density.Compact" Class="administrator-grid">
                     <Columns>
                         <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="JobName" Title="Nazwa" />
                         <RadzenDataGridColumn TItem="SqlAgentJobViewModel" Property="Enabled" Title="Włączony" Width="100px" TextAlign="TextAlign.Center">
@@ -82,7 +82,7 @@
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
-                </RadzenDataGrid>
+                </RadzenDataGridApp>
             </div>
         }
     </div>
