@@ -130,7 +130,10 @@ html, body {
     width: 100%;
     white-space: nowrap;
     line-height: 60px;
-    background-color: #343A40;
+    font-size: 0.8em;
+    font-weight: 500;
+    color: #9F9F9E;
+    background-color: #575756;
 }
 
 .center-block {

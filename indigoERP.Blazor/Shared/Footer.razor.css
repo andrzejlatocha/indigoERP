@@ -38,6 +38,13 @@
     }
 }
 
+footer a[href^="mailto:"],
+footer a[href^="mailto:"]:visited,
+footer a[href^="mailto:"]:hover,
+footer a[href^="mailto:"]:focus {
+    color: #fff;
+}
+
 .footer-serwer-panel {
     background-color: #454544;
     border-radius: 1rem;
