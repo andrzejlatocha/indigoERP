@@ -34,6 +34,8 @@ Brak.
 - Tymczasowy plik `app_offline.htm` został usunięty po kopii.
 - Hashe `indigoERP.Blazor.dll` i `wwwroot\indigoERP.Blazor.styles.css` są zgodne z paczką; strona główna oraz stylesheet
   produkcyjny zwracają `200`.
+- Końcowa paczka zawiera także wcześniejsze zmiany `Pages/Home.razor` i `Pages/Home.razor.css`: panel skrótów oraz układ
+  kafli aplikacji. Nie włączono żadnych pozostałych lokalnych zmian projektu.
 
 ## 2026-08-13
 
