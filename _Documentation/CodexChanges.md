@@ -27,6 +27,14 @@ Brak.
   z odrębnym katalogiem wynikowym - poprawny, 21 istniejących ostrzeżeń nullable, 0 błędów.
 - `git diff --check` dla zmienionych plików - poprawny.
 
+### Publikacja DEIMOS
+
+- Opublikowano wyłącznie `indigoERP.Blazor` na `\\DEIMOS\c$\inetpub\wwwroot\indigoERP` z commita `e38a4a6`.
+- Zachowano produkcyjne `appsettings.json`, `web.config`, katalogi `logs` i `wwwroot\_documents`.
+- Tymczasowy plik `app_offline.htm` został usunięty po kopii.
+- Hashe `indigoERP.Blazor.dll` i `wwwroot\indigoERP.Blazor.styles.css` są zgodne z paczką; strona główna oraz stylesheet
+  produkcyjny zwracają `200`.
+
 ## 2026-08-13
 
 ### Zgłoszenie
