@@ -32,6 +32,7 @@ Brak.
 - Usunięto panel `Wersja API / Serwer / Baza`, ponieważ nie jest widoczny w działającej stopce `atacamaDMS`.
 - `dotnet build .\indigoERP.Blazor\indigoERP.Blazor.csproj --configuration Release --no-restore -v:q`
   z odrębnym katalogiem wynikowym - poprawny, 168 istniejących ostrzeżeń, 0 błędów.
+- Poprawkę opublikowano na DEIMOS; odświeżona strona produkcyjna pokazuje wyłącznie copyright, telefon i e-mail IT.
 
 ### Publikacja DEIMOS
 
