@@ -44,16 +44,3 @@ footer a[href^="mailto:"]:hover,
 footer a[href^="mailto:"]:focus {
     color: #fff;
 }
-
-.footer-serwer-panel {
-    background-color: #454544;
-    border-radius: 1rem;
-    padding: 0.25rem 1rem;
-    font-size: 0.8em;
-    color: #C9C9C8;
-    vertical-align: middle;
-}
-
-html[data-bs-theme="dark"] .footer-serwer-panel {
-    background-color: #1C1C1B;
-}

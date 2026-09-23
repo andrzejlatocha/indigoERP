@@ -7,15 +7,15 @@ Stopka `indigoERP` ma odpowiadać stopce używanej w `atacamaDMS`.
 
 ### Zmienione obszary
 
-- `indigoERP.Blazor/Shared/Footer.razor` - zastosowano ten sam układ copyright, telefonu, poczty IT i panelu informacji serwera.
-- `indigoERP.Blazor/Shared/Footer.razor.css` - przywrócono styl odnośnika e-mail oraz wygląd panelu serwera zgodny z `atacamaDMS`.
+- `indigoERP.Blazor/Shared/Footer.razor` - zastosowano ten sam układ copyright, telefonu i poczty IT.
+- `indigoERP.Blazor/Shared/Footer.razor.css` - przywrócono styl odnośnika e-mail zgodny z `atacamaDMS`.
 - `indigoERP.Blazor/wwwroot/css/site.css` - stopka używa koloru, wielkości i grubości tekstu z wzorca `atacamaDMS`.
 
 ### Decyzje techniczne
 
 - Wykorzystano istniejące pliki `images/footer/ico_phone.png` i `images/footer/ico_email.png`; ich zawartość jest identyczna
   z ikonami używanymi przez `atacamaDMS`.
-- Zachowano pobieranie informacji o API, serwerze SQL i bazie przez istniejący `ISerwerService`.
+- Usunięto dodatkowy panel wersji API, serwera SQL i bazy, ponieważ nie występuje w działającej stopce `atacamaDMS`.
 
 ### Zmiany bazy danych
 
@@ -26,6 +26,12 @@ Brak.
 - `dotnet build .\indigoERP.Blazor\indigoERP.Blazor.csproj --configuration Release --no-restore -v:q`
   z odrębnym katalogiem wynikowym - poprawny, 21 istniejących ostrzeżeń nullable, 0 błędów.
 - `git diff --check` dla zmienionych plików - poprawny.
+
+### Korekta zgodności z atacamaDMS
+
+- Usunięto panel `Wersja API / Serwer / Baza`, ponieważ nie jest widoczny w działającej stopce `atacamaDMS`.
+- `dotnet build .\indigoERP.Blazor\indigoERP.Blazor.csproj --configuration Release --no-restore -v:q`
+  z odrębnym katalogiem wynikowym - poprawny, 168 istniejących ostrzeżeń, 0 błędów.
 
 ### Publikacja DEIMOS
 

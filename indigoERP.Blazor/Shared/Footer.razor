@@ -1,9 +1,4 @@
-﻿@using indigoERP.Domain.ViewModels._Administracja
-@using indigoERP.Service.Interfaces._Administrator
-
-@inject ISerwerService _serwerService
-
-<footer class="footer text-muted mt-auto">
+﻿<footer class="footer text-muted mt-auto">
     <div class="container-fluid w-100">
         <div class="row">
             <div class="col-12 text-light">
@@ -19,25 +14,7 @@
                         <img src="images/footer/ico_email.png" width="20" /><span class="ms-2">itsupport@huta-czestochowa.pl</span>
                     </a>
                 </div>
-                @if (serwerInfo != null)
-                {
-                    <div class="d-inline-block ms-5 footer-serwer-panel">
-                        <span>Wersja API: @serwerInfo.WersjaApi</span>
-                        <span class="ms-3">Serwer: @serwerInfo.SerwerSql</span>
-                        <span class="ms-3">Baza: @serwerInfo.BazaDanych</span>
-                    </div>
-                }
             </div>
         </div>
     </div>
 </footer>
-
-@code {
-    private SerwerInfoViewModel? serwerInfo;
-
-    protected override async Task OnInitializedAsync()
-    {
-        serwerInfo = await _serwerService.GetInfo();
-    }
-}
-
