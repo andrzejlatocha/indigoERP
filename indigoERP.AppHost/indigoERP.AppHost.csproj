@@ -9,15 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.6" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.10" />
-    <PackageReference Include="MessagePack" Version="3.1.8" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="13.5.4" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.12" />
+    <PackageReference Include="MessagePack" Version="3.1.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\indigoERP.Api\indigoERP.Api.csproj" />
     <ProjectReference Include="..\indigoERP.Blazor\indigoERP.Blazor.csproj" />
-    <ProjectReference Include="..\indigoERP.Gateway\indigoERP.Gateway.csproj" />
   </ItemGroup>
 
 </Project>

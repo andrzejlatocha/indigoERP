@@ -17,12 +17,15 @@ namespace indigoERP.Api.Controllers._Administrator
     {
         private const string IndigoAdministratorRole = "HCZ-indigoERP-Administrator";
         private const string BearerScheme = "Bearer";
+        private const string ApiKeyHeader = "X-Api-Key";
 
         private readonly indigoERPContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UzytkownikController(indigoERPContext context)
+        public UzytkownikController(indigoERPContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         [AllowAnonymous]
@@ -37,6 +40,7 @@ namespace indigoERP.Api.Controllers._Administrator
                     usrPracownikID = w.usrPracownikID,
                     prcKod = w.prcKod,
                     usrNazwa = w.usrNazwa,
+                    usrNazwaAD = w.usrNazwaAD,
                     usrImie = w.usrImie,
                     usrNazwisko = w.usrNazwisko,
                     usrImieNazwisko = w.usrImieNazwisko,
@@ -153,6 +157,7 @@ namespace indigoERP.Api.Controllers._Administrator
                         ORDER BY CASE WHEN v.srlNazwa = {rola} THEN 0 ELSE 1 END, v.appID
                     ) AS d
                     WHERE ISNULL(u.Usuniety, 0) = 0
+                        AND ISNULL(u.usrBlokada, 0) = 0
                         AND (u.usrStatus = {usrStatus} OR {usrStatus} = '*')
                     """)
                 .AsNoTracking()
@@ -179,6 +184,78 @@ namespace indigoERP.Api.Controllers._Administrator
             }
 
             return uzytkownik;
+        }
+
+        /// <summary>
+        /// Pobiera użytkownika na podstawie adresu e-mail (wiersz z mvw.vUzytkownikLista — jeden na użytkownika).
+        /// Bez logowania (Bearer), dostęp zabezpiecza nagłówek X-Api-Key (appSettings:ApiKey) — jak Podpis/PreviewByEmail.
+        /// Zwraca 401 przy braku/złym kluczu, 404, gdy brak użytkownika, a gdy adres jest przypisany do kilku — pierwszego wg usrID.
+        /// </summary>
+        /// <param name="usrEmail">Adres e-mail użytkownika.</param>
+        /// <returns>Klasa UzytkownikViewModel.</returns>
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<UzytkownikViewModel>> DetailByEmail(string usrEmail)
+        {
+            var expectedApiKey = _configuration.GetSection("appSettings").GetValue<string>("ApiKey");
+
+            if (string.IsNullOrEmpty(expectedApiKey) || Request.Headers[ApiKeyHeader] != expectedApiKey)
+            {
+                return Unauthorized();
+            }
+
+            if (string.IsNullOrWhiteSpace(usrEmail))
+            {
+                return BadRequest();
+            }
+
+            var email = usrEmail.Trim();
+
+            var w = await _context.UzytkownikListaViewModel
+                .AsNoTracking()
+                .Where(x => x.usrEmail == email)
+                .OrderBy(x => x.usrID)
+                .FirstOrDefaultAsync();
+
+            if (w == null)
+            {
+                return NotFound();
+            }
+
+            return new UzytkownikViewModel
+            {
+                usrID = w.usrID,
+                usrPracownikID = w.usrPracownikID,
+                prcKod = w.prcKod,
+                usrNazwa = w.usrNazwa,
+                usrNazwaAD = w.usrNazwaAD,
+                usrImie = w.usrImie,
+                usrNazwisko = w.usrNazwisko,
+                usrImieNazwisko = w.usrImieNazwisko,
+                usrInicjal = w.usrInicjal,
+                usrJezyk = w.usrJezyk,
+                usrTelefon = w.usrTelefon,
+                usrKomorka = w.usrKomorka,
+                usrEmail = w.usrEmail,
+                usrDataWaznoscHaslo = w.usrDataWaznoscHaslo,
+                usrNowy = w.usrNowy,
+                usrBlokada = w.usrBlokada,
+                usrEdycja = w.usrEdycja,
+                usrStatus = w.usrStatus,
+                appID = w.appID,
+                appFolder = w.appFolder,
+                usrFolder = w.usrFolder,
+                usrZdjecie = w.usrZdjecie,
+                wdzID = w.wdzID,
+                wdzKod = w.wdzKod,
+                wdzSymbol = w.wdzSymbol,
+                wdzNazwa = w.wdzNazwa,
+                stnKod = w.stnKod,
+                stnSymbol = w.stnSymbol,
+                stnNazwa = w.stnNazwa,
+                usrGuid = w.usrGuid,
+                usrZablokowanyLogowaniem = w.usrZablokowanyLogowaniem
+            };
         }
 
         [AllowAnonymous]

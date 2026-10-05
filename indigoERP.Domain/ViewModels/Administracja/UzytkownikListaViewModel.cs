@@ -12,6 +12,7 @@ namespace indigoERP.Domain.ViewModels._Administracja
         public int usrPracownikID { get; set; }
         public string? prcKod { get; set; }
         public string? usrNazwa { get; set; }
+        public string? usrNazwaAD { get; set; }
         public string? usrImie { get; set; }
         public string? usrNazwisko { get; set; }
         public string? usrImieNazwisko { get; set; }

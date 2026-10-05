@@ -1,0 +1,63 @@
+﻿@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+
+@inject DialogService _dialogService
+
+<RadzenStack Gap="1rem" Class="p-3">
+    <RadzenFormField Text="Aplikacja źródłowa" Style="width:100%">
+        <RadzenDropDown Data="@ApplicationLookup" TextProperty="appNazwa" ValueProperty="appID" TValue="int"
+                        @bind-Value="@Model.usgAplikacjaZrodloID" AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Aplikacja docelowa" Style="width:100%">
+        <RadzenDropDown Data="@ApplicationLookup" TextProperty="appNazwa" ValueProperty="appID" TValue="int"
+                        @bind-Value="@Model.usgAplikacjaCelID" AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%"
+                        Change="@(_ => Model.usgKodRola = string.Empty)" />
+    </RadzenFormField>
+    <RadzenFormField Text="Rola" Style="width:100%">
+        <RadzenDropDown Data="@RolesForTargetApp" TextProperty="srlNazwa" ValueProperty="srlNazwa" TValue="string"
+                        @bind-Value="@Model.usgKodRola" AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Opis" Style="width:100%">
+        <RadzenTextArea @bind-Value="@Model.usgOpis" Rows="3" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Ważne od" Style="width:100%">
+        <RadzenDatePicker @bind-Value="@Model.usgDataOd" DateFormat="d" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Ważne do" Style="width:100%">
+        <RadzenDatePicker @bind-Value="@Model.usgDataDo" DateFormat="d" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+        <RadzenCheckBox TValue="bool" @bind-Value="@Model.usgAktywny" />
+        <RadzenLabel Text="Aktywne" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
+        <RadzenButton Text="Zapisz" Icon="save" ButtonStyle="ButtonStyle.Primary" Click="@Save" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public AplikacjaUslugaUprawnienieViewModel Model { get; set; } = new();
+
+    [Parameter]
+    public IEnumerable<AplikacjaEnumerator> ApplicationLookup { get; set; } = Enumerable.Empty<AplikacjaEnumerator>();
+
+    [Parameter]
+    public IEnumerable<RolaViewModel> AllRoles { get; set; } = Enumerable.Empty<RolaViewModel>();
+
+    private IEnumerable<RolaViewModel> RolesForTargetApp => AllRoles.Where(r => r.srlAplikacjaID == Model.usgAplikacjaCelID);
+
+    private void Save()
+    {
+        _dialogService.CloseSide(Model);
+    }
+
+    private void Cancel()
+    {
+        _dialogService.CloseSide(null);
+    }
+}

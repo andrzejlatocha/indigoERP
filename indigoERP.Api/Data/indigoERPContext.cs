@@ -46,6 +46,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Adres> Adres { get; set; }
         public virtual DbSet<Aplikacja> Aplikacja { get; set; }
         public virtual DbSet<AplikacjaDostep> AplikacjaDostep { get; set; }
+        public virtual DbSet<AplikacjaUslugaUprawnienie> AplikacjaUslugaUprawnienie { get; set; }
         public virtual DbSet<Bank> Bank { get; set; }
         public virtual DbSet<BankAdres> BankAdres { get; set; }
         public virtual DbSet<Brygada> Brygada { get; set; }
@@ -137,6 +138,7 @@ namespace indigoERP.Api.Data
         //ViewModels
         public virtual DbSet<AplikacjaViewModel> AplikacjaViewModel { get; set; }
         public virtual DbSet<AplikacjaUzytkownikViewModel> AplikacjaUzytkownikViewModel { get; set; }
+        public virtual DbSet<AplikacjaUslugaUprawnienieViewModel> AplikacjaUslugaUprawnienieViewModel { get; set; }
         public virtual DbSet<DaneFirmaAdresViewModel> DaneFirmaAdresViewModel { get; set; }
         public virtual DbSet<DaneFirmaKontaktViewModel> DaneFirmaKontaktViewModel { get; set; }
         public virtual DbSet<GrupaViewModel> GrupaViewModel { get; set; }
@@ -186,6 +188,7 @@ namespace indigoERP.Api.Data
         {
             modelBuilder.HasAnnotation("Relational:Collation", "Polish_CI_AS");
             modelBuilder.Entity<Aplikacja>().ToTable("Aplikacja", "dbo");
+            modelBuilder.Entity<AplikacjaUslugaUprawnienie>().ToTable("AplikacjaUslugaUprawnienie", "app");
             modelBuilder.Entity<Grupa>().ToTable("Grupa", "dbo");
             modelBuilder.Entity<GrupaCzlonkowie>().ToTable("GrupaCzlonkowie", "dbo");
             modelBuilder.Entity<Rola>().ToTable("Rola", "dbo");

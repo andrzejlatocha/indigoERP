@@ -1,0 +1,116 @@
+﻿@page "/administrator/login-blokada"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.Entities._Autoryzacja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject ILoginBlokadaService _loginBlokadaService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <p class="text-muted mb-0">Blokady logowania nałożone automatycznie przez ban manager (5 nieudanych prób w 15 minut).</p>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Nieaktywne" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="LoginBlokada" Density="Density.Compact"
+                            Class="administrator-grid" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And">
+                <Columns>
+                    <RadzenDataGridColumn TItem="LoginBlokada" Property="lgbUsrNazwa" Title="Użytkownik" Width="200px" SortOrder="Radzen.SortOrder.Descending" />
+                    <RadzenDataGridColumn TItem="LoginBlokada" Property="lgbDataOd" Title="Zablokowano od" Width="150px" FormatString="{0:g}" />
+                    <RadzenDataGridColumn TItem="LoginBlokada" Property="lgbDataDo" Title="Do" Width="150px" FormatString="{0:g}" />
+                    <RadzenDataGridColumn TItem="LoginBlokada" Property="lgbPowod" Title="Powód" />
+                    <RadzenDataGridColumn TItem="LoginBlokada" Property="lgbDataOdblokowania" Title="Odblokowano" Width="150px" FormatString="{0:g}" />
+                    <RadzenDataGridColumn TItem="LoginBlokada" Context="row" Filterable="false" Sortable="false" Width="120px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            @if (IsActive(row))
+                            {
+                                <RadzenButton Text="Odblokuj" Icon="lock_open" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" Size="ButtonSize.Small"
+                                              Click="@(_ => UnlockRow(row))" @onclick:stopPropagation="true" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<LoginBlokada>? grid;
+    private List<LoginBlokada>? data;
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _loginBlokadaService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private static bool IsActive(LoginBlokada blokada)
+    {
+        return blokada.lgbDataOdblokowania == null && blokada.lgbDataDo >= DateTime.Now;
+    }
+
+    private async Task UnlockRow(LoginBlokada blokada)
+    {
+        var confirmed = await _dialogService.Confirm(
+            $"Odblokować użytkownika '{blokada.lgbUsrNazwa}'?",
+            "Potwierdzenie",
+            new ConfirmOptions { OkButtonText = "Odblokuj", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _loginBlokadaService.Odblokuj(blokada.lgbID);
+            ShowResponse(response.Code, "Konto zostało odblokowane.", response.Message);
+            await LoadData();
+        }
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+}

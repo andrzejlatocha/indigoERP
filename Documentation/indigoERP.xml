@@ -12,6 +12,15 @@
             <param name="usrID">Identyfikator użytkownika.</param>
             <returns>Klasa UzytkownikViewModel.</returns>
         </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.DetailByEmail(System.String)">
+            <summary>
+            Pobiera użytkownika na podstawie adresu e-mail (wiersz z mvw.vUzytkownikLista — jeden na użytkownika).
+            Bez logowania (Bearer), dostęp zabezpiecza nagłówek X-Api-Key (appSettings:ApiKey) — jak Podpis/PreviewByEmail.
+            Zwraca 401 przy braku/złym kluczu, 404, gdy brak użytkownika, a gdy adres jest przypisany do kilku — pierwszego wg usrID.
+            </summary>
+            <param name="usrEmail">Adres e-mail użytkownika.</param>
+            <returns>Klasa UzytkownikViewModel.</returns>
+        </member>
         <member name="T:indigoERP.Api.Controllers._Slownik.BankController">
             <summary>
             Pobieranie i aktualizacja listy banków, domyślnie tabela zawieraa wszystkie polskie banki 
@@ -90,6 +99,11 @@
             <summary>
             Loguje uzytkownika bez hasla - wylacznie dla trusted subsystem (SSO z Windows Authentication).
             Chronione sekretem w naglowku X-Internal-Sso-Key, nie haslem uzytkownika.
+            </summary>
+        </member>
+        <member name="M:indigoERP.Controllers.LoginController.Ping">
+            <summary>
+            Diagnostyka - potwierdza, ze API odpowiada na zadania HTTP, bez laczenia sie z SQL.
             </summary>
         </member>
         <member name="T:Program">

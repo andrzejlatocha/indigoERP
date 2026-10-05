@@ -1,0 +1,319 @@
+﻿@page "/administrator/aplikacja-usluga-uprawnienie"
+@attribute [Authorize(Roles = "HCZ-indigoERP-Administrator")]
+
+@using indigoERP.Domain.Dtos._Administrator
+@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.ViewModels._Administracja
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IAplikacjaUslugaUprawnienieService _uslugaService
+@inject IAplikacjaService _aplikacjaService
+@inject IRolaService _rolaService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="administrator-index-page">
+<div class="row w-100 ms-1 pt-2">
+    <div class="col-8">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@EditSelectedRow" Disabled="@(!HasSelectedRow)" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@DeleteSelectedRow" Disabled="@(!HasSelectedRow)" />
+        </RadzenStack>
+    </div>
+    <div class="col-4">
+        <div class="float-end">
+            <RadzenSelectBar @bind-Value="@valStatus" TValue="int" Change="@OnStatusChange">
+                <Items>
+                    <RadzenSelectBarItem Text="Aktywne" Value="0" />
+                    <RadzenSelectBarItem Text="Nieaktywne" Value="1" />
+                    <RadzenSelectBarItem Text="Wszystkie" Value="2" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+</div>
+
+<div class="row w-100 mt-2 ms-1 me-2 administrator-grid-row">
+    <div class="col-12 administrator-grid-column">
+        @if (data == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
+                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="AplikacjaUslugaUprawnienieViewModel" Density="Density.Compact"
+                            Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And" EditMode="DataGridEditMode.Single"
+                            RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
+                <Columns>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgID" Title="Symbol" Width="80px" />
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgAplikacjaZrodloID" Title="Aplikacja źródłowa" Width="180px">
+                        <Template Context="row">
+                            @row.usgAplikacjaZrodloNazwa
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@applicationLookup" TextProperty="appNazwa" ValueProperty="appID" TValue="int"
+                                            @bind-Value="@row.usgAplikacjaZrodloID" AllowFiltering="true" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgAplikacjaCelID" Title="Aplikacja docelowa" Width="180px">
+                        <Template Context="row">
+                            @row.usgAplikacjaCelNazwa
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@applicationLookup" TextProperty="appNazwa" ValueProperty="appID" TValue="int"
+                                            @bind-Value="@row.usgAplikacjaCelID" AllowFiltering="true" Style="width:100%"
+                                            Change="@(_ => row.usgKodRola = string.Empty)" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgKodRola" Title="Rola" Width="220px">
+                        <EditTemplate Context="row">
+                            <RadzenDropDown Data="@GetRolesForApp(row.usgAplikacjaCelID)" TextProperty="srlNazwa" ValueProperty="srlNazwa" TValue="string"
+                                            @bind-Value="@row.usgKodRola" AllowFiltering="true"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgOpis" Title="Opis">
+                        <EditTemplate Context="row">
+                            <RadzenTextBox @bind-Value="@row.usgOpis" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgDataOd" Title="Ważne od" Width="120px" FormatString="{0:d}">
+                        <EditTemplate Context="row">
+                            <RadzenDatePicker @bind-Value="@row.usgDataOd" DateFormat="d" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgDataDo" Title="Ważne do" Width="120px" FormatString="{0:d}">
+                        <EditTemplate Context="row">
+                            <RadzenDatePicker @bind-Value="@row.usgDataDo" DateFormat="d" Style="width:100%" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Property="usgAktywny" Title="Akt." Width="60px">
+                        <Template Context="row">
+                            <RadzenCheckBox TValue="bool" Value="@row.usgAktywny" Disabled="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenCheckBox TValue="bool" @bind-Value="@row.usgAktywny" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="AplikacjaUslugaUprawnienieViewModel" Context="row" Filterable="false" Sortable="false" Width="110px" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => EditRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => DeleteRow(row))" @onclick:stopPropagation="true" />
+                        </Template>
+                        <EditTemplate Context="row">
+                            <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => SaveRow(row))" @onclick:stopPropagation="true" />
+                            <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(_ => CancelEdit(row))" @onclick:stopPropagation="true" />
+                        </EditTemplate>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGridApp>
+        }
+    </div>
+</div>
+</div>
+
+@code {
+    private RadzenDataGridApp<AplikacjaUslugaUprawnienieViewModel>? grid;
+    private IList<AplikacjaUslugaUprawnienieViewModel> selectedItems = new List<AplikacjaUslugaUprawnienieViewModel>();
+    private List<AplikacjaUslugaUprawnienieViewModel>? data;
+    private List<AplikacjaEnumerator> applicationLookup = new();
+    private List<RolaViewModel> allRoles = new();
+    private int valStatus;
+    private readonly List<string> statusValues = new() { "2", "1", "*" };
+
+    private AplikacjaUslugaUprawnienieViewModel? SelectedRow => selectedItems.FirstOrDefault();
+    private bool HasSelectedRow => SelectedRow != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        applicationLookup = (await _aplikacjaService.SelectLookup("*")).ToList();
+        allRoles = (await _rolaService.Select("*")).ToList();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var status = statusValues[valStatus];
+        data = (await _uslugaService.Select(status)).ToList();
+    }
+
+    private async Task OnStatusChange()
+    {
+        await LoadData();
+    }
+
+    private List<RolaViewModel> GetRolesForApp(int appID)
+    {
+        return allRoles.Where(r => r.srlAplikacjaID == appID).ToList();
+    }
+
+    private async Task InsertRow()
+    {
+        var usluga = new AplikacjaUslugaUprawnienieViewModel
+        {
+            usgAplikacjaZrodloID = applicationLookup.FirstOrDefault()?.appID ?? 0,
+            usgAplikacjaCelID = applicationLookup.FirstOrDefault()?.appID ?? 0,
+            usgKodRola = string.Empty,
+            usgAktywny = true,
+            usgDataOd = DateTime.Today,
+            usgOpis = string.Empty
+        };
+
+        var result = await OpenEditor("Dodaj nadanie", usluga);
+
+        if (result is AplikacjaUslugaUprawnienieViewModel edited)
+        {
+            await OnCreateRow(edited);
+        }
+    }
+
+    private async Task EditSelectedRow()
+    {
+        if (SelectedRow != null)
+        {
+            await EditRow(SelectedRow);
+        }
+    }
+
+    private async Task EditRow(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        var result = await OpenEditor("Popraw nadanie", Clone(usluga));
+
+        if (result is AplikacjaUslugaUprawnienieViewModel edited)
+        {
+            await OnUpdateRow(edited);
+        }
+    }
+
+    private async Task<object?> OpenEditor(string title, AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        return await _dialogService.OpenSideAsync<Edit>(
+            title,
+            new Dictionary<string, object?>
+            {
+                ["Model"] = usluga,
+                ["ApplicationLookup"] = applicationLookup,
+                ["AllRoles"] = allRoles
+            },
+            GetSideDialogOptions());
+    }
+
+    private async Task SaveRow(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        if (grid != null)
+        {
+            await grid.UpdateRow(usluga);
+        }
+    }
+
+    private async Task CancelEdit(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        grid?.CancelEditRow(usluga);
+        await LoadData();
+    }
+
+    private async Task OnCreateRow(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        var response = await _uslugaService.Insert(ToDto(usluga));
+        ShowResponse(response.Code, "Nadanie zostało dodane.", response.Message);
+        await LoadData();
+        SelectRow(response.Code >= 200 && response.Code < 300 ? response.Id ?? usluga.usgID : null);
+    }
+
+    private async Task OnUpdateRow(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        var response = await _uslugaService.Update(usluga.usgID, ToDto(usluga));
+        ShowResponse(response.Code, "Nadanie zostało zapisane.", response.Message);
+        await LoadData();
+        SelectRow(response.Code >= 200 && response.Code < 300 ? usluga.usgID : null);
+    }
+
+    private async Task DeleteSelectedRow()
+    {
+        if (SelectedRow != null)
+        {
+            await DeleteRow(SelectedRow);
+        }
+    }
+
+    private async Task DeleteRow(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        var confirmed = await _dialogService.Confirm(
+            $"Usunąć nadanie '{usluga.usgAplikacjaZrodloNazwa} -> {usluga.usgAplikacjaCelNazwa} ({usluga.usgKodRola})'?",
+            "Potwierdzenie",
+            new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Anuluj" });
+
+        if (confirmed == true)
+        {
+            var response = await _uslugaService.Delete(usluga.usgID);
+            ShowResponse(response.Code, "Nadanie zostało usunięte.", response.Message);
+            await LoadData();
+            selectedItems = new List<AplikacjaUslugaUprawnienieViewModel>();
+        }
+    }
+
+    private void SelectRow(int? usgID)
+    {
+        var selected = usgID.HasValue ? data?.FirstOrDefault(w => w.usgID == usgID.Value) : null;
+        selectedItems = selected == null ? new List<AplikacjaUslugaUprawnienieViewModel>() : new List<AplikacjaUslugaUprawnienieViewModel> { selected };
+    }
+
+    private void ShowResponse(int code, string successMessage, string? errorMessage)
+    {
+        if (code >= 200 && code < 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Gotowe", Detail = successMessage, Duration = 5000 });
+        }
+        else
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = errorMessage ?? "Operacja nie powiodła się.", Duration = 5000 });
+        }
+    }
+
+    private static AplikacjaUslugaUprawnienieDto ToDto(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        return new AplikacjaUslugaUprawnienieDto
+        {
+            usgID = usluga.usgID,
+            usgAplikacjaZrodloID = usluga.usgAplikacjaZrodloID,
+            usgAplikacjaCelID = usluga.usgAplikacjaCelID,
+            usgKodRola = usluga.usgKodRola,
+            usgAktywny = usluga.usgAktywny,
+            usgDataOd = usluga.usgDataOd,
+            usgDataDo = usluga.usgDataDo,
+            usgOpis = usluga.usgOpis
+        };
+    }
+
+    private static AplikacjaUslugaUprawnienieViewModel Clone(AplikacjaUslugaUprawnienieViewModel usluga)
+    {
+        return new AplikacjaUslugaUprawnienieViewModel
+        {
+            usgID = usluga.usgID,
+            usgAplikacjaZrodloID = usluga.usgAplikacjaZrodloID,
+            usgAplikacjaZrodloNazwa = usluga.usgAplikacjaZrodloNazwa,
+            usgAplikacjaCelID = usluga.usgAplikacjaCelID,
+            usgAplikacjaCelNazwa = usluga.usgAplikacjaCelNazwa,
+            usgKodRola = usluga.usgKodRola,
+            usgAktywny = usluga.usgAktywny,
+            usgDataOd = usluga.usgDataOd,
+            usgDataDo = usluga.usgDataDo,
+            usgOpis = usluga.usgOpis
+        };
+    }
+
+    private static SideDialogOptions GetSideDialogOptions()
+    {
+        return new SideDialogOptions
+        {
+            Position = DialogPosition.Right,
+            Width = "560px",
+            ShowMask = true,
+            CloseDialogOnOverlayClick = false
+        };
+    }
+}

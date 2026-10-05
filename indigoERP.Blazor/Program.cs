@@ -79,7 +79,9 @@ services.AddSingleton<IClaimsTransformation, ClaimsTransformation>();
 
 // Adminstrator
 services.AddScoped<IAplikacjaService, AplikacjaService>();
+services.AddScoped<IAplikacjaUslugaUprawnienieService, AplikacjaUslugaUprawnienieService>();
 services.AddScoped<IGrupaService, GrupaService>();
+services.AddScoped<ILoginBlokadaService, LoginBlokadaService>();
 services.AddScoped<IPracownikService, PracownikService>();
 services.AddScoped<IRolaService, RolaService>();
 services.AddScoped<IUzytkownikService, UzytkownikService>();

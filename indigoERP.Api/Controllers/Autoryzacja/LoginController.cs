@@ -143,6 +143,15 @@ namespace indigoERP.Controllers
             return NotFound("Nie znaleziono użytkownika.");
         }
 
+        /// <summary>
+        /// Diagnostyka - potwierdza, ze API odpowiada na zadania HTTP, bez laczenia sie z SQL.
+        /// </summary>
+        [HttpGet]
+        public ActionResult<string> Ping()
+        {
+            return Ok($"pong {DateTime.Now:HH:mm:ss.fff}");
+        }
+
         private object? GenerateToken(UzytkownikViewModel uzytkownikViewModel)
         {
             SymmetricSecurityKey? securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt:Key"]));

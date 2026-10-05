@@ -1,5 +1,73 @@
 ﻿# Codex Changes
+
+## 2026-10-05 - Publikacja indigoERP.Api na DEIMOS (3.26.1005.11370)
+
+- **Zmiana:** `dotnet publish -c Release` i kopia do `c:\inetpub\wwwroot\indigoERP.Api` na DEIMOS z cyklem `app_offline.htm`
+  (robocopy bez `appsettings*.json`, `web.config`, `logs`; 21 plików skopiowanych, kod wyjścia 3 = bez błędów).
+  W `appsettings.json` na serwerze podmieniono tylko pole `appSettings:Version`; w repo wersja podbita w Api i Blazor
+  (`3.26.909.11344` + 26 dni = build `11370`, release `1005`). Blazor nie był publikowany.
+- **Weryfikacja:** `GET /Api/Uzytkownik/DetailByEmail` bez klucza na `https://app.hcz.com.pl:9900` -> 401 (aplikacja działa,
+  akcja istnieje). Wywołania z kluczem nie testowano.
+- **Do zrobienia:** trasa w authorizationSRV.Gateway na DEIMOS (punkt 3) - niewykonana; skrypt `Uzytkownik_NazwaAD.sql`
+  musi być uruchomiony na bazie używanej przez DEIMOS.
+
+## 2026-10-05 - Usunięcie projektu indigoERP.Gateway
+
+- **Zgłoszenie:** `indigoERP.Gateway` (YARP, jedna trasa `/Api/Podpis/PreviewByEmail` z rate limiterem) nie jest używany -
+  ruch zewnętrzny obsługuje authorizationSRV.
+- **Zmiana:** usunięty folder `indigoERP.Gateway`, wpis w `indigoERP.sln`, `ProjectReference` w `indigoERP.AppHost.csproj`
+  oraz `AddProject<Projects.indigoERP_Gateway>` i `WithReference(indigoGateway)` w `indigoERP.AppHost/AppHost.cs`.
+- **Decyzja techniczna:** pliki dodatku Outlook (`wwwroot/addin/podpis`) Gateway tylko linkował z `indigoERP.Blazor` -
+  źródła zostają w Blazor, nic nie przepadło. Pliki Gateway były w git, więc usunięcie jest odwracalne.
+- **Status wdrożenia:** zmiana tylko w repozytorium; jeśli Gateway był kiedyś opublikowany w IIS, osobny site/katalog
+  na serwerze trzeba wyłączyć ręcznie.
+- **Weryfikacja:** `dotnet build indigoERP.AppHost` - 0 błędów; w `indigoERP.sln` brak odwołań do Gateway.
+
+## 2026-10-05 - UzytkownikController.DetailByEmail (klucz API)
+
+- **Zgłoszenie:** potrzebny endpoint zwracający użytkownika na podstawie adresu e-mail; dotąd lookup po `usrEmail`
+  istniał tylko wewnątrz `PodpisController.PreviewByEmail` (zwraca HTML podpisu, nie użytkownika).
+- **Zmiana:** `indigoERP.Api/Controllers/Administrator/UzytkownikController.cs` - nowa akcja
+  `GET api/Uzytkownik/DetailByEmail?usrEmail=` (`[AllowAnonymous]`, bez Bearer), zwraca `UzytkownikViewModel` z `mvw.vUzytkownikLista`
+  (jeden wiersz na użytkownika); 401 przy braku/złym nagłówku `X-Api-Key`, 400 dla pustego adresu, 404 gdy brak.
+  Do konstruktora kontrolera dodano `IConfiguration`.
+- **Decyzja techniczna:** widok `vUzytkownikLista` zamiast `vUzytkownik`, bo ten drugi ma wiersz per aplikacja
+  i nie zawiera `usrNazwaAD`/`usrBlokada`/`usrStatus`. Klucz API jak w `Podpis/PreviewByEmail`
+  (`appSettings:ApiKey`, nagłówek `X-Api-Key`) - endpoint zwraca dane osobowe (imię, nazwisko, telefon, stanowisko).
+  Klucz to bariera przed scrapowaniem, nie prawdziwy sekret, jeśli klient przechowuje go po stronie przeglądarki.
+  Na produkcji klucz pochodzi ze zmiennej systemowej `indigoERP_ApiKey` - mapowanie na `appSettings:ApiKey` już istnieje
+  w `indigoERP.Api/Program.cs` (`MapMonitoringEnvVar`), nadpisuje wartość z appsettings.json, więc kontroler nie wymagał zmian.
+- **Status wdrożenia:** kod gotowy, wymaga publikacji indigoERP.Api; bez zmian SQL. Zmienna `indigoERP_ApiKey` musi być
+  ustawiona na serwerze (używa jej już PreviewByEmail).
+- **Weryfikacja:** `dotnet build indigoERP.Api` - 0 błędów.
+
 ## 2026-09-23
+
+### Home - rozmiar ikon skrótów
+
+- `indigoERP.Blazor/Pages/Home.razor.css` - ikony fontowe Starego Intranetu i hutaForms mają `2.6rem`,
+  zgodnie z wizualnym rozmiarem obrazu ikony Poczty (`46px`).
+- Weryfikacja: reguła dotyczy wyłącznie dwóch wskazanych kafelków i nie zmienia ich wymiarów ani układu.
+
+### Administrator / Użytkownik - przywrócenie działania
+
+#### Zgłoszenie
+
+Strona `Administrator/Użytkownik` przekierowywała do strony błędu.
+
+#### Przyczyna i zmiana
+
+- `UzytkownikListaViewModel` i `UzytkownikController.Select` odczytują `usrNazwaAD`, ale produkcyjny widok
+  `mvw.vUzytkownikLista` nie zwracał tej kolumny.
+- Dodano skrypt `_SQL Queries/indigoERP20260923143000.sql`, który wykonuje `CREATE OR ALTER VIEW` i zwraca
+  `dbo.Uzytkownik.usrNazwaAD` jako `usrNazwaAD`.
+- Skrypt zapisano jako UTF-8 BOM i wykonano na produkcyjnej bazie `indigoERP` na DEIMOS.
+
+#### Weryfikacja
+
+- Produkcyjny `GET https://app.hcz.com.pl:9900/Api/Uzytkownik/Select?usrStatus=2` zwraca `200`.
+- Produkcyjny widok ma kolumnę `usrNazwaAD`.
+- Po odświeżeniu `https://app.hcz.com.pl/administrator/uzytkownik` grid jest widoczny i renderuje dane.
 
 ### Zgłoszenie
 
@@ -44,6 +112,208 @@ Brak.
 - Końcowa paczka zawiera także wcześniejsze zmiany `Pages/Home.razor` i `Pages/Home.razor.css`: panel skrótów oraz układ
   kafli aplikacji. Nie włączono żadnych pozostałych lokalnych zmian projektu.
 
+## 2026-09-23
+
+### Publikacja DEIMOS
+
+Opublikowano frontend `indigoERP.Blazor` na DEIMOS po dodaniu skrótów starego Intranetu i hutaForms oraz zmianie układu
+kafli aplikacji.
+
+### Zakres wdrożenia
+
+- Docelowy katalog: `\\DEIMOS\c$\inetpub\wwwroot\indigoERP`.
+- Opublikowano wyłącznie `indigoERP.Blazor`; API nie było częścią tego wdrożenia.
+- Zachowano produkcyjne `appsettings.json`, `web.config`, katalog `logs` oraz `wwwroot\_documents`.
+- Usunięto z pakietu 12 pomocniczych plików w katalogu `bin` przed kopią, dlatego nie powstał dodatkowy katalog `bin` na DEIMOS.
+- Tymczasowy plik `app_offline.htm` został usunięty po skopiowaniu plików.
+
+### Weryfikacja
+
+- `dotnet publish indigoERP.Blazor` - poprawny, 0 błędów i istniejące ostrzeżenia nullable.
+- Skróty SHA-256 wdrożonych `indigoERP.Blazor.dll` i `wwwroot\indigoERP.Blazor.styles.css` są zgodne z pakietem.
+- `https://app.hcz.com.pl/` oraz `https://app.hcz.com.pl/indigoERP.Blazor.styles.css` zwracają `200`.
+- Odpowiedź produkcyjnego stylesheetu zawiera reguły `home-shortcut--huta-forms` i poziomego układu kafla aplikacji.
+
+## 2026-09-23
+
+### Zgłoszenie
+
+Kafle aplikacji mają wyświetlać kolorową ikonę po lewej oraz tytuł i opis po prawej. W lewym panelu mają pojawić się
+na początku skróty do starego Intranetu i hutaForms.
+
+### Zmienione obszary
+
+- `indigoERP.Blazor/Pages/Home.razor` - dodano skróty do `https://intranet.hcz.com.pl` i hutaForms oraz klasy wariantów ikon.
+- `indigoERP.Blazor/Pages/Home.razor.css` - przebudowano kafle aplikacji do układu poziomego i wprowadzono kolory ikon.
+
+### Decyzje techniczne
+
+- Ikony aplikacji otrzymują cyklicznie cztery kontrastowe kolory, niezależnie od jasnego lub ciemnego motywu.
+- Panel lewy przewiduje sześć pełnych skrótów oraz skrót formularza zgłoszenia o połowie wysokości.
+
+### Zmiany bazy danych
+
+Brak.
+
+### Weryfikacja
+
+- `dotnet build .\indigoERP.Blazor\indigoERP.Blazor.csproj --configuration Release --no-restore -v:q`
+  z odrębnym katalogiem wynikowym - poprawny, 21 istniejących ostrzeżeń, 0 błędów.
+- `git diff --check` dla zmienionych plików - poprawny.
+
+## 2026-09-22
+
+### Publikacja DEIMOS
+
+Opublikowano frontend `indigoERP.Blazor` na DEIMOS po zmianach układu strony głównej i stopki.
+
+### Zakres wdrożenia
+
+- Docelowy katalog: `\\DEIMOS\c$\inetpub\wwwroot\indigoERP`.
+- Opublikowano wyłącznie `indigoERP.Blazor`; API nie było częścią tego wdrożenia.
+- Zachowano produkcyjne `appsettings.json`, `web.config`, katalog `logs` oraz `wwwroot\_documents`.
+- Tymczasowy plik `app_offline.htm` został usunięty po skopiowaniu plików.
+- Usunięto dodatkowy katalog `bin` utworzony omyłkowo przez pakiet publikacyjny; zawierał wyłącznie 8 plików pomocniczych
+  wygenerowanych podczas tej publikacji.
+
+### Weryfikacja
+
+- `dotnet publish indigoERP.Blazor` - poprawny, 0 błędów i istniejące ostrzeżenia nullable.
+- Skróty SHA-256 wdrożonych `indigoERP.Blazor.dll` i `wwwroot\indigoERP.Blazor.styles.css` są zgodne z pakietem.
+- `https://app.hcz.com.pl/` z poświadczeniami Windows zwraca `200`.
+- `https://app.hcz.com.pl/indigoERP.Blazor.styles.css` zwraca `200` i 23636 bajtów.
+- Produkcyjny `appsettings.json` nadal wskazuje `https://app.hcz.com.pl:9900/Api/`, a `web.config` nadal zapisuje logi stdout.
+
+## 2026-09-21
+
+### Zgłoszenie
+
+Stałe skróty `IT Support`, `Poczta`, `Kalendarz`, `OneDrive` i formularz wiadomości do IT mają znaleźć się jeden pod drugim
+w lewym panelu. Dynamiczna lista aplikacji ma być wyświetlana w głównej części strony w równych kaflach.
+
+### Zmienione obszary
+
+- `indigoERP.Blazor/Pages/Home.razor` - przeniesiono stałe skróty do panelu lewego, a dynamiczne aplikacje do części głównej.
+- `indigoERP.Blazor/Pages/Home.razor.css` - ustawiono lewy panel o szerokości 350px oraz równą siatkę aplikacji po cztery kafle w wierszu.
+
+### Decyzje techniczne
+
+- Kafle aplikacji mają stałą wysokość 172px i jednakową szerokość w obrębie wiersza.
+- Układ automatycznie przechodzi na trzy, dwa lub jeden kafel w wierszu wraz ze zmniejszaniem szerokości ekranu.
+- Skrót formularza zgłoszenia ma połowę wysokości pozostałych skrótów i zawiera wyłącznie ikonę oraz nazwę.
+- Pola ikon mają grafitowe tło w obu motywach, aby białe ikony aplikacji były czytelne także w trybie jasnym.
+
+### Zmiany bazy danych
+
+Brak.
+
+### Weryfikacja
+
+- `dotnet build .\indigoERP.Blazor\indigoERP.Blazor.csproj --configuration Release --no-restore -v:q`
+  z odrębnym katalogiem wynikowym - poprawny, 21 istniejących ostrzeżeń, 0 błędów.
+- `git diff --check` dla zmienionych plików - poprawny.
+- Podgląd `https://localhost:8900/` nie był dostępny w czasie weryfikacji (`ERR_CONNECTION_REFUSED`).
+
+### Zgłoszenie
+
+Informacja o wersji API, serwerze SQL i bazie danych w stopce ma być wyśrodkowana.
+
+### Zmienione obszary
+
+- `indigoERP.Blazor/Shared/Footer.razor` - rozdzielono informację copyright i panel informacji serwera.
+- `indigoERP.Blazor/Shared/Footer.razor.css` - zastosowano trójkolumnowy układ stopki, który utrzymuje panel serwera na środku.
+
+### Decyzje techniczne
+
+- Prawa, pusta kolumna równoważy kolumnę copyright, dlatego panel API/SQL pozostaje na środku całej stopki.
+- Dla szerokości do 900px stopka układa zawartość pionowo, bez ryzyka nakładania tekstu.
+
+### Zmiany bazy danych
+
+Brak.
+
+### Weryfikacja
+
+- `dotnet build .\indigoERP.Blazor\indigoERP.Blazor.csproj --configuration Release --no-restore -v:q` - zatrzymany przez blokadę
+  `indigoERP.Domain.dll` i `indigoERP.Service.dll` przez uruchomione `devenv.exe` oraz `indigoERP.Blazor.exe`; bez błędu składni stopki.
+- `git diff --check` dla zmienionych plików - poprawny.
+
+### Zgłoszenie
+
+Zmiana strony głównej: boczna lista aplikacji ma być kafelkami w kolejnych wierszach, komunikat o starszych wersjach przez INTRANET
+ma zostać usunięty, a link do wiadomości dla Działu IT ma być zastąpiony ikoną poczty.
+
+### Zmienione obszary
+
+- `indigoERP.Blazor/Pages/Home.razor` - usunięto panel o starszych wersjach aplikacji i zastąpiono komunikat wsparcia ikoną poczty.
+- `indigoERP.Blazor/Pages/Home.razor.css` - przebudowano boczną listę aplikacji na kafelki, zmniejszono kafle centralne i dopasowano responsywność.
+
+### Decyzje techniczne
+
+- Kafle aplikacji w panelu bocznym działają na tej samej dynamicznej liście `SelectAplikacja("2")`, zmienił się tylko sposób prezentacji.
+- Kafle `IT Support`, `Poczta`, `Kalendarz` i `OneDrive` pozostają dostępne, ale mają kompaktowy układ.
+
+### Zmiany bazy danych
+
+Brak.
+
+### Weryfikacja
+
+- `dotnet build .\indigoERP.Blazor\indigoERP.Blazor.csproj --configuration Release --no-restore -v:q` - poprawny, 6 ostrzeżeń, 0 błędów.
+
+## 2026-09-09
+
+### Zgłoszenie
+
+Po przenosinach na nowy serwer IIS (DEIMOS) logowanie przez Windows Authentication kończyło się timeoutem
+`HttpClient.Timeout` (100s) w `ClaimsTransformation.TransformAsync` → `LoginService.GetSso`, mimo poprawnego
+uwierzytelnienia Windows/Kerberos.
+
+### Diagnoza
+
+Wykluczono kolejno: SPN/Kerberos dla witryny (naprawione wcześniej, App Pool na `HCZ\iis.account`), łączność sieciową
+DEIMOS→JAPET (test SQL Auth przez SSMS zadziałał), błędny `appSettings:BaseApiUrl` w Blazor (był
+`http://deimos.hcz.com.pl:9900/Api/` zamiast `https://...`, poprawione), oraz samą procedurę `uspGetUzytkownikSso`
+(uruchomiona wprost w SSMS na `JAPET` zwróciła dane natychmiast). Dodany endpoint diagnostyczny `Ping` (bez SQL)
+odpowiedział w ~4s zamiast wisieć 100s, co potwierdza że warstwa Blazor→API/hosting działa. Pozostaje najbardziej
+prawdopodobna przyczyna: zatkana pula połączeń `SqlClient` w procesie API po wielu nieudanych/timeoutujących próbach
+podczas testów — do potwierdzenia po recyclu App Poola API.
+
+### Zmienione obszary
+
+- `indigoERP.Api/Controllers/Autoryzacja/LoginController.cs` - dodano `GET api/Login/Ping`, endpoint diagnostyczny
+  bez dostępu do `_context`/SQL, do izolowania warstwy sieciowej od warstwy bazy danych.
+- `indigoERP.Blazor/appsettings.json` - usunięto nieużywany klucz `appSettings:ApiKey` (nie był odczytywany nigdzie
+  w kodzie C# Blazor/Service; po stronie API analogiczny klucz jest już poprawnie pobierany ze zmiennej środowiskowej
+  `indigoERP_ApiKey`, patrz `indigoERP.Api/Program.cs`).
+
+### Decyzje techniczne
+
+- `Ping` umieszczono w istniejącym `LoginController` (już ma `[AllowAnonymous]`), zamiast tworzyć osobny kontroler,
+  żeby nie dodawać nowej powierzchni do utrzymania dla tymczasowej diagnostyki.
+
+### Status wdrożenia
+
+W trakcie. Po recyclu App Poola zawieszenie 100s zniknęło, ale ujawniło kolejną warstwę problemu: `Jwt:Key`,
+`appSettings:ApiKey`, `InternalSso:Key` mają być pobierane wyłącznie ze zmiennych środowiskowych `indigoERP_JwtKey`,
+`indigoERP_ApiKey`, `InternalSso` (Machine scope) — patrz `indigoERP.Api/Program.cs` i `indigoERP.Blazor/Program.cs`.
+Na DEIMOS zmienne były początkowo ustawione jako **User scope** (widoczne tylko dla konta, którym je ustawiono, nie
+dla `HCZ\iis.account` na którym działa App Pool), przez co API nigdy ich nie widziało — stąd `ArgumentNullException`
+w `Encoding.GetBytes(_configuration["jwt:Key"])` przy starcie uwierzytelniania JWT. Przeniesiono je do Machine scope,
+ale ani `iisreset`, ani wcześniejszy reboot (wykonany zanim zmienne były poprawnie ustawione) tego nie naprawiły —
+`services.exe` cache'uje blok środowiska Machine przy starcie systemu, nie przy restarcie pojedynczej usługi, więc
+potrzebny jest pełny reboot serwera **po** ustawieniu zmiennych na Machine scope. Zaplanowany na jutro rano.
+
+**Obejście tymczasowe do czasu rebootu:** wartości `Jwt:Key`, `appSettings:ApiKey` (w `indigoERP.Api/appsettings.json`)
+i `InternalSso:Key` (w obu `appsettings.json`, ta sama wartość) wpisane wprost do opublikowanych plików na DEIMOS
+(nie w repo źródłowym — to sekrety). Do usunięcia z powrotem po potwierdzeniu, że zmienne środowiskowe działają
+po reboocie.
+
+### Weryfikacja
+
+- `Invoke-WebRequest` na `https://deimos.hcz.com.pl:9900/Api/Login/Ping` z DEIMOS: ~4,1s (zamiast 100s timeout).
+- `EXEC uspGetUzytkownikSso @usrNazwa='HCZ\andrzej.latocha', @sesKomputer='WebBrowser', @appID=900` w SSMS na `JAPET`:
+  wynik natychmiastowy, poprawne dane użytkownika.
 ## 2026-08-13
 
 ### Zgłoszenie

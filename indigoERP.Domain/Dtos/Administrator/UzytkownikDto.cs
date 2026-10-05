@@ -1,9 +1,10 @@
-namespace indigoERP.Domain.Dtos._Administrator
+﻿namespace indigoERP.Domain.Dtos._Administrator
 {
     public class UzytkownikDto
     {
         public int usrID { get; set; }
         public string? usrNazwa { get; set; }
+        public string? usrNazwaAD { get; set; }
         public string? usrImie { get; set; }
         public string? usrNazwisko { get; set; }
         public string? usrImieNazwisko { get; set; }
