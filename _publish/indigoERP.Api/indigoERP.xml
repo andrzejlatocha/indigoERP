@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>indigoERP.Api</name>
+    </assembly>
+    <members>
+        <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.Detail(System.Int32,System.Int32)">
+            <summary>
+            Pobiera szczegóły użytkownika z widoku autoryzacji.
+            </summary>
+            <param name="appID">Identyfikator aplikacji.</param>
+            <param name="usrID">Identyfikator użytkownika.</param>
+            <returns>Klasa UzytkownikViewModel.</returns>
+        </member>
+        <member name="T:indigoERP.Api.Controllers._Slownik.BankController">
+            <summary>
+            Pobieranie i aktualizacja listy banków, domyślnie tabela zawieraa wszystkie polskie banki 
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Select(System.String)">
+            <summary>
+            Pobieranie listy banków
+            </summary>
+            <param name="lbaStatus">
+            </param>
+            <returns>
+            Lista banków
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.SelectLookup(System.String)">
+            <summary>
+            Pobieranie listy banków do kontrolek wyboru
+            </summary>
+            <param name="lbaStatus">
+            </param>
+            <returns>
+            Lista banków
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Get(System.String)">
+            <summary>
+            Pobranie danych banku
+            </summary>
+            <param name="lbaID"></param>
+            <returns>
+            Bank
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Update(System.String,indigoERP.Domain.Entities._Slownik.Bank)">
+            <summary>
+            Aktualizacja danych banku
+            </summary>
+            <param name="lbaKOD"></param>
+            <param name="bank"></param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Insert(indigoERP.Domain.Entities._Slownik.Bank)">
+            <summary>
+            Dodanie banku
+            </summary>
+            <param name="bank"></param>
+            <returns></returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Slownik.BankController.Delete(System.Int32)">
+            <summary>
+            Usunięcie banku o oknkretny ID
+            </summary>
+            <param name="lbaKOD"></param>
+            <returns></returns>
+        </member>
+        <member name="T:indigoERP.Api.Data.indigoERPContext">
+            <summary>
+            DBContext dla klas aplikacji
+            </summary>
+        </member>
+        <member name="M:indigoERP.Controllers.LoginController.Get(System.String,System.String,System.String,System.String)">
+            <summary>
+            Pobiera dane logującego się użytkownika
+            </summary>
+            <param name="usrNazwa">
+            </param>
+            <param name="usrHaslo">
+            </param>
+            <returns>
+            Klasa UzytkownikViewModel
+            </returns>
+        </member>
+        <member name="M:indigoERP.Controllers.LoginController.GetSso(System.String,System.String,System.String)">
+            <summary>
+            Loguje uzytkownika bez hasla - wylacznie dla trusted subsystem (SSO z Windows Authentication).
+            Chronione sekretem w naglowku X-Internal-Sso-Key, nie haslem uzytkownika.
+            </summary>
+        </member>
+        <member name="M:indigoERP.Controllers.LoginController.Ping">
+            <summary>
+            Diagnostyka - potwierdza, ze API odpowiada na zadania HTTP, bez laczenia sie z SQL.
+            </summary>
+        </member>
+        <member name="T:Program">
+            <summary>
+            Auto-generated public partial Program class for top-level statement apps.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type)">
+            <summary>
+            Generates a documentation comment ID for a type.
+            Example: T:Namespace.Outer+Inner`1 becomes T:Namespace.Outer.Inner`1
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.PropertyInfo)">
+            <summary>
+            Generates a documentation comment ID for a property.
+            Example: P:Namespace.ContainingType.PropertyName or for an indexer P:Namespace.ContainingType.Item(System.Int32)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type,System.String)">
+            <summary>
+            Generates a documentation comment ID for a property given its container type and property name.
+            Example: P:Namespace.ContainingType.PropertyName
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.MethodInfo)">
+            <summary>
+            Generates a documentation comment ID for a method (or constructor).
+            For example:
+              M:Namespace.ContainingType.MethodName(ParamType1,ParamType2)~ReturnType
+              M:Namespace.ContainingType.#ctor(ParamType)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.GetTypeDocId(System.Type,System.Boolean,System.Boolean)">
+            <summary>
+            Generates a documentation ID string for a type.
+            This method handles nested types (replacing '+' with '.'),
+            generic types, arrays, pointers, by-ref types, and generic parameters.
+            The <paramref name="includeGenericArguments"/> flag controls whether
+            constructed generic type arguments are emitted, while <paramref name="omitGenericArity"/>
+            controls whether the generic arity marker (e.g. "`1") is appended.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.NormalizeDocId(System.String)">
+            <summary>
+            Normalizes a documentation comment ID to match the compiler-style format.
+            Strips the return type suffix for ordinary methods but retains it for conversion operators.
+            </summary>
+            <param name="docId">The documentation comment ID to normalize.</param>
+            <returns>The normalized documentation comment ID.</returns>
+        </member>
+    </members>
+</doc>

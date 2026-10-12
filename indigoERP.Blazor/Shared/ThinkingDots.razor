@@ -1,0 +1,10 @@
+﻿<span class="thinking-dots thinking-dots-@Size.ToString().ToLowerInvariant()" role="status" aria-label="@Label">
+    <span></span><span></span><span></span>
+</span>
+
+@code {
+    public enum DotsSize { Small, Medium, Large, ExtraLarge }
+
+    [Parameter] public DotsSize Size { get; set; } = DotsSize.Medium;
+    [Parameter] public string Label { get; set; } = "Trwa przetwarzanie…";
+}

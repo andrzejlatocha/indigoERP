@@ -161,6 +161,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<SerwerViewModel> SerwerViewModel { get; set; }
         public virtual DbSet<MonitorSerwerStatusViewModel> MonitorSerwerStatusViewModel { get; set; }
         public virtual DbSet<UzytkownikAplikacjaViewModel> UzytkownikAplikacjaViewModel { get; set; }
+        public virtual DbSet<UzytkownikAplikacjaDostepViewModel> UzytkownikAplikacjaDostepViewModel { get; set; }
         public virtual DbSet<UzytkownikGrupaViewModel> UzytkownikGrupaViewModel { get; set; }
         public virtual DbSet<UzytkownikListaViewModel> UzytkownikListaViewModel { get; set; }
         public virtual DbSet<UzytkownikLoginViewModel> UzytkownikLoginViewModel { get; set; }

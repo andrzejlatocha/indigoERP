@@ -20,5 +20,14 @@ namespace indigoERP.Service.Services
 
             return result ?? Enumerable.Empty<AplikacjaViewModel>();
         }
+
+        public async Task<IEnumerable<AplikacjaViewModel>> SelectAplikacjaByUzytkownik(int usrID, string appStatus)
+        {
+            var httpClient = _httpClientFactory.CreateClient("baseApiClient");
+            var result = await httpClient.GetFromJsonAsync<IEnumerable<AplikacjaViewModel>>(
+                $"Home/SelectAplikacjaByUzytkownik?usrID={usrID}&appStatus={appStatus}");
+
+            return result ?? Enumerable.Empty<AplikacjaViewModel>();
+        }
     }
 }

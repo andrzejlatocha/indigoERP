@@ -3,6 +3,7 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IJSRuntime JSRuntime
 @inject IHomeService _homeService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @using Microsoft.JSInterop;
 @using indigoERP.Domain.ViewModels;
@@ -125,9 +126,10 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var result = await _homeService.SelectAplikacja("2");
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var usrID = int.TryParse(authState.User.FindFirst("usrID")?.Value, out var parsedUsrID) ? parsedUsrID : 0;
 
-        data = result;
+        data = await _homeService.SelectAplikacjaByUzytkownik(usrID, "2");
 
         //await VerifyBrowser();
     }

@@ -21,6 +21,12 @@
             <param name="usrEmail">Adres e-mail użytkownika.</param>
             <returns>Klasa UzytkownikViewModel.</returns>
         </member>
+        <member name="M:indigoERP.Api.Controllers.HomeController.SelectAplikacjaByUzytkownik(System.Int32,System.String)">
+            <summary>
+            Aplikacje do wyświetlenia na stronie głównej, w których użytkownik ma co najmniej jedną rolę
+            (bezpośrednio albo przez grupę - mvw.vUzytkownikAplikacjaDostep).
+            </summary>
+        </member>
         <member name="T:indigoERP.Api.Controllers._Slownik.BankController">
             <summary>
             Pobieranie i aktualizacja listy banków, domyślnie tabela zawieraa wszystkie polskie banki 

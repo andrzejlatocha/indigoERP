@@ -25,5 +25,19 @@ namespace indigoERP.Api.Controllers
                 .Where(w => w.appWyswietl && (w.appStatus == appStatus || appStatus == "*"))
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Aplikacje do wyświetlenia na stronie głównej, w których użytkownik ma co najmniej jedną rolę
+        /// (bezpośrednio albo przez grupę - mvw.vUzytkownikAplikacjaDostep).
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<AplikacjaViewModel>>> SelectAplikacjaByUzytkownik(int usrID, string appStatus)
+        {
+            var aplikacje = _context.UzytkownikAplikacjaDostepViewModel.Where(d => d.usrID == usrID).Select(d => d.appID);
+
+            return await _context.AplikacjaViewModel
+                .Where(w => w.appWyswietl && (w.appStatus == appStatus || appStatus == "*") && aplikacje.Contains(w.appID))
+                .ToListAsync();
+        }
     }
 }

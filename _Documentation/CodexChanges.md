@@ -1,5 +1,26 @@
 ﻿# Codex Changes
 
+## 2026-10-07 - Animacja kropek (ThinkingDots) zamiast dotychczasowego loadera
+
+- **Zgłoszenie:** ujednolicić animację ładowania we wszystkich aplikacjach (wzorzec: epicaHR).
+- **Zmiana:** nowy komponent `ThinkingDots.razor` (+ `.razor.css`, parametr `Size`: `Small` / `Medium` / `Large` / `ExtraLarge`) obok `Load.razor` i `LoadSmall.razor`; `Load` pokazuje rozmiar `ExtraLarge`, `LoadSmall` rozmiar `Medium`. Strony używające `<Load />` / `<LoadSmall />` bez zmian. Dotychczasowe obrazki GIF / kółka zębate zostają w projekcie (nieużywane).
+- **Status wdrożenia:** niewdrożone, niezacommitowane.
+- **Weryfikacja:** patrz wpis w epicaHR (build 0 błędów); wygląd w przeglądarce nie był sprawdzany.
+
+## 2026-10-06 - Strona główna: aplikacje tylko z dostępem użytkownika
+
+- **Zgłoszenie:** lista aplikacji na stronie głównej była filtrowana tylko po `appWyswietl`; ma pokazywać wyłącznie aplikacje,
+  w których użytkownik ma rolę (dowolną).
+- **Baza danych / Zmiana:** nowy widok `mvw.vUzytkownikAplikacjaDostep` (`_SQL Queries/Aplikacja_Dostep_View.sql`) - pary
+  (usrID, appID) z `app.vUzytkownikRola`, czyli ta sama definicja "ma rolę w aplikacji" co w procedurze logowania.
+  Kod: `UzytkownikAplikacjaDostepViewModel` + DbSet, akcja `Home/SelectAplikacjaByUzytkownik?usrID=&appStatus=`,
+  `IHomeService/HomeService.SelectAplikacjaByUzytkownik`, `Home.razor` pobiera `usrID` z claimu.
+- **Decyzja techniczna:** dostęp wyliczany z bazy, a nie z listy ról w claimach - procedura logowania zwraca role tylko dla
+  jednej aplikacji (`srlNazwa` = `nazwaAplikacji|rola|...`), więc nie da się z niej ocenić pozostałych aplikacji.
+  Aplikacje bez żadnej roli nie będą widoczne dla nikogo.
+- **Status wdrożenia:** kod gotowy; wymaga uruchomienia skryptu SQL (CERES, JAPET) i publikacji Api i Blazora.
+- **Weryfikacja:** `dotnet build` Api i Blazor - 0 błędów; działanie nieprzetestowane (widok jeszcze nie istnieje w bazie).
+
 ## 2026-10-05 - Publikacja indigoERP.Api na DEIMOS (3.26.1005.11370)
 
 - **Zmiana:** `dotnet publish -c Release` i kopia do `c:\inetpub\wwwroot\indigoERP.Api` na DEIMOS z cyklem `app_offline.htm`

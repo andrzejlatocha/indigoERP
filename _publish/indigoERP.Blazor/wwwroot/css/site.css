@@ -1,0 +1,427 @@
+﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+.header-color {
+    background-color: #575756 !important;
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.header-color .container-fluid {
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.login-display {
+    color: #fff;
+}
+
+.login-display__user.rz-button,
+.login-display__user.rz-button .rz-button-text {
+    color: #fff !important;
+}
+
+.menu-color {
+    background-color: #575756 !important;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: 56px;
+    max-height: 56px;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+.header-color .navbar-collapse {
+    min-height: 0;
+}
+
+.header-color .nav-link {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+
+.navbar-brand > img,
+.navbar-header .logo {
+    height: 44px;
+    max-height: 44px;
+    width: auto;
+    object-fit: contain;
+}
+
+.app-header-logo {
+    display: block;
+    width: auto;
+    max-width: 260px;
+    height: 44px;
+    max-height: 44px;
+    object-fit: contain;
+}
+
+.navbar-brand > img.app-header-logo {
+    height: 44px;
+    max-height: 44px;
+}
+
+.main-image {
+    background-image: url('../images/main.jpg');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    min-height: 100vh;
+    height: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
+    background-color: #343A40;
+}
+
+.center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.area-main {
+    width: 100%;
+    min-height: 380px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+}
+
+    .area-main .service {
+        background: #F0F0F0;
+        padding: 30px;
+        border-radius: 10px;
+        position: absolute;
+        bottom: 0;
+        z-index: 10;
+        box-shadow: 0 0 20px -15px #3B3E44;
+        transition: transform .8s;
+        color: dimgray;
+    }
+        .area-main .service a {
+            text-decoration: none;
+            color: #3E3E3E;
+        }
+
+        .area-main .service p {
+            height: 40px;
+            margin-top: 20px;
+            color: #3E3E3E;
+        }
+
+        .area-main .service h4 {
+            height: 35px;
+            width: 80%;
+            background: #F0F0F0;
+            margin: 10px auto;
+            position: relative;
+        }
+
+            .area-main .service h4::after {
+                content: '';
+                width: 40px;
+                height: 30px;
+                background: linear-gradient(to right, #F0F0F0, #949BA9);
+                position: absolute;
+                right: -5px;
+                top: -5px;
+                z-index: -1;
+            }
+
+            .area-main .service h4::before {
+                content: '';
+                width: 40px;
+                height: 30px;
+                background: linear-gradient(to right, #949BA9, #F0F0F0);
+                position: absolute;
+                left: -5px;
+                bottom: -5px;
+                z-index: -1;
+            }
+
+        .area-main .service .logo {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            margin: -90px auto 0;
+            background-color: #F0F0F0;
+            border: 18px solid #575756;
+        }
+
+            .area-main .service .logo img {
+                width: 50px;
+                margin-top: 20px;
+                transition: transform 1s;
+            }
+
+            .area-main:hover .service .logo img {
+                transform: rotate(360deg)
+            }
+
+    .area-main .shadow1 {
+        height: 200px;
+        width: 80%;
+        background: #EFEFEF;
+        position: absolute;
+        border-radius: 10px;
+        bottom: 0;
+        left: 10%;
+        z-index: 1;
+        box-shadow: 0 0 20px -15px #575756;
+        transition: transform .8s;
+    }
+
+    .area-main .shadow2 {
+        height: 200px;
+        width: 64%;
+        background: #EFEFEF;
+        position: absolute;
+        border-radius: 10px;
+        bottom: 0;
+        left: 18%;
+        z-index: 0;
+    }
+
+    .area-main:hover .service {
+        transform: translateY(-50px)
+    }
+
+    .area-main:hover .shadow1 {
+        transform: translateY(-25px)
+    }
+
+.administrator-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.administrator-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.administrator-shell .footer {
+    position: static;
+    flex: 0 0 auto;
+}
+
+.administrator-index-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.administrator-grid-row {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.administrator-grid-column {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.administrator-grid {
+    flex: 1 1 auto;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+}
+
+.administrator-grid .rz-data-grid-data {
+    overflow: auto;
+}
+
+.administrator-relation-side-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.administrator-user-groups {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+}
+
+.administrator-user-groups .administrator-grid {
+    flex: 0 1 90%;
+    height: 90%;
+    max-height: 90%;
+}
+
+.administrator-confirm-wrapper {
+    z-index: 1300 !important;
+}
+
+.administrator-home {
+    padding: 24px;
+}
+
+.administrator-home__header {
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.administrator-home__header h2 {
+    margin: 0;
+    color: #343a40;
+    font-size: 1.45rem;
+    font-weight: 600;
+}
+
+.administrator-home__header p {
+    margin: 4px 0 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.administrator-home__tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.administrator-tile {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 116px;
+    padding: 18px;
+    color: #343a40;
+    text-decoration: none;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(33, 37, 41, 0.06);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.administrator-tile:hover,
+.administrator-tile:focus {
+    color: #212529;
+    text-decoration: none;
+    border-color: #adb5bd;
+    box-shadow: 0 10px 24px rgba(33, 37, 41, 0.10);
+    transform: translateY(-2px);
+}
+
+.administrator-tile__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    color: #fff;
+    background: #575756;
+    border-radius: 8px;
+}
+
+.administrator-tile__icon .rz-icon {
+    font-size: 24px;
+}
+
+.administrator-tile__content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.administrator-tile__title {
+    color: #212529;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.administrator-tile__description {
+    margin-top: 6px;
+    color: #6c757d;
+    font-size: 0.87rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 1199.98px) {
+    .administrator-home__tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .administrator-home {
+        padding: 16px;
+    }
+
+    .administrator-home__tiles {
+        grid-template-columns: 1fr;
+    }
+}
+
