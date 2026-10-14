@@ -122,21 +122,19 @@
     IEnumerable<AplikacjaViewModel>? data;
     bool browserWarrningVisible;
 
-    // Skróty do aplikacji starego Intranetu (5 kolumn x 2 rzędy). Adresy do uzupełnienia - na razie strona główna Intranetu.
-    private const string LegacyIntranetUrl = "https://intranet.hcz.com.pl/";
-
+    // Skróty do aplikacji starego Intranetu (5 kolumn x 2 rzędy); adresy jak w Default.aspx starego Intranetu.
     private static readonly LegacyApp[] legacyApps =
     {
-        new("atacamaDMS", "fa-folder-open", LegacyIntranetUrl),
-        new("hydraRCP", "fa-clock", LegacyIntranetUrl),
-        new("atestyHCZ", "fa-certificate", LegacyIntranetUrl),
-        new("magazynBHP", "fa-helmet-safety", LegacyIntranetUrl),
-        new("cerberTMS", "fa-truck", LegacyIntranetUrl),
-        new("warehouseBI", "fa-chart-column", LegacyIntranetUrl),
-        new("kosztyKJ", "fa-coins", LegacyIntranetUrl),
-        new("transportRAP", "fa-truck-fast", LegacyIntranetUrl),
-        new("bhpAPP", "fa-shield-halved", LegacyIntranetUrl),
-        new("bespinEWA", "fa-clipboard-list", LegacyIntranetUrl)
+        new("atacamaDMS", "fa-folder-open", "https://intranet.hcz.com.pl/atacama/Default.aspx"),
+        new("hydraRCP", "fa-clock", "http://wenus.hcz.com.pl/hydra/"),
+        new("atestyHCZ", "fa-certificate", "https://intranet.hcz.com.pl/certificate/"),
+        new("magazynBHP", "fa-helmet-safety", "http://wenus.hcz.com.pl/magazyn/"),
+        new("cerberTMS", "fa-truck", "https://intranet.hcz.com.pl/cerber/"),
+        new("warehouseBI", "fa-chart-column", "https://intranet.hcz.com.pl/warehouse/Default.aspx"),
+        new("kosztyKJ", "fa-coins", "https://intranet.hcz.com.pl/kjkoszty/"),
+        new("transportRAP", "fa-truck-fast", "https://intranet.hcz.com.pl/kolejowy/"),
+        new("bhpAPP", "fa-shield-halved", "http://wenus.hcz.com.pl/bhp/Default.aspx"),
+        new("bespinEWA", "fa-clipboard-list", "https://intranet.hcz.com.pl/bespin/")
     };
 
     private sealed record LegacyApp(string Name, string Icon, string Url);

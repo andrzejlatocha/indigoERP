@@ -7,6 +7,42 @@
 - **Status wdrożenia:** niewdrożone, niezacommitowane.
 - **Weryfikacja:** patrz wpis w epicaHR (build 0 błędów); wygląd w przeglądarce nie był sprawdzany.
 
+## 2026-10-14 - Stary Intranet na WENUS: przekierowanie tylko dla hosta intranet.hcz.com.pl (korekta)
+
+- **Zgłoszenie:** po dodaniu `httpRedirect` do `Web.config` linki do starych aplikacji wracały na `app.hcz.com.pl`;
+  przekierowanie ma dotyczyć wyłącznie adresu `intranet.hcz.com.pl`.
+- **Diagnoza:** katalog `W:\inetpub\wwwroot\intranet` to korzeń „Default Web Site” na WENUS, a `/hydra`, `/magazyn`, `/bhp`,
+  `/epica`, `/kjkoszty` to jego podaplikacje - dziedziczyły `httpRedirect` z `Web.config`; `httpRedirect` nie ma warunku na host,
+  a moduł URL Rewrite nie jest zainstalowany.
+- **Zmiana:** `Web.config` przywrócony z `Web.config.20261014.bak` (bez `httpRedirect`); w `Default.aspx` (kopia
+  `Default.aspx.20261014.bak`) na początku `Content2` dodany blok `<% if (Request.Url.Host == "intranet.hcz.com.pl") Response.Redirect("https://app.hcz.com.pl/", true); %>` -
+  przekierowuje tylko stronę główną i tylko dla tego hosta.
+- **Weryfikacja:** żądania do `10.0.45.10`: Host `intranet.hcz.com.pl` `/` -> 302 `https://app.hcz.com.pl/`;
+  Host `wenus.hcz.com.pl` `/`, `/hydra/`, `/magazyn/`, `/bhp/Default.aspx` oraz Host `intranet.hcz.com.pl` `/hydra/` -> 200.
+- **Uwaga:** DNS `intranet.hcz.com.pl` wskazuje na JAPET (10.0.40.101), więc ten warunek działa na WENUS tylko dla ruchu z tym
+  nagłówkiem Host; aplikacje `/atacama`, `/cerber`, `/certificate` itd. leżą na JAPET i nie są objęte.
+- **Cofnięcie:** przywrócić `Default.aspx.20261014.bak` jako `Default.aspx`.
+
+## 2026-10-14 - Publikacja indigoERP.Api i indigoERP.Blazor na DEIMOS (3.26.1014.11385)
+
+- **Zmiana:** publikacja Release z cyklem `app_offline.htm` - najpierw Api (`c:\inetpub\wwwroot\indigoERP.Api`, 8 plików),
+  potem Blazor (`c:\inetpub\wwwroot\indigoERP`, 7 plików); robocopy bez `appsettings*.json`, `web.config`, `logs`, `_documents`,
+  kod wyjścia 3 = OK. Zawiera właściwe linki przycisków starych aplikacji. Wersja `3.26.1014.11384` + 1 = `11385`
+  (repo i serwer, Api oraz Blazor).
+- **Weryfikacja:** `https://app.hcz.com.pl/indigoERP/` -> 200; `Home/SelectAplikacjaByUzytkownik` -> 200; `Uzytkownik/SelectDaneGraph`
+  bez tokenu -> 401; hash `indigoERP.Api.dll` i `indigoERP.Blazor.dll` na serwerze zgodny z paczkami; `wwwroot\_documents` na miejscu.
+
+## 2026-10-14 - Przyciski starych aplikacji: właściwe linki
+
+- **Zgłoszenie:** wszystkie przyciski starych aplikacji na stronie głównej prowadziły na stronę główną Intranetu.
+- **Zmiana:** `Pages/Home.razor` - tablica `legacyApps` z adresami z `Default.aspx` starego Intranetu
+  (`D:\Work\Huta\VisualStudio\intranet\intranet\Default.aspx`; code-behind nie nadpisuje linków): atacamaDMS `/atacama/Default.aspx`,
+  hydraRCP `wenus/hydra/`, atestyHCZ `/certificate/`, magazynBHP `wenus/magazyn/`, cerberTMS `/cerber/`,
+  warehouseBI `/warehouse/Default.aspx`, kosztyKJ `/kjkoszty/`, transportRAP `/kolejowy/`, bhpAPP `wenus/bhp/Default.aspx`,
+  bespinEWA `/bespin/`.
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; działania linków nie sprawdzano.
+
 ## 2026-10-14 - Publikacja indigoERP.Blazor na DEIMOS (3.26.1014.11384)
 
 - **Zmiana:** publikacja Release z cyklem `app_offline.htm` do `c:\inetpub\wwwroot\indigoERP` (7 plików skopiowanych,
