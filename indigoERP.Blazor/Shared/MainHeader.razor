@@ -1,11 +1,13 @@
-﻿<nav class="navbar navbar-dark bg-dark navbar-expand-md header-color header-navbar">
+﻿@inject IConfiguration _configuration
+
+<nav class="navbar navbar-dark bg-dark navbar-expand-md header-color header-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
             <img class="app-header-logo" src="images/logo_white.svg" />
         </a>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a href="/home" class="nav-link active">Home</a></li>                
+                <li class="nav-item"><a href="@BaseUrl" class="nav-link active">Główna</a></li>                
 @*
                 <li class="nav-item"><a href="/desktop" class="nav-link">Pulpit</a></li>
                 <li class="nav-item"><a href="task" class="nav-link">Zadania</a></li>
@@ -35,3 +37,6 @@
     </div>
 </nav>
 
+@code {
+    private string BaseUrl => _configuration["appSettings:BaseUrl"] ?? "./";
+}

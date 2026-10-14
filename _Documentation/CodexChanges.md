@@ -1,5 +1,11 @@
 ﻿# Codex Changes
 
+## 2026-10-14 - Nagłówek Główna z BaseUrl i link do indigoERP w stopce
+
+- **Zgłoszenie:** w menu nagłówka Home → Główna z linkiem z appSettings:BaseUrl; w stopce logo i tekst Huta Częstochowa jako link do indigoERP.
+- **Zmiana:** Header/NavMenu używają BaseUrl (appSettings:BaseUrl, awaryjnie ./); Footer używa IndigoUrl - w Development appSettings:IndigoApiUrl, na produkcji appSettings:IndigoUrl nadpisywane zmienną systemową indigoERP_Url (mapowanie w ExternalUrlConfiguration).
+- **Weryfikacja:** przebudowa projektu Blazor, 0 błędów.
+
 ## 2026-10-07 - Animacja kropek (ThinkingDots) zamiast dotychczasowego loadera
 
 - **Zgłoszenie:** ujednolicić animację ładowania we wszystkich aplikacjach (wzorzec: epicaHR).
