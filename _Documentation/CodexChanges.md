@@ -13,6 +13,28 @@
 - **Status wdrożenia:** niewdrożone, niezacommitowane.
 - **Weryfikacja:** patrz wpis w epicaHR (build 0 błędów); wygląd w przeglądarce nie był sprawdzany.
 
+## 2026-10-14 - Publikacja indigoERP.Blazor na DEIMOS (3.26.1014.11386, przez dysk Y)
+
+- **Zmiana:** publikacja Release z cyklem `app_offline.htm` przez `Y:\inetpub\wwwroot\indigoERP` (`Y:` = `\\deimos\c$`),
+  7 plików skopiowanych, kod wyjścia 3 = OK; bez `appsettings*.json`, `web.config`, `logs`, `_documents`. Zawiera poprawkę combo
+  aplikacji i filtra grup w oknie grup użytkownika. Wersja `3.26.1014.11385` + 1 = `11386` (repo i serwer, Blazor oraz Api).
+- **Weryfikacja:** hash `indigoERP.Blazor.dll` na serwerze zgodny z paczką, `wwwroot\_documents` na miejscu; w logu aplikacji
+  po publikacji prawdziwe żądania użytkowników: `Login/GetSso` 200 i `Home/SelectAplikacjaByUzytkownik` 200. Własny test strony
+  zwrócił 401 (Negotiate), bo ta stacja nie ma teraz działającego uwierzytelnienia domenowego (SSPI/Kerberos) - nie wada aplikacji.
+
+## 2026-10-14 - Grupy użytkownika: combo aplikacji tylko ze statusem 2, filtr aplikacji zawęża listę grup
+
+- **Zgłoszenie:** w combo aplikacji (okno grup użytkownika) pojawiały się trzy rekordy bez opisu i podwójne wpisy; mają być
+  tylko aplikacje ze statusem 2. Wybór aplikacji ma filtrować także combo „Wybierz grupę”.
+- **Diagnoza:** `SelectLookup("*")` zwracało też aplikacje nieaktywne (status 1) i bez nazwy; zdublowane nazwy to aplikacje
+  o tej samej nazwie i różnych `appID` (np. nieaktywne odpowiedniki).
+- **Zmiana:** `Pages/Administrator/Uzytkownik/UzytkownikGrupa.razor` - `SelectLookup("2")`, pominięte puste nazwy; gdy nazwa w statusie 2
+  nadal się powtarza, etykieta ma dopisane `(appID)`. Lista grup do wyboru jest materializowana przy każdej zmianie
+  (`RefreshAvailableGroups`): tylko aktywne grupy (status 2), bez grup, w których użytkownik już jest, z filtrem `groAplikacjaID`.
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; działanie w przeglądarce nie sprawdzane (brak dostępu do JAPET
+  w trakcie zmiany - błąd SSPI/Kerberos), więc nie potwierdzono na danych, ile aplikacji o statusie 2 ma wspólną nazwę.
+
 ## 2026-10-14 - Skrypt: użytkownicy do grup gobiMRP 2410 (Plan-Właściciel) i 2414 (Budżet-Właściciel)
 
 - **Zgłoszenie:** dodać 12 wskazanych osób do grup 2410 i 2414 w bazie indigoERP.

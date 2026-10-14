@@ -11,13 +11,13 @@
 
 <RadzenStack Gap="0.75rem" Class="administrator-user-groups p-3">
     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
-        <RadzenDropDown Data="@AvailableGroups" TextProperty="groNazwa" ValueProperty="groID" TValue="int?"
+        <RadzenDropDown Data="@availableGroups" TextProperty="groNazwa" ValueProperty="groID" TValue="int?"
                         @bind-Value="@selectedGroupID" AllowClear="true" AllowFiltering="true"
                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         Placeholder="Wybierz grupę" Style="width:640px" />
         <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@AddSelectedGroup" />
         <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
-        <RadzenDropDown Data="@applications" TextProperty="appNazwa" ValueProperty="appID" TValue="int?"
+        <RadzenDropDown Data="@applications" TextProperty="Nazwa" ValueProperty="appID" TValue="int?"
                         Value="@selectedApplicationID" ValueChanged="@OnApplicationChanged" AllowClear="true" AllowFiltering="true"
                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         Placeholder="Wszystkie aplikacje" Style="width:240px" />
@@ -69,14 +69,10 @@
     private IList<UzytkownikGrupaViewModel> selectedItems = new List<UzytkownikGrupaViewModel>();
     private List<UzytkownikGrupaViewModel>? data;
     private List<GrupaViewModel> groups = new();
-    private List<AplikacjaEnumerator> applications = new();
+    private List<ApplicationItem> applications = new();
+    private List<GrupaViewModel> availableGroups = new();
     private int? selectedGroupID;
     private int? selectedApplicationID;
-
-    // Grupy do wyboru: tylko te, w których użytkownik jeszcze nie jest, z uwzględnieniem filtra aplikacji.
-    private IEnumerable<GrupaViewModel> AvailableGroups => groups
-        .Where(g => (selectedApplicationID is null || g.groAplikacjaID == selectedApplicationID.Value)
-                    && data?.Any(a => a.groID == g.groID) != true);
 
     private IEnumerable<UzytkownikGrupaViewModel> FilteredData => (data ?? new List<UzytkownikGrupaViewModel>())
         .Where(w => selectedApplicationID is null || w.appID == selectedApplicationID.Value);
@@ -84,7 +80,17 @@
     protected override async Task OnInitializedAsync()
     {
         groups = (await _grupaService.Select("*")).ToList();
-        applications = (await _aplikacjaService.SelectLookup("*")).OrderBy(o => o.appNazwa).ToList();
+
+        // Tylko aktywne aplikacje (status 2) z nazwą; gdy nazwa się powtarza, dopisujemy identyfikator.
+        var active = (await _aplikacjaService.SelectLookup("2"))
+            .Where(a => a.appStatus == "2" && !string.IsNullOrWhiteSpace(a.appNazwa))
+            .ToList();
+        var repeated = active.GroupBy(a => a.appNazwa!.Trim()).Where(g => g.Count() > 1).Select(g => g.Key).ToHashSet();
+        applications = active
+            .Select(a => new ApplicationItem(a.appID, repeated.Contains(a.appNazwa!.Trim()) ? $"{a.appNazwa!.Trim()} ({a.appID})" : a.appNazwa!.Trim()))
+            .OrderBy(o => o.Nazwa)
+            .ToList();
+
         await LoadData();
     }
 
@@ -93,6 +99,7 @@
         selectedApplicationID = appID;
         selectedGroupID = null;
         selectedItems = new List<UzytkownikGrupaViewModel>();
+        RefreshAvailableGroups();
 
         if (grid != null)
         {
@@ -103,7 +110,22 @@
     private async Task LoadData()
     {
         data = (await _uzytkownikService.SelectGrupaByUzytkownik(-1, UzytkownikID, "*")).ToList();
+        RefreshAvailableGroups();
     }
+
+    // Grupy do wyboru: aktywne, w których użytkownik jeszcze nie jest, z uwzględnieniem filtra aplikacji.
+    // Nowa lista przy każdej zmianie, żeby combo na pewno przeładowało dane.
+    private void RefreshAvailableGroups()
+    {
+        availableGroups = groups
+            .Where(g => g.groStatus == "2"
+                        && (selectedApplicationID is null || g.groAplikacjaID == selectedApplicationID.Value)
+                        && data?.Any(a => a.groID == g.groID) != true)
+            .OrderBy(g => g.groNazwa)
+            .ToList();
+    }
+
+    private sealed record ApplicationItem(int appID, string Nazwa);
 
     private async Task AddSelectedGroup()
     {
