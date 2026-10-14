@@ -4,6 +4,14 @@
         <name>indigoERP.Api</name>
     </assembly>
     <members>
+        <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.SelectDaneGraph(System.Threading.CancellationToken)">
+            <summary>
+            Dla użytkowników bez adresu e-mail szuka konta w Microsoft 365 (Graph) po loginie (usrNazwaAD, a w drugiej
+            kolejności usrNazwa) i zwraca znaleziony adres. TYLKO ODCZYT - nic nie jest zapisywane w bazie.
+            Dopasowanie: onPremisesSamAccountName, a gdy brak - część loginowa userPrincipalName. Adres = mail, a gdy pusty - UPN.
+            </summary>
+            <returns>Lista UzytkownikEmailGraphModel (wynik: Dopasowano / Niejednoznaczne / Brak).</returns>
+        </member>
         <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.Detail(System.Int32,System.Int32)">
             <summary>
             Pobiera szczegóły użytkownika z widoku autoryzacji.
@@ -87,6 +95,20 @@
         <member name="T:indigoERP.Api.Data.indigoERPContext">
             <summary>
             DBContext dla klas aplikacji
+            </summary>
+        </member>
+        <member name="P:indigoERP.Api.Services.IMicrosoftGraphUserService.IsConfigured">
+            <summary>Czy ustawiono MicrosoftGraph:TenantId, ClientId i ClientSecret.</summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.IMicrosoftGraphUserService.GetUsersAsync(System.Threading.CancellationToken)">
+            <summary>Pobiera wszystkich użytkowników tenanta (z paginacją @odata.nextLink).</summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.MicrosoftGraphUserService">
+            <summary>
+            Klient Microsoft Graph (client credentials, uprawnienie aplikacyjne User.Read.All).
+            Dane połączenia: MicrosoftGraph:TenantId / ClientId / ClientSecret - na serwerze ze zmiennych systemowych
+            MicrosoftGraph_TenantId / MicrosoftGraph_ClientId / MicrosoftGraph_ClientSecret (mapowanie w Program.cs),
+            lokalnie z appsettings.Development.json.
             </summary>
         </member>
         <member name="M:indigoERP.Controllers.LoginController.Get(System.String,System.String,System.String,System.String)">

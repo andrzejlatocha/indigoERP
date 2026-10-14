@@ -14,15 +14,6 @@
 <div class="home-page main-image">
     <aside class="home-sidebar">
         <nav class="home-shortcuts" aria-label="Skróty">
-            <a class="home-shortcut home-shortcut--intranet" href="https://intranet.hcz.com.pl">
-                <span class="home-shortcut__icon" aria-hidden="true">
-                    <i class="fa-solid fa-building-columns"></i>
-                </span>
-                <span class="home-shortcut__body">
-                    <span class="home-shortcut__title">Stary Intranet</span>
-                    <span class="home-shortcut__text">Dostęp do wcześniejszej wersji portalu</span>
-                </span>
-            </a>
             <a class="home-shortcut home-shortcut--huta-forms" href="https://deimos.hcz.com.pl:8400/index.html?id=M10001">
                 <span class="home-shortcut__icon" aria-hidden="true">
                     <i class="fa-solid fa-table-cells-large"></i>
@@ -112,12 +103,43 @@
                 }
             }
         </section>
+        <section class="legacy-apps" aria-label="Stare aplikacje">
+            <div class="legacy-apps__title">Stare aplikacje (Intranet)</div>
+            <div class="legacy-grid">
+                @foreach (var app in legacyApps)
+                {
+                    <a href="@app.Url" class="btn btn-warning legacy-button">
+                        <i class="fa-solid @app.Icon" aria-hidden="true"></i>
+                        <span>@app.Name</span>
+                    </a>
+                }
+            </div>
+        </section>
     </main>
 </div>
 
 @code{
     IEnumerable<AplikacjaViewModel>? data;
     bool browserWarrningVisible;
+
+    // Skróty do aplikacji starego Intranetu (5 kolumn x 2 rzędy). Adresy do uzupełnienia - na razie strona główna Intranetu.
+    private const string LegacyIntranetUrl = "https://intranet.hcz.com.pl/";
+
+    private static readonly LegacyApp[] legacyApps =
+    {
+        new("atacamaDMS", "fa-folder-open", LegacyIntranetUrl),
+        new("hydraRCP", "fa-clock", LegacyIntranetUrl),
+        new("atestyHCZ", "fa-certificate", LegacyIntranetUrl),
+        new("magazynBHP", "fa-helmet-safety", LegacyIntranetUrl),
+        new("cerberTMS", "fa-truck", LegacyIntranetUrl),
+        new("warehouseBI", "fa-chart-column", LegacyIntranetUrl),
+        new("kosztyKJ", "fa-coins", LegacyIntranetUrl),
+        new("transportRAP", "fa-truck-fast", LegacyIntranetUrl),
+        new("bhpAPP", "fa-shield-halved", LegacyIntranetUrl),
+        new("bespinEWA", "fa-clipboard-list", LegacyIntranetUrl)
+    };
+
+    private sealed record LegacyApp(string Name, string Icon, string Url);
 
     protected override async Task OnInitializedAsync()
     {

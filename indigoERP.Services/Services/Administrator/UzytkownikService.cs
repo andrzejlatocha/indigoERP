@@ -1,4 +1,5 @@
 ﻿using indigoERP.Domain.Dtos._Administrator;
+using indigoERP.Domain.Models._Administrator;
 using indigoERP.Domain.Models._Wspolne;
 using indigoERP.Domain.ViewModels._Administracja;
 using indigoERP.Domain.ViewModels._Autoryzacja;
@@ -129,6 +130,31 @@ namespace indigoERP.Service.Services._Administrator
             catch (Exception ex)
             {
                 return new ResponseMessage(600, ex.Message, null);
+            }
+        }
+
+        public async Task<(ResponseMessage Response, IReadOnlyList<UzytkownikEmailGraphModel> Dane)> SelectDaneGraph()
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+            var empty = new List<UzytkownikEmailGraphModel>();
+
+            try
+            {
+                var response = await httpClient.GetAsync("Uzytkownik/SelectDaneGraph");
+                string apiResponse = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return (new ResponseMessage((int)response.StatusCode, apiResponse, null), empty);
+                }
+
+                var dane = JsonConvert.DeserializeObject<List<UzytkownikEmailGraphModel>>(apiResponse) ?? empty;
+
+                return (new ResponseMessage((int)response.StatusCode, string.Empty, null), dane);
+            }
+            catch (Exception ex)
+            {
+                return (new ResponseMessage(600, ex.Message, null), empty);
             }
         }
     }

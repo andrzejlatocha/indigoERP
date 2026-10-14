@@ -28,6 +28,8 @@
                           Click="@ShowRolesForSelectedUser" Disabled="@(!HasSelectedUser)" />
             <RadzenButton Text="Odblokuj logowanie" Icon="lock_open" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning"
                           Click="@OdblokujLogowanieSelectedUser" Disabled="@(SelectedUser?.usrZablokowanyLogowaniem != true)" />
+            <RadzenButton Text="Dane z M365" Icon="cloud_download" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                          Click="@ShowDaneGraph" />
         </RadzenStack>
     </div>
     <div class="col-4">
@@ -382,6 +384,32 @@
         ShowResponse(response.Code, "Logowanie zostało odblokowane.", response.Message);
         await LoadData();
         SelectUser(response.Code >= 200 && response.Code < 300 ? SelectedUser.usrID : null);
+    }
+
+    private async Task ShowDaneGraph()
+    {
+        var options = new ConfirmOptions { OkButtonText = "Pobierz", CancelButtonText = "Anuluj" };
+        var confirmed = await _dialogService.Confirm(
+            "Pobrać z Microsoft 365 adresy e-mail użytkowników, którzy ich nie mają? Dane zostaną tylko wyświetlone, bez zapisu w bazie.",
+            "Potwierdzenie", options);
+
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        var (response, dane) = await _uzytkownikService.SelectDaneGraph();
+
+        if (response.Code < 200 || response.Code >= 300)
+        {
+            ShowResponse(response.Code, string.Empty, response.Message);
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<UzytkownikDaneGraph>(
+            "Dane z Microsoft 365",
+            new Dictionary<string, object?> { ["Dane"] = dane.ToList() },
+            GetWideRelationSideDialogOptions());
     }
 
     private void ShowResponse(int code, string successMessage, string? errorMessage)

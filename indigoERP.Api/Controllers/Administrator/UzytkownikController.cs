@@ -1,6 +1,8 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Api.Services;
 using indigoERP.Domain.Dtos._Administrator;
 using indigoERP.Domain.Entities._Administrator;
+using indigoERP.Domain.Models._Administrator;
 using indigoERP.Domain.ViewModels._Administracja;
 using indigoERP.Domain.ViewModels._Autoryzacja;
 using Mapster;
@@ -21,11 +23,124 @@ namespace indigoERP.Api.Controllers._Administrator
 
         private readonly indigoERPContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IMicrosoftGraphUserService _graphUserService;
 
-        public UzytkownikController(indigoERPContext context, IConfiguration configuration)
+        public UzytkownikController(indigoERPContext context, IConfiguration configuration, IMicrosoftGraphUserService graphUserService)
         {
             _context = context;
             _configuration = configuration;
+            _graphUserService = graphUserService;
+        }
+
+        /// <summary>
+        /// Dla użytkowników bez adresu e-mail szuka konta w Microsoft 365 (Graph) po loginie (usrNazwaAD, a w drugiej
+        /// kolejności usrNazwa) i zwraca znaleziony adres. TYLKO ODCZYT - nic nie jest zapisywane w bazie.
+        /// Dopasowanie: onPremisesSamAccountName, a gdy brak - część loginowa userPrincipalName. Adres = mail, a gdy pusty - UPN.
+        /// </summary>
+        /// <returns>Lista UzytkownikEmailGraphModel (wynik: Dopasowano / Niejednoznaczne / Brak).</returns>
+        [Authorize(Roles = IndigoAdministratorRole, AuthenticationSchemes = BearerScheme)]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UzytkownikEmailGraphModel>>> SelectDaneGraph(CancellationToken cancellationToken)
+        {
+            if (!_graphUserService.IsConfigured)
+            {
+                return Problem(
+                    "Brak konfiguracji Microsoft Graph (MicrosoftGraph_TenantId / MicrosoftGraph_ClientId / MicrosoftGraph_ClientSecret).",
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+
+            IReadOnlyList<GraphUserInfo> graphUsers;
+
+            try
+            {
+                graphUsers = await _graphUserService.GetUsersAsync(cancellationToken);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
+            }
+
+            var bySam = graphUsers
+                .Where(g => !string.IsNullOrWhiteSpace(g.OnPremisesSamAccountName))
+                .GroupBy(g => g.OnPremisesSamAccountName!.Trim().ToLowerInvariant())
+                .ToDictionary(g => g.Key, g => g.ToList());
+            var byUpn = graphUsers
+                .Where(g => !string.IsNullOrWhiteSpace(g.UserPrincipalName))
+                .GroupBy(g => LoginPart(g.UserPrincipalName))
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var bezEmaila = await _context.Uzytkownik
+                .AsNoTracking()
+                .Where(u => (u.Usuniety == false || u.Usuniety == null) && (u.usrEmail == null || u.usrEmail.Trim() == ""))
+                .OrderBy(u => u.usrID)
+                .ToListAsync(cancellationToken);
+
+            var wynik = new List<UzytkownikEmailGraphModel>(bezEmaila.Count);
+
+            foreach (var u in bezEmaila)
+            {
+                var pozycja = new UzytkownikEmailGraphModel
+                {
+                    usrID = u.usrID,
+                    usrNazwa = u.usrNazwa,
+                    usrNazwaAD = u.usrNazwaAD,
+                    usrImieNazwisko = u.usrImieNazwisko
+                };
+
+                foreach (var key in new[] { LoginPart(u.usrNazwaAD), LoginPart(u.usrNazwa) }.Where(k => k.Length > 0).Distinct())
+                {
+                    var kandydaci = (bySam.TryGetValue(key, out var sam) ? sam : byUpn.TryGetValue(key, out var upn) ? upn : null)
+                        ?.DistinctBy(k => k.Id).ToList();
+
+                    if (kandydaci == null || kandydaci.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (kandydaci.Count > 1)
+                    {
+                        pozycja.wynik = "Niejednoznaczne";
+                        break;
+                    }
+
+                    var g = kandydaci[0];
+                    var email = string.IsNullOrWhiteSpace(g.Mail) ? g.UserPrincipalName : g.Mail;
+
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        pozycja.graphEmail = email;
+                        pozycja.graphDisplayName = g.DisplayName;
+                        pozycja.graphUserPrincipalName = g.UserPrincipalName;
+                        pozycja.wynik = "Dopasowano";
+                        break;
+                    }
+                }
+
+                wynik.Add(pozycja);
+            }
+
+            return wynik;
+        }
+
+        // Login do porównań: bez domeny (DOMENA\login, login@domena), małymi literami.
+        private static string LoginPart(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var login = value.Trim();
+            var slash = login.LastIndexOf('\\');
+
+            if (slash >= 0)
+            {
+                login = login[(slash + 1)..];
+            }
+
+            var at = login.IndexOf('@');
+
+            return (at >= 0 ? login[..at] : login).ToLowerInvariant();
         }
 
         [AllowAnonymous]

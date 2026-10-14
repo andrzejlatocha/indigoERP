@@ -1,0 +1,34 @@
+﻿@using indigoERP.Domain.Models._Administrator
+
+<RadzenStack Gap="0.75rem" Class="administrator-user-groups p-3">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
+        <span>Użytkownicy bez adresu e-mail: @Dane.Count, dopasowano: @Dane.Count(w => w.wynik == "Dopasowano")</span>
+    </RadzenStack>
+
+    <RadzenDataGridApp Data="@Dane" TItem="UzytkownikEmailGraphModel" Density="Density.Compact" Class="administrator-grid"
+                       AllowPaging="true" PageSize="18" AllowSorting="true" AllowFiltering="true"
+                       FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+        <Columns>
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrNazwa" Title="Użytkownik" Width="160px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrNazwaAD" Title="Nazwa AD" Width="160px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrImieNazwisko" Title="Imię i nazwisko" Width="200px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="graphEmail" Title="E-mail z M365" Width="260px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="graphDisplayName" Title="Nazwa w M365" Width="200px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="wynik" Title="Wynik" Width="130px" />
+        </Columns>
+    </RadzenDataGridApp>
+</RadzenStack>
+
+@code {
+    [Inject]
+    private DialogService _dialogService { get; set; } = default!;
+
+    [Parameter]
+    public List<UzytkownikEmailGraphModel> Dane { get; set; } = new();
+
+    private void Close()
+    {
+        _dialogService.CloseSide(null);
+    }
+}

@@ -7,6 +7,179 @@
 - **Status wdrożenia:** niewdrożone, niezacommitowane.
 - **Weryfikacja:** patrz wpis w epicaHR (build 0 błędów); wygląd w przeglądarce nie był sprawdzany.
 
+## 2026-10-14 - Publikacja indigoERP.Blazor na DEIMOS (3.26.1014.11384)
+
+- **Zmiana:** publikacja Release z cyklem `app_offline.htm` do `c:\inetpub\wwwroot\indigoERP` (7 plików skopiowanych,
+  kod wyjścia 3 = OK; bez `appsettings*.json`, `web.config`, `logs`, `_documents`). Zawiera: przyciski starych aplikacji
+  na dole strony głównej w stylu Bootstrap `btn-warning`. Wersja `3.26.1014.11383` + 1 = `11384` (repo i serwer, Blazor oraz Api).
+- **Weryfikacja:** `https://app.hcz.com.pl/indigoERP/` -> 200, hash `indigoERP.Blazor.dll` zgodny z paczką,
+  `wwwroot\_documents` na serwerze na miejscu.
+
+## 2026-10-14 - Skrypt: użytkownicy do grup gobiMRP 2409 (Plan) i 2353 (Budżet)
+
+- **Zgłoszenie:** dodać 35 wskazanych osób do grup 2409 i 2353 w bazie indigoERP.
+- **Zmiana:** `_SQL Queries/GrupaCzlonkowie_gobiMRP_Plan_Budzet_20261014.sql` - idempotentny `INSERT` do `dbo.GrupaCzlonkowie`
+  (jak `GrupaController.InsertCzlonek`: grupa nadrzędna, `uwgGrupaID NULL`, status `2`), loginy rozwiązane po `usrImieNazwisko`
+  (34 z 35 jednoznacznie; „Alicja Maćkowiak” nie znaleziona - w bazie jest „Alicja Maćkowska-Zapała”, wiersz zakomentowany).
+- **Status wdrożenia:** skrypt przygotowany, NIE uruchomiony (produkcję SQL uruchamia użytkownik); w transakcji, z kontrolą przed i po.
+- **Weryfikacja:** zapytanie tylko do odczytu na JAPET potwierdziło brak brakujących użytkowników i liczbę członkostw do dodania.
+
+## 2026-10-14 - Strona główna: przyciski starych aplikacji w stylu Bootstrap warning
+
+- **Zgłoszenie:** przyciski starych aplikacji mają wyglądać jak przycisk `warning` z Bootstrapa.
+- **Zmiana:** `Home.razor` - klasy `btn btn-warning legacy-button`; `Home.razor.css` - usunięte własne kolory, obramowanie,
+  cień i hover (daje je Bootstrap), zostały tylko style układu (ikona po lewej, pełna szerokość kolumny).
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; wygląd nie sprawdzany w przeglądarce.
+
+## 2026-10-14 - Strona główna: przyciski starych aplikacji przy dolnej krawędzi
+
+- **Zgłoszenie:** przyciski starych aplikacji mają być na dole, tuż nad stopką.
+- **Zmiana:** `Home.razor.css` - `.application-grid` `flex: 1 1 0` (zajmuje wolne miejsce i przewija się wewnętrznie),
+  `.legacy-apps` `margin-top: auto` - sekcja przyklejona do dołu obszaru treści, nad stopką.
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; wygląd nie sprawdzany w przeglądarce.
+
+## 2026-10-14 - Strona główna: przywrócone przyciski starych aplikacji, usunięty kafelek „Stary Intranet”
+
+- **Zgłoszenie:** „usuń przycisk dostęp do starych aplikacji” dotyczyło kafelka „Stary Intranet” w lewym panelu, a nie
+  nowej sekcji przycisków - sekcję wycofano omyłkowo (patrz wcześniejszy wpis), użytkownik jej nie widział na produkcji.
+- **Zmiana:** `Pages/Home.razor` i `Home.razor.css` - przywrócona sekcja `legacy-apps` (10 przycisków, 5 kolumn x 2 rzędy);
+  usunięty kafelek `home-shortcut--intranet` wraz ze stylami; siatka lewego panelu przeliczona na 6 skrótów
+  (`grid-template-rows: repeat(5, ...)`, kolumny `repeat(6, ...)` w widoku wąskim).
+- **Uwaga:** adresy przycisków nadal wskazują `https://intranet.hcz.com.pl/` - właściwe do uzupełnienia w `legacyApps`.
+- **Status wdrożenia:** opublikowane na DEIMOS jako `3.26.1014.11383` (cykl `app_offline.htm`, 7 plików skopiowanych,
+  kod wyjścia 3 = OK; wersja podbita w repo i na serwerze, Blazor oraz Api).
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; `https://app.hcz.com.pl/indigoERP/` -> 200, hash
+  `indigoERP.Blazor.dll` na serwerze zgodny z paczką; wygląd nie sprawdzany w przeglądarce.
+
+## 2026-10-14 - Stary Intranet na WENUS: przekierowanie na https://app.hcz.com.pl/
+
+- **Zgłoszenie:** w `w:\inetpub\wwwroot\intranet\` (WENUS, `\\wenus\c$`) dodać przekierowanie na `https://app.hcz.com.pl/`.
+- **Zmiana:** `Web.config` aplikacji (to aplikacja ASP.NET WebForms, brak `appsettings.json`) - w `<system.webServer>`
+  dodane `<httpRedirect enabled="true" destination="https://app.hcz.com.pl/" exactDestination="true" httpResponseStatus="Found" />`
+  (302 - łatwy do cofnięcia; po potwierdzeniu można zmienić na `Permanent`). Kopia: `Web.config.20261014.bak` w tym samym katalogu.
+- **Weryfikacja:** żądanie bezpośrednio do `10.0.45.10` (Host `wenus.hcz.com.pl` i `intranet.hcz.com.pl`, ścieżki `/`,
+  `/intranet/`, `/intranet/Default.aspx`) -> 302 `Location: https://app.hcz.com.pl`. Uwaga: DNS `intranet.hcz.com.pl` wskazuje
+  na JAPET (10.0.40.101), nie na WENUS - to przekierowanie go nie dotyczy.
+- **Cofnięcie:** przywrócić `Web.config.20261014.bak` jako `Web.config`.
+
+## 2026-10-14 - Publikacja indigoERP.Api na DEIMOS (3.26.1014.11382)
+
+- **Zmiana:** publikacja Release z cyklem `app_offline.htm` do `c:\inetpub\wwwroot\indigoERP.Api` (10 plików skopiowanych,
+  kod wyjścia 3 = OK; bez `appsettings*.json`, `web.config`, `logs`). Zawiera `Uzytkownik/SelectDaneGraph` i `MicrosoftGraphUserService`.
+  Wersja `3.26.1014.11381` + 1 = `11382` (repo i serwer, Api oraz Blazor).
+- **Weryfikacja:** `Home/SelectAplikacjaByUzytkownik` -> 200; `Uzytkownik/SelectDaneGraph` bez tokenu -> 401 (akcja istnieje).
+  Zmienne systemowe `MicrosoftGraph_TenantId/ClientId/ClientSecret` są ustawione na DEIMOS; samo połączenie z Graph
+  (uprawnienie `User.Read.All`, zgoda administratora) nieprzetestowane - zależy od przycisku „Dane z M365”.
+
+## 2026-10-14 - Publikacja indigoERP.Blazor na DEIMOS (3.26.1014.11381)
+
+- **Zmiana:** publikacja Release z cyklem `app_offline.htm` do `c:\inetpub\wwwroot\indigoERP` (robocopy bez `appsettings*.json`,
+  `web.config`, `logs`, `_documents`; 11 plików skopiowanych, kod wyjścia 3 = OK). Zawiera: niższe kafelki aplikacji,
+  przycisk „Dane z M365” na stronie użytkowników. Wersja `3.26.1014.11380` + 1 (ten sam dzień) = `11381`
+  (repo i serwer, Blazor oraz Api).
+- **Uwaga:** akcja `Uzytkownik/SelectDaneGraph` jest tylko w kodzie Api - `indigoERP.Api` na DEIMOS nie był publikowany,
+  więc przycisk „Dane z M365” zwróci błąd (404) do czasu publikacji Api i ustawienia zmiennych `MicrosoftGraph_*`.
+- **Weryfikacja:** `https://app.hcz.com.pl/indigoERP/` -> 200, `wwwroot\_documents` na serwerze na miejscu.
+
+## 2026-10-14 - Strona główna: przyciski do starych aplikacji Intranetu
+
+- **Zgłoszenie:** pod kafelkami aplikacji dodać przyciski dostępu do starych aplikacji ze strony intranet.hcz.com.pl
+  (atacamaDMS, hydraRCP, atestyHCZ, magazynBHP, cerberTMS, warehouseBI, kosztyKJ, transportRAP, bhpAPP, bespinEWA),
+  w pięciu kolumnach i dwóch rzędach, z ikoną po lewej (FontAwesome), na pełną szerokość kolumny.
+- **Zmiana:** `indigoERP.Blazor/Pages/Home.razor` - sekcja `legacy-apps` (tablica `legacyApps` w `@code`);
+  `Home.razor.css` - style `legacy-grid` / `legacy-button` (5 kolumn, 3 poniżej 992 px, 2 poniżej 700 px).
+- **Uwaga:** adresy wszystkich przycisków wskazywały tymczasowo stronę główną `https://intranet.hcz.com.pl/`.
+- **Status wdrożenia:** tylko repozytorium. **Wycofane tego samego dnia na życzenie** - sekcja `legacy-apps`, tablica
+  `legacyApps` i style `legacy-*` usunięte z `Home.razor` / `Home.razor.css` (kafelek „Stary Intranet” w lewym panelu został).
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; wygląd nie sprawdzany w przeglądarce.
+
+## 2026-10-14 - Strona główna: niższe kafelki aplikacji
+
+- **Zgłoszenie:** zmniejszyć wysokość paneli z aplikacjami na stronie głównej o ok. 40%.
+- **Zmiana:** `indigoERP.Blazor/Pages/Home.razor.css` - `.application-grid` `grid-auto-rows` 172px -> 104px (-40%),
+  `.home-loader` `min-height` tak samo.
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; wygląd nie sprawdzany w przeglądarce (trzy linie opisu
+  mieszczą się w nowej wysokości wg obliczeń: ikona 62px + padding 28px = 90px < 104px).
+
+## 2026-10-14 - Microsoft Graph: pobieranie brakujących adresów e-mail użytkowników (tylko odczyt)
+
+- **Zgłoszenie:** uzupełnianie brakujących adresów e-mail użytkowników indigoERP danymi z Microsoft 365; na razie tylko
+  pobieranie (bez zapisu do bazy i bez UI).
+- **Zmiana:** `indigoERP.Api/Services/MicrosoftGraphUserService.cs` (client credentials, `GET /v1.0/users` z paginacją);
+  `UzytkownikController.SelectDaneGraph` (`GET api/Uzytkownik/SelectDaneGraph`, rola
+  `HCZ-indigoERP-Administrator`, Bearer) - dla użytkowników z pustym `usrEmail` zwraca dopasowany adres z Graph;
+  `Domain/Models/Administrator/UzytkownikEmailGraphModel.cs`. UI: przycisk „Dane z M365” na `/administrator/uzytkownik`
+  (`Index.razor`) z potwierdzeniem; wynik w panelu bocznym `UzytkownikDaneGraph.razor` (tylko podgląd);
+  `IUzytkownikService.SelectDaneGraph`. Konfiguracja: zmienne systemowe `MicrosoftGraph_TenantId`,
+  `MicrosoftGraph_ClientId`, `MicrosoftGraph_ClientSecret` -> `MicrosoftGraph:*` (mapowanie w `Program.cs`, jak `indigoERP_*`);
+  lokalnie sekcja `MicrosoftGraph` w `appsettings.Development.json` (puste wartości do uzupełnienia).
+- **Decyzja techniczna:** `HttpClient` zamiast pakietu `Microsoft.Graph` (brak nowych zależności). Dopasowanie po loginie:
+  `usrNazwaAD`/`usrNazwa` (bez domeny, małe litery) do `onPremisesSamAccountName`, a w drugiej kolejności do części loginowej UPN;
+  wiele trafień = „Niejednoznaczne”, adres = `mail`, a gdy pusty - UPN. Wymagane uprawnienie aplikacyjne `User.Read.All`
+  ze zgodą administratora. Opcja z usługą w authorizationSRV zwracającą dane połączenia - nie realizowana.
+- **Status wdrożenia:** kod gotowy; wymaga publikacji indigoERP.Api i ustawienia trzech zmiennych na DEIMOS.
+- **Weryfikacja:** `dotnet build indigoERP.Api` - 0 błędów; połączenie z Graph nieprzetestowane (brak danych dostępowych).
+
+## 2026-10-14 - Przywrócony kafelek „Stary Intranet” i publikacja Blazora (3.26.1014.11380)
+
+- **Zgłoszenie:** kafelek „Stary Intranet” ma jednak zostać na stronie głównej; opublikować na DEIMOS.
+- **Zmiana:** `Pages/Home.razor` i `Home.razor.css` - kafelek i jego style przywrócone w pierwotnej postaci (pierwszy w lewym panelu).
+  Publikacja Blazora z cyklem `app_offline.htm` (7 plików skopiowanych, kod wyjścia 3 = OK; zawiera też zmiany nagłówka
+  administratora i linku logo Huty). Wersja `3.26.1014.11379` + 1 (ten sam dzień) = `11380` - repo i serwer (Blazor oraz Api).
+- **Weryfikacja:** `https://app.hcz.com.pl/indigoERP/` -> 200; `wwwroot\_documents` na serwerze na miejscu; wygląd
+  w przeglądarce nie sprawdzany.
+
+## 2026-10-14 - Nagłówek administratora: „Główna” i link logo Huty
+
+- **Zgłoszenie:** przycisk „Home” w nagłówku stron administratora linkował do `https://app.hcz.com.pl/home` (nieistniejąca
+  trasa; strona główna to `/`); ma się nazywać „Główna” i prowadzić do `https://app.hcz.com.pl/administrator`.
+  Logo Huty ma linkować do `https://app.hcz.com.pl`.
+- **Zmiana:** `Shared/AdministratorHeader.razor` - `Home` -> `Główna`, `href="/home"` -> `href="administrator"` (względny,
+  rozwiązywany przez `<base href="~/">`, więc działa niezależnie od PathBase); `Shared/Footer.razor` - logo Huty
+  (`Logo16.png`) opakowane linkiem `https://app.hcz.com.pl`.
+- **Uwaga:** `Shared/MainHeader.razor` ma ten sam błędny `href="/home"` (nie zmieniany - poza zakresem prośby).
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów.
+
+## 2026-10-14 - Publikacja indigoERP.Blazor na DEIMOS (3.26.1014.11379)
+
+- **Zmiana:** publikacja Release z cyklem `app_offline.htm` do `c:\inetpub\wwwroot\indigoERP` (robocopy bez `appsettings*.json`,
+  `web.config`, `logs`, `_documents`; 326 plików skopiowanych, kod wyjścia 3 = OK). Zawiera: usunięty kafelek „Stary Intranet”
+  i filtr aplikacji w oknie grup użytkownika. Wersja `3.26.1012.11377` + 2 dni = build `11379`; pole `Version` podmienione w repo
+  i na serwerze w Blazorze oraz w `appsettings.json` Api (zgodnie z regułą identycznej wersji; kod Api bez zmian).
+- **Weryfikacja:** `https://app.hcz.com.pl/indigoERP/` -> 200, katalog `wwwroot\_documents` na serwerze na miejscu.
+
+## 2026-10-14 - Grupy użytkownika: filtr po aplikacji i tylko grupy bez członkostwa
+
+- **Zgłoszenie:** na oknie grup użytkownika (Administrator -> Użytkownicy) dodać za przyciskiem „Zamknij” combo z filtrem
+  aplikacji, a w combo „Wybierz grupę” pokazywać tylko grupy, w których użytkownik jeszcze nie jest.
+- **Zmiana:** `indigoERP.Blazor/Pages/Administrator/Uzytkownik/UzytkownikGrupa.razor` - combo „Wszystkie aplikacje”
+  (`IAplikacjaService.SelectLookup`), filtruje zarówno listę grup użytkownika (po `appID`), jak i listę grup do wyboru
+  (po `groAplikacjaID`); lista do wyboru pomija grupy już przypisane (także dziedziczone).
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; działanie w przeglądarce nie sprawdzane.
+
+## 2026-10-14 - Strona główna: usunięty kafelek "Stary Intranet"
+
+- **Zgłoszenie:** usunąć z lewego panelu skrótów kafelek dostępu do starej wersji portalu.
+- **Zmiana:** `indigoERP.Blazor/Pages/Home.razor` - usunięty kafelek `home-shortcut--intranet` (Stary Intranet,
+  `https://intranet.hcz.com.pl`); `Home.razor.css` - usunięte nieużywane style tego kafelka.
+- **Status wdrożenia:** tylko repozytorium; wymaga publikacji indigoERP.Blazor.
+- **Weryfikacja:** `dotnet build indigoERP.Blazor` - 0 błędów; wygląd nie sprawdzany w przeglądarce.
+
+## 2026-10-12 - Publikacja indigoERP.Api i indigoERP.Blazor na DEIMOS (3.26.1012.11377)
+
+- **Zmiana:** publikacja Release z cyklem `app_offline.htm` do `c:\inetpub\wwwroot\indigoERP.Api` i `\indigoERP`
+  (robocopy bez `appsettings*.json`, `web.config`, `logs`, `_documents`; Api 10 plików, Blazor 594 pliki; kod wyjścia 3 = OK).
+  Na serwerze podmieniono tylko `appSettings:Version`. Wersja w repo podbita w Api i Blazor
+  (`3.26.1005.11370` + 7 dni = build `11377`). Zawiera m.in. filtr aplikacji na stronie głównej wg ról użytkownika
+  (widok `mvw.vUzytkownikAplikacjaDostep` uruchomiony na JAPET przez użytkownika).
+- **Weryfikacja:** `Home/SelectAplikacjaByUzytkownik` zwraca 2 aplikacje dla usrID 3102 i 10 dla usrID 3105;
+  `DetailByEmail` przez Gateway bez klucza -> 401. Strony głównej Blazora w przeglądarce nie sprawdzano.
+
 ## 2026-10-06 - Strona główna: aplikacje tylko z dostępem użytkownika
 
 - **Zgłoszenie:** lista aplikacji na stronie głównej była filtrowana tylko po `appWyswietl`; ma pokazywać wyłącznie aplikacje,
@@ -1092,3 +1265,39 @@ Brak.
 
 - Wykonano `dotnet build indigoERP.Api.csproj --no-restore -v:minimal`.
 - Kompilacja zakończyła się bez błędów; pozostały istniejące ostrzeżenia projektu.
+
+## 2026-10-13
+
+### Zgłoszenie
+
+Dodanie automatycznych testów API, serwisów i Blazora z aktualnymi wersjami bibliotek.
+
+### Zmienione obszary
+
+- `indigoERP.Api.Tests`
+- `indigoERP.Services.Tests`
+- `indigoERP.Blazor.Tests`
+- `indigoERP.sln`
+- `indigoERP.Api/Controllers/Autoryzacja/UzytkownikAplikacjaController.cs`
+- `indigoERP.Api/Controllers/Slownik/MarkaPojazdController.cs`
+
+### Decyzje techniczne
+
+- Dodano trzy projekty testowe .NET 10 z `xunit` 2.9.3, `Microsoft.NET.Test.Sdk` 18.10.1,
+  `coverlet.collector` 10.1.0, EF Core InMemory 10.0.12, Moq 4.21.0 i bUnit 2.11.3.
+- API korzysta z izolowanego dostawcy EF Core InMemory i nie łączy się z żadną bazą SQL.
+- Serwisy są testowane przez atrapę `HttpMessageHandler` i `IHttpClientFactory`, bez żądań sieciowych.
+- Testy bUnit sprawdzają strony Home, Administracja, Support i Footer oraz kontrakt tras komponentów.
+- Dodano kontrakty refleksyjne dla wszystkich kontrolerów i serwisów, aby pilnować tras, metod HTTP i interfejsów.
+- Ujednolicono trasy `UzytkownikAplikacjaController` i `MarkaPojazdController` do `api/[controller]/[action]`.
+
+### Zmiany bazy danych
+
+Brak.
+
+### Weryfikacja
+
+- Wykonano `dotnet restore indigoERP.sln --force-evaluate`.
+- Wykonano `dotnet test indigoERP.sln --no-build --no-restore`.
+- Wynik: API 9/9, serwisy 7/7, Blazor 6/6; łącznie 22 testy bez błędów i pominięć.
+- Kompilacja zależnych projektów zakończyła się bez błędów; w istniejącym kodzie nadal występują wcześniejsze ostrzeżenia.

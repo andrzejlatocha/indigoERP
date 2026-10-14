@@ -43,6 +43,10 @@ MapMonitoringEnvVar("indigoERP_ApiKey", "appSettings:ApiKey");
 // InternalSso to jedyny wyjątek od konwencji "indigoERP_" powyżej — to celowo JEDNA, wspólna
 // zmienna systemowa, z której korzystają wszystkie aplikacje na tym serwerze (nie per-appka).
 MapMonitoringEnvVar("InternalSso", "InternalSso:Key");
+// Microsoft Graph (pobieranie adresów e-mail użytkowników z M365) - zmienne systemowe wspólne dla aplikacji, bez prefiksu indigoERP_.
+MapMonitoringEnvVar("MicrosoftGraph_TenantId", "MicrosoftGraph:TenantId");
+MapMonitoringEnvVar("MicrosoftGraph_ClientId", "MicrosoftGraph:ClientId");
+MapMonitoringEnvVar("MicrosoftGraph_ClientSecret", "MicrosoftGraph:ClientSecret");
 
 if (monitoringEnvOverrides.Count > 0)
 {
@@ -69,6 +73,7 @@ else
 }
 
 services.AddHttpClient();
+services.AddSingleton<IMicrosoftGraphUserService, MicrosoftGraphUserService>();
 services.AddSingleton<IServerCheckService, ServerCheckService>();
 services.AddHostedService<ServerMonitoringHostedService>();
 
@@ -144,6 +149,11 @@ startupLogger.LogInformation(
     !string.IsNullOrWhiteSpace(configuration["Jwt:Key"]),
     !string.IsNullOrWhiteSpace(configuration["appSettings:ApiKey"]),
     !string.IsNullOrWhiteSpace(configuration["InternalSso:Key"]));
+startupLogger.LogInformation(
+    "Konfiguracja Microsoft Graph: TenantId ustawiony={TenantSet}, ClientId ustawiony={ClientSet}, ClientSecret ustawiony={SecretSet}.",
+    !string.IsNullOrWhiteSpace(configuration["MicrosoftGraph:TenantId"]),
+    !string.IsNullOrWhiteSpace(configuration["MicrosoftGraph:ClientId"]),
+    !string.IsNullOrWhiteSpace(configuration["MicrosoftGraph:ClientSecret"]));
 
 if (missingMonitoringEnvVars.Count > 0)
 {
