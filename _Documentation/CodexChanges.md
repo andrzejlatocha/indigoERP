@@ -7,6 +7,36 @@
 - **Status wdrożenia:** niewdrożone, niezacommitowane.
 - **Weryfikacja:** patrz wpis w epicaHR (build 0 błędów); wygląd w przeglądarce nie był sprawdzany.
 
+## 2026-10-14 - Skrypt: użytkownicy do grup gobiMRP 2410 (Plan-Właściciel) i 2414 (Budżet-Właściciel)
+
+- **Zgłoszenie:** dodać 12 wskazanych osób do grup 2410 i 2414 w bazie indigoERP.
+- **Zmiana:** `_SQL Queries/GrupaCzlonkowie_gobiMRP_Wlasciciel_20261014.sql` - idempotentny `INSERT` do `dbo.GrupaCzlonkowie`
+  (jak `GrupaController.InsertCzlonek`), w transakcji, z kontrolą przed i po. 11 osób dopasowanych jednoznacznie
+  (m.in. „Mykhailo Malygin” = `mykhaylo.malygin`); „Marek Mednarski” = `marek.bednarski` (literówka, potwierdzone przez
+  użytkownika) - razem 12 osób.
+- **Status wdrożenia:** skrypt przygotowany, NIE uruchomiony (produkcję SQL uruchamia użytkownik).
+- **Weryfikacja:** zapytanie tylko do odczytu na JAPET potwierdziło brak brakujących użytkowników i liczbę członkostw do dodania.
+
+## 2026-10-14 - Stary cerber na JAPET: niezgodne wersje DotNetOpenAuth (w toku)
+
+- **Zgłoszenie:** `https://intranet.hcz.com.pl/cerber/` - błąd `Could not load file or assembly 'DotNetOpenAuth.Core, Version=4.1.0.0'`
+  (manifest nie zgadza się z referencją); „wstawić starszą wersję biblioteki”.
+- **Diagnoza:** `Microsoft.AspNet.Membership.OpenAuth.dll` wymaga `DotNetOpenAuth.Core` 4.1.0.0, a w `cerber\bin` był komplet
+  DotNetOpenAuth 4.3.0.0 (z 2013-11-25).
+- **Zmiana (JAPET, `Z:\inetpub\wwwroot\cerber\bin`):** podmienione na 4.1.0.0 (`4.1.4.12333`, z `kolejowy\bin` i `kjkoszty\bin`):
+  `DotNetOpenAuth.Core`, `.AspNet`, `.OAuth`, `.OAuth.Consumer`, `.OpenId`, `.OpenId.RelyingParty` oraz
+  `Org.Mentalis.Security.Cryptography`. Poprzednie 4.3.0.0 w `cerber\_DotNetOpenAuth_4.3_20261014\`
+  (plus `cerber\DotNetOpenAuth.Core.dll.4.3.0.0.20261014.bak`).
+- **Status:** `/cerber/` nadal zwraca 500 (strona `Error/500.aspx` też 500, więc komunikatu nie widać; dziennik zdarzeń JAPET
+  niedostępny zdalnie). Skan referencji w `bin` nie wykazał już niezgodności wersji DotNetOpenAuth; pozostałe niezgodne/brakujące
+  to zależności opcjonalne (Telerik: AWSSDK, Azure; `System.Web.Optimization` -> WebGrease). Potrzebny tekst błędu aplikacji.
+- **Cofnięcie:** skopiować pliki z `cerber\_DotNetOpenAuth_4.3_20261014\` z powrotem do `cerber\bin`.
+- **Dalszy ciąg:** po odczycie błędu (`customErrors Off`, potem przywrócone `On`): `Compilation Error CS0433` - w `bin` są dwa
+  komplety DevExpress (v24.1 i v24.2), a `cerber.dll` (2026-10-06) i strony `.aspx` odwołują się do v24.1.7.0, podczas gdy
+  `Web.config` do v24.2.5.0. Próba przeniesienia plików v24.1 została cofnięta (`cerber.dll` ich wymaga). Decyzja użytkownika:
+  stare strony sprawdzi sam, stary cerberTMS zostanie wkrótce usunięty - dalszych zmian w `cerber` nie wykonywano.
+  Stan: `bin` ma 50 plików v24.1 i 50 plików v24.2 oraz DotNetOpenAuth 4.1.0.0; `Web.config` taki jak przed diagnozą (`customErrors On`).
+
 ## 2026-10-14 - Stary Intranet na JAPET: przekierowanie strony głównej intranet.hcz.com.pl + publikacja Gateway
 
 - **Zgłoszenie:** tylko `https://intranet.hcz.com.pl/` ma przekierowywać na `https://app.hcz.com.pl/`; aplikacje w podkatalogach
