@@ -7,6 +7,24 @@
 - **Status wdrożenia:** niewdrożone, niezacommitowane.
 - **Weryfikacja:** patrz wpis w epicaHR (build 0 błędów); wygląd w przeglądarce nie był sprawdzany.
 
+## 2026-10-14 - Stary Intranet na JAPET: przekierowanie strony głównej intranet.hcz.com.pl + publikacja Gateway
+
+- **Zgłoszenie:** tylko `https://intranet.hcz.com.pl/` ma przekierowywać na `https://app.hcz.com.pl/`; aplikacje w podkatalogach
+  działają normalnie. Stare strony mogą być na JAPET albo WENUS.
+- **Diagnoza:** DNS `intranet.hcz.com.pl` -> JAPET (10.0.40.101), gdzie „Default Web Site” (korzeń `C:\inetpub\wwwroot\intranet`)
+  ma podaplikacje `/atacama`, `/cerber`, `/certificate`, `/kolejowy`, `/warehouse`, `/kendo`, `/bespin`, `/mojave` itd.;
+  WENUS ma analogiczny układ (`/hydra`, `/magazyn`, `/bhp`, `/epica`, `/kjkoszty`).
+- **Zmiana:** `Z:\inetpub\wwwroot\intranet\Default.aspx` (JAPET; kopia `Default.aspx.20261014.bak`) - na początku `Content2` blok
+  `<% if (Request.Url.Host == "intranet.hcz.com.pl") Response.Redirect("https://app.hcz.com.pl/", true); %>`; tak samo na WENUS
+  (poprzedni wpis). `Web.config` bez zmian (na WENUS przywrócony). Przekierowanie dotyczy tylko `/` i `/Default.aspx`.
+- **Weryfikacja:** `https://intranet.hcz.com.pl/` i `/Default.aspx` -> 302 `https://app.hcz.com.pl/`; `/atacama/`, `/certificate/`,
+  `/kolejowy/`, `/bespin/`, `/mojave/`, `/warehouse/Default.aspx` -> 200; WENUS `/hydra/` -> 200. Uwaga: `/cerber/` (JAPET) i
+  `/kjkoszty/` (WENUS) zwracają 500, `/kendo/` przekierowuje na własną stronę błędu 500 - to nie są strony główne, których dotykałem;
+  wymagają osobnej analizy.
+- **Publikacja authorizationSRV.Gateway na DEIMOS:** `dll/exe/pdb/deps.json` wgrane z cyklem `app_offline.htm` (bez `appsettings.json`,
+  `web.config`, `dotnet-tools.json`); trasy `authorizationSRV-route` i `indigoERP-route` zachowane; `https://app.hcz.com.pl/health` -> 401
+  (jak wcześniej, przed autoryzacją), `/indigoERP/Api/...` -> 401 z indigoERP.Api.
+
 ## 2026-10-14 - Stary Intranet na WENUS: przekierowanie tylko dla hosta intranet.hcz.com.pl (korekta)
 
 - **Zgłoszenie:** po dodaniu `httpRedirect` do `Web.config` linki do starych aplikacji wracały na `app.hcz.com.pl`;
