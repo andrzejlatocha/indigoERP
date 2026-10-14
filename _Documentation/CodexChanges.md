@@ -20,7 +20,8 @@
 - **Zgłoszenie:** dodać 35 wskazanych osób do grup 2409 i 2353 w bazie indigoERP.
 - **Zmiana:** `_SQL Queries/GrupaCzlonkowie_gobiMRP_Plan_Budzet_20261014.sql` - idempotentny `INSERT` do `dbo.GrupaCzlonkowie`
   (jak `GrupaController.InsertCzlonek`: grupa nadrzędna, `uwgGrupaID NULL`, status `2`), loginy rozwiązane po `usrImieNazwisko`
-  (34 z 35 jednoznacznie; „Alicja Maćkowiak” nie znaleziona - w bazie jest „Alicja Maćkowska-Zapała”, wiersz zakomentowany).
+  (34 z 35 jednoznacznie; „Alicja Maćkowiak” = „Alicja Maćkowska-Zapała” (`alicja.mackowska`) - potwierdzone przez
+  użytkownika, dodana do listy; razem 35 osób).
 - **Status wdrożenia:** skrypt przygotowany, NIE uruchomiony (produkcję SQL uruchamia użytkownik); w transakcji, z kontrolą przed i po.
 - **Weryfikacja:** zapytanie tylko do odczytu na JAPET potwierdziło brak brakujących użytkowników i liczbę członkostw do dodania.
 

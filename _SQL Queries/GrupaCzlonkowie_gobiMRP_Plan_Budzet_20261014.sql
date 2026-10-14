@@ -2,9 +2,8 @@
 -- Skrypt idempotentny: pomija członkostwa, które już istnieją (aktywne: uwgStatus = '2' lub NULL).
 -- Wiersz jak z GrupaController.InsertCzlonek: uwgGrupaNadrzednaID = grupa, uwgGrupaID = NULL, uwgUzytkownikID = użytkownik,
 -- uwgDomyslna = 0 (domyślnie), uwgStatus = '2' (domyślnie), rowguid = NEWID() (domyślnie).
--- Użytkownicy wskazani przez usrNazwa (login) - rozwiązane z listy imion i nazwisk 2026-10-14 (34 z 35 osób).
--- NIE znaleziono "Alicja Maćkowiak" - w bazie jest "Alicja Maćkowska-Zapała" (alicja.mackowska, usrID 4786);
--- odkomentować wiersz poniżej TYLKO jeśli to ta osoba.
+-- Użytkownicy wskazani przez usrNazwa (login) - rozwiązane z listy imion i nazwisk 2026-10-14 (35 osób).
+-- "Alicja Maćkowiak" z listy to "Alicja Maćkowska-Zapała" (alicja.mackowska, usrID 4786) - potwierdzone przez użytkownika.
 -- Uruchomić na JAPET/indigoERP (produkcja); na CERES identyfikatory grup mogą być inne - sprawdzić sekcję kontrolną.
 
 USE indigoERP;
@@ -23,8 +22,8 @@ INSERT INTO @loginy (usrNazwa) VALUES
     ('agnieszka.szybowska'), ('pawel.juszczyk'), ('witold.gawron'), ('piotr.flis'), ('michal.betka'),
     ('arkadiusz.pyrkosz'), ('slawomir.radwanski'), ('agata.pantak'), ('dariusz.szyda'), ('agnieszka.pokora'),
     ('robert.walasik'), ('katarzyna.gega'), ('piotr.rybczynski'), ('radoslaw.szelag'), ('piotr.gajewski'),
-    ('jakub.rogowski'), ('andrzej.latocha'), ('dominik.kopec'), ('slawomir.margas');
-    -- , ('alicja.mackowska')   -- Alicja Maćkowiak? (patrz uwaga na początku skryptu)
+    ('jakub.rogowski'), ('andrzej.latocha'), ('dominik.kopec'), ('slawomir.margas'),
+    ('alicja.mackowska');   -- Alicja Maćkowska-Zapała (potwierdzone przez użytkownika jako "Alicja Maćkowiak")
 
 -- Kontrola przed zmianą: loginy bez aktywnego użytkownika (powinno być 0 wierszy)
 SELECT l.usrNazwa AS brakUzytkownika
