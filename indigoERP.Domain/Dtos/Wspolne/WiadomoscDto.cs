@@ -12,6 +12,7 @@ namespace indigoERP.Domain.Dtos._Wspolne
         public string? wiaTemat { get; set; }
         public string? wiaTresc { get; set; }
         public DateTime? wiaData { get; set; }
+        public int? wiaWzorzecID { get; set; }
         public string? wiaGrupa { get; set; }
         public Guid? wiaSesja { get; set; }
         public string? wiaStatus { get; set; }

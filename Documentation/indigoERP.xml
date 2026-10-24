@@ -6,11 +6,19 @@
     <members>
         <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.SelectDaneGraph(System.Threading.CancellationToken)">
             <summary>
-            Dla użytkowników bez adresu e-mail szuka konta w Microsoft 365 (Graph) po loginie (usrNazwaAD, a w drugiej
-            kolejności usrNazwa) i zwraca znaleziony adres. TYLKO ODCZYT - nic nie jest zapisywane w bazie.
-            Dopasowanie: onPremisesSamAccountName, a gdy brak - część loginowa userPrincipalName. Adres = mail, a gdy pusty - UPN.
+            Porównuje adresy e-mail użytkowników indigoERP z kontami Microsoft 365 (Graph; źródło prawdy = M365) i zwraca różnice:
+            Dodaj (pusty adres, jest w M365), Popraw (adres inny niż w M365), Usun (konto ze statusem 1). Dodatkowo - bez akcji -
+            aktywni użytkownicy bez adresu, których nie udało się dopasować. TYLKO ODCZYT; zapis robi UpdateDaneGraph.
+            Dopasowanie po loginie: usrNazwaAD (potem usrNazwa) do onPremisesSamAccountName, a gdy brak - do części loginowej UPN.
             </summary>
-            <returns>Lista UzytkownikEmailGraphModel (wynik: Dopasowano / Niejednoznaczne / Brak).</returns>
+            <returns>Lista UzytkownikEmailGraphModel (wynik: Dopasowano / Niejednoznaczne / Brak; akcja: Dodaj / Popraw / Usun).</returns>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.UpdateDaneGraph(indigoERP.Domain.Models._Administrator.UzytkownikEmailGraphZatwierdzModel,System.Threading.CancellationToken)">
+            <summary>
+            Zatwierdza zaznaczone zmiany adresów e-mail (dodanie / poprawa / usunięcie). Serwer ponownie wylicza różnice
+            i stosuje tylko te zmiany, których akcja zgadza się z żądaną; adres zawsze pochodzi z Microsoft 365, nigdy z klienta.
+            </summary>
+            <returns>Liczba dodanych, poprawionych, usuniętych i pominiętych adresów.</returns>
         </member>
         <member name="M:indigoERP.Api.Controllers._Administrator.UzytkownikController.Detail(System.Int32,System.Int32)">
             <summary>
@@ -92,6 +100,30 @@
             <param name="lbaKOD"></param>
             <returns></returns>
         </member>
+        <member name="T:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController">
+            <summary>Wysyłka „Głos Hutnika” do pracowników zakresu (z załącznikami PDF). Dostęp: rola Gazeta lub Administrator.</summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.SelectRobocze(System.Int32)">
+            <summary>Numery robocze aplikacji (zapisane, jeszcze nie wysłane), najnowsze pierwsze.</summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.InsertRobocza(indigoERP.Domain.Models._Wspolne.WiadomoscRoboczaModel,Microsoft.AspNetCore.Http.IFormFileCollection,System.Threading.CancellationToken)">
+            <summary>Zapisuje numer roboczy wraz z załącznikami PDF; odbiorców dobiera się przy wysyłce.</summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.WyslijRobocza(System.Int32,indigoERP.Domain.Models._Wspolne.WiadomoscWyslijRoboczaModel,System.Threading.CancellationToken)">
+            <summary>
+            Wysyła numer roboczy do odbiorców zakresu: dopisuje odbiorców, publikuje numer (status "2") i ustawia datę wysyłki.
+            Odbiorcy są sprawdzani po stronie serwera względem zakresu.
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.InsertWysylka(indigoERP.Domain.Models._Wspolne.WiadomoscWysylkaZakresModel,Microsoft.AspNetCore.Http.IFormFileCollection,System.Threading.CancellationToken)">
+            <summary>
+            Zapisuje wiadomość, załączniki PDF i odbiorców w jednej transakcji. Odbiorcy są sprawdzani po stronie serwera
+            względem zakresu; osoby spoza zakresu lub bez adresu e-mail są pomijane i zgłaszane w wyniku.
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.PrzygotujOdbiorcow(System.Collections.Generic.IReadOnlyList{indigoERP.Domain.ViewModels._Wspolne.WiadomoscZakresPracownikViewModel},System.Collections.Generic.IEnumerable{System.Int32},indigoERP.Domain.Models._Wspolne.WiadomoscWysylkaZakresWynikModel)">
+            <summary>Wybiera odbiorców z zakresu z adresem e-mail; pozostałych zgłasza w wyniku.</summary>
+        </member>
         <member name="T:indigoERP.Api.Data.indigoERPContext">
             <summary>
             DBContext dla klas aplikacji
@@ -110,6 +142,36 @@
             MicrosoftGraph_TenantId / MicrosoftGraph_ClientId / MicrosoftGraph_ClientSecret (mapowanie w Program.cs),
             lokalnie z appsettings.Development.json.
             </summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.UzytkownikEmailGraphRoznice">
+            <summary>
+            Porównanie adresów e-mail użytkowników indigoERP z kontami Microsoft 365 (za źródło prawdy przyjmujemy M365):
+            Dodaj (pusty adres, jest w M365), Popraw (adres różni się od M365), Usun (konto nieaktywne, status = '1').
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.UzytkownikEmailGraphRoznice.Klasyfikuj(indigoERP.Domain.Entities._Administrator.Uzytkownik)">
+            <summary>Klasyfikuje jednego użytkownika; zwraca model z polami wynik i akcja.</summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.UzytkownikEmailGraphRoznice.DoPokazania(indigoERP.Domain.Models._Administrator.UzytkownikEmailGraphModel)">
+            <summary>Czy pozycja ma być pokazana w oknie: ma akcję albo jest nierozstrzygniętym użytkownikiem bez adresu.</summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.IWiadomoscMiniaturaService">
+            <summary>Miniatura pierwszej strony załącznika PDF (JPEG) — generowana przy pierwszym żądaniu i zapisywana obok pliku.</summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.IWiadomoscMiniaturaService.PobierzMiniature(System.String)">
+            <summary>Zwraca ścieżkę do miniatury albo null, gdy PDF nie daje się wyrenderować.</summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.IWiadomoscZakresPracownikSource">
+            <summary>
+            Odbiorcy zakresu wysyłki (widok app.vWiadomoscZakres*). Zwraca null, gdy zakres nie istnieje, nie jest aktywny
+            lub nazwa widoku jest nieprawidłowa.
+            </summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.IWiadomoscZalacznikStorage">
+            <summary>Zapis załączników wysyłki w katalogu FileStorage:Path (ten sam katalog co dokumenty wiadomości).</summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.WiadomoscZalacznikStorage.Waliduj(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>Zwraca komunikat błędu albo null, gdy plik jest akceptowalny (PDF, do limitu rozmiaru, poprawny nagłówek).</summary>
         </member>
         <member name="M:indigoERP.Controllers.LoginController.Get(System.String,System.String,System.String,System.String)">
             <summary>

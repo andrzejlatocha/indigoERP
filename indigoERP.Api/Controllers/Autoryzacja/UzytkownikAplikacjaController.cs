@@ -10,7 +10,7 @@ using indigoERP.Domain.ViewModels._Autoryzacja;
 
 namespace indigoERP.Api.Controllers._Autoryzacja
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class UzytkownikAplikacjaController : ControllerBase
     {

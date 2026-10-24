@@ -74,6 +74,10 @@ else
 
 services.AddHttpClient();
 services.AddSingleton<IMicrosoftGraphUserService, MicrosoftGraphUserService>();
+services.AddScoped<IWiadomoscZakresPracownikSource, WiadomoscZakresPracownikSource>();
+services.AddSingleton<IWiadomoscMiniaturaService, WiadomoscMiniaturaService>();
+services.AddScoped<IWiadomoscZalacznikStorage>(sp =>
+    new WiadomoscZalacznikStorage(WiadomoscZalacznikStorage.Root(sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<IWebHostEnvironment>())));
 services.AddSingleton<IServerCheckService, ServerCheckService>();
 services.AddHostedService<ServerMonitoringHostedService>();
 

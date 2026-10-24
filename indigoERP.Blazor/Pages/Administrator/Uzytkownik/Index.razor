@@ -54,7 +54,7 @@
         else
         {
             <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Advanced"
-                            AllowSorting="true" PageSize="16" AllowPaging="true" TItem="UzytkownikViewModel" Density="Density.Compact"
+                            AllowSorting="true" PageSize="17" AllowPaging="true" TItem="UzytkownikViewModel" Density="Density.Compact"
                             Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" LogicalFilterOperator="LogicalFilterOperator.And" 
                             EditMode="DataGridEditMode.Single" RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
@@ -390,7 +390,7 @@
     {
         var options = new ConfirmOptions { OkButtonText = "Pobierz", CancelButtonText = "Anuluj" };
         var confirmed = await _dialogService.Confirm(
-            "Pobrać z Microsoft 365 adresy e-mail użytkowników, którzy ich nie mają? Dane zostaną tylko wyświetlone, bez zapisu w bazie.",
+            "Porównać adresy e-mail użytkowników z Microsoft 365?",
             "Potwierdzenie", options);
 
         if (confirmed != true)
@@ -407,9 +407,12 @@
         }
 
         await _dialogService.OpenSideAsync<UzytkownikDaneGraph>(
-            "Dane z Microsoft 365",
+            "Różnice adresów e-mail: indigoERP a Microsoft 365",
             new Dictionary<string, object?> { ["Dane"] = dane.ToList() },
-            GetWideRelationSideDialogOptions());
+            GetWideRelationSideDialogOptions("80%"));
+
+        // Po zamknięciu okna odświeżamy listę (zatwierdzone zmiany zmieniają adresy e-mail).
+        await LoadData();
     }
 
     private void ShowResponse(int code, string successMessage, string? errorMessage)
@@ -598,12 +601,12 @@
         };
     }
 
-    private static SideDialogOptions GetWideRelationSideDialogOptions()
+    private static SideDialogOptions GetWideRelationSideDialogOptions(string width = "1120px")
     {
         return new SideDialogOptions
         {
             Position = DialogPosition.Right,
-            Width = "1120px",
+            Width = width,
             ShowMask = true,
             CloseDialogOnOverlayClick = false,
             ContentCssClass = "administrator-relation-side-content"

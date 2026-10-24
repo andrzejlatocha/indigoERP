@@ -96,6 +96,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<Uzytkownik> Uzytkownik { get; set; }
         public virtual DbSet<UzytkownikGrupa> UzytkownikGrupa { get; set; }
         public virtual DbSet<Wiadomosc> Wiadomosc { get; set; }
+        public virtual DbSet<WiadomoscPracownik> WiadomoscPracownik { get; set; }
         public virtual DbSet<WiadomoscUzytkownik> WiadomoscUzytkownik { get; set; }
         public virtual DbSet<WiadomoscWzorzec> WiadomoscWzorzec { get; set; }
         public virtual DbSet<WiadomoscDokument> WiadomoscDokument { get; set; }
@@ -121,6 +122,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<PocztaEnumerator> PocztaEnumerator { get; set; }
         public virtual DbSet<PodpisEnumerator> PodpisEnumerator { get; set; }
         public virtual DbSet<WiadomoscWzorzecEnumerator> WiadomoscWzorzecEnumerator { get; set; }
+        public virtual DbSet<WiadomoscZakresEnumerator> WiadomoscZakresEnumerator { get; set; }
         public virtual DbSet<PowiatEnumerator> PowiatEnumerator { get; set; }
         public virtual DbSet<PracownikEnumerator> PracownikEnumerator { get; set; }
         public virtual DbSet<RodzajDokumentTozsamoscEnumerator> RodzajDokumentTozsamoscEnumerator { get; set; }
@@ -169,6 +171,9 @@ namespace indigoERP.Api.Data
         public virtual DbSet<UzytkownikRolaEfektywnaViewModel> UzytkownikRolaEfektywnaViewModel { get; set; }
         public virtual DbSet<UzytkownikViewModel> UzytkownikViewModel { get; set; }
         public virtual DbSet<WiadomoscViewModel> WiadomoscViewModel { get; set; }
+        public virtual DbSet<WiadomoscPracownikViewModel> WiadomoscPracownikViewModel { get; set; }
+        public virtual DbSet<WiadomoscZakresPracownikViewModel> WiadomoscZakresPracownikViewModel { get; set; }
+        public virtual DbSet<WiadomoscUzytkownikViewModel> WiadomoscUzytkownikViewModel { get; set; }
         public virtual DbSet<WiadomoscWzorzecViewModel> WiadomoscWzorzecViewModel { get; set; }
         public virtual DbSet<WiadomoscHistoriaViewModel> WiadomoscHistoriaViewModel { get; set; }
         public virtual DbSet<WiadomoscPublicznaViewModel> WiadomoscPublicznaViewModel { get; set; }

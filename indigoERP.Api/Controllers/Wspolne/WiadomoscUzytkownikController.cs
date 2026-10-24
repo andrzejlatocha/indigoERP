@@ -1,6 +1,7 @@
 ﻿using indigoERP.Api.Data;
 using indigoERP.Domain.Dtos._Wspolne;
 using indigoERP.Domain.Entities._Wspolne;
+using indigoERP.Domain.ViewModels._Wspolne;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,42 @@ namespace indigoERP.Api.Controllers._Wspolne
         public WiadomoscUzytkownikController(indigoERPContext context)
         {
             _context = context;
+        }
+
+        [Authorize(AuthenticationSchemes = BearerScheme)]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<WiadomoscUzytkownikViewModel>>> Select(string wiaStatus = "2")
+        {
+            return await _context.WiadomoscUzytkownikViewModel
+                .AsNoTracking()
+                .Where(w => w.wiaStatus == wiaStatus || wiaStatus == "*")
+                .OrderByDescending(w => w.wiaData)
+                .ThenBy(w => w.wuzID)
+                .ToListAsync();
+        }
+
+        [Authorize(AuthenticationSchemes = BearerScheme)]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<int>> SelectCountByUzytkownik(int appID, int usrID)
+        {
+            return await _context.WiadomoscUzytkownikViewModel
+                .CountAsync(w => w.wiaAplikacjaID == appID && w.wuzUzytkownikID == usrID && w.wuzOdczyt == false);
+        }
+
+        [Authorize(AuthenticationSchemes = BearerScheme)]
+        [HttpGet("{appID}/{usrID}")]
+        public async Task<ActionResult<IEnumerable<WiadomoscUzytkownikViewModel>>> SelectBrakOdczytByUzytkownik(
+            int appID, int usrID, string wiaStatus = "*")
+        {
+            return await _context.WiadomoscUzytkownikViewModel
+                .AsNoTracking()
+                .Where(w => w.wiaAplikacjaID == appID
+                    && w.wuzUzytkownikID == usrID
+                    && w.wuzOdczyt == false
+                    && (w.wiaStatus == wiaStatus || wiaStatus == "*"))
+                .OrderByDescending(w => w.wiaData)
+                .ThenBy(w => w.wuzID)
+                .ToListAsync();
         }
 
         [Authorize(AuthenticationSchemes = BearerScheme)]

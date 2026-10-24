@@ -1,31 +1,177 @@
 ﻿@using indigoERP.Domain.Models._Administrator
+@using indigoERP.Service.Interfaces._Administrator
+
+@inject IUzytkownikService _uzytkownikService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
 
 <RadzenStack Gap="0.75rem" Class="administrator-user-groups p-3">
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
-        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
-        <span>Użytkownicy bez adresu e-mail: @Dane.Count, dopasowano: @Dane.Count(w => w.wynik == "Dopasowano")</span>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+        <RadzenButton Text="@($"Zatwierdź ({SelectedCount})")" Icon="check_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success"
+                      Click="@Zatwierdz" Disabled="@(SelectedCount == 0 || busy)" />
+        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" Disabled="@busy" />
+        <RadzenButton Text="Zaznacz wszystko" Icon="select_all" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined" Click="@(() => SetAll(true))" Disabled="@(busy || Zmiany.Count == 0)" />
+        <RadzenButton Text="Odznacz wszystko" Icon="deselect" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined" Click="@(() => SetAll(false))" Disabled="@(busy || SelectedCount == 0)" />
+        <span class="ms-3">
+            <RadzenIcon Icon="add_circle" Style="@ColorStyle(UzytkownikEmailGraphAkcja.Dodaj)" /> dodaj: @Licznik(UzytkownikEmailGraphAkcja.Dodaj)
+            <RadzenIcon Icon="edit" Style="@ColorStyle(UzytkownikEmailGraphAkcja.Popraw)" class="ms-2" /> popraw: @Licznik(UzytkownikEmailGraphAkcja.Popraw)
+            <RadzenIcon Icon="remove_circle" Style="@ColorStyle(UzytkownikEmailGraphAkcja.Usun)" class="ms-2" /> usuń: @Licznik(UzytkownikEmailGraphAkcja.Usun)
+        </span>
     </RadzenStack>
 
     <RadzenDataGridApp Data="@Dane" TItem="UzytkownikEmailGraphModel" Density="Density.Compact" Class="administrator-grid"
-                       AllowPaging="true" PageSize="18" AllowSorting="true" AllowFiltering="true"
+                       AllowPaging="true" PageSize="19" AllowSorting="true" AllowFiltering="true"
                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Columns>
-            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrNazwa" Title="Użytkownik" Width="160px" />
-            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrNazwaAD" Title="Nazwa AD" Width="160px" />
-            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrImieNazwisko" Title="Imię i nazwisko" Width="200px" />
-            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="graphEmail" Title="E-mail z M365" Width="260px" />
-            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="graphDisplayName" Title="Nazwa w M365" Width="200px" />
-            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="wynik" Title="Wynik" Width="130px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Width="50px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                <HeaderTemplate>
+                    <RadzenCheckBox TValue="bool" Value="@AllSelected" Change="@SetAll" Disabled="@(busy || Zmiany.Count == 0)"
+                                    title="Zaznacz / odznacz wszystko" />
+                </HeaderTemplate>
+                <Template Context="row">
+                    <RadzenCheckBox TValue="bool" Value="@selected.Contains(row.usrID)" Disabled="@(busy || row.akcja.Length == 0)"
+                                    Change="@(v => Toggle(row, v))" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="akcja" Title="Akcja" Width="90px" TextAlign="TextAlign.Center">
+                <Template Context="row">
+                    @if (row.akcja.Length > 0)
+                    {
+                        <RadzenIcon Icon="@Ikona(row.akcja)" Style="@ColorStyle(row.akcja)" title="@Opis(row.akcja)" />
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrNazwa" Title="Użytkownik" Width="170px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrNazwaAD" Title="Nazwa AD" Width="150px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrImieNazwisko" Title="Imię i nazwisko" Width="180px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrStatus" Title="Status" Width="70px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="usrEmail" Title="E-mail w indigoERP" Width="240px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="graphEmail" Title="E-mail z M365" Width="240px" />
+            <RadzenDataGridColumn TItem="UzytkownikEmailGraphModel" Property="wynik" Title="Dopasowanie" Width="130px" />
         </Columns>
     </RadzenDataGridApp>
 </RadzenStack>
 
 @code {
-    [Inject]
-    private DialogService _dialogService { get; set; } = default!;
+    private readonly HashSet<int> selected = new();
+    private bool busy;
 
     [Parameter]
     public List<UzytkownikEmailGraphModel> Dane { get; set; } = new();
+
+    private List<UzytkownikEmailGraphModel> Zmiany => Dane.Where(w => w.akcja.Length > 0).ToList();
+
+    private int SelectedCount => selected.Count;
+
+    private bool AllSelected => Zmiany.Count > 0 && Zmiany.All(w => selected.Contains(w.usrID));
+
+    private int Licznik(string akcja) => Dane.Count(w => w.akcja == akcja);
+
+    private static string Ikona(string akcja) => akcja switch
+    {
+        UzytkownikEmailGraphAkcja.Dodaj => "add_circle",
+        UzytkownikEmailGraphAkcja.Popraw => "edit",
+        UzytkownikEmailGraphAkcja.Usun => "remove_circle",
+        _ => string.Empty
+    };
+
+    private static string Opis(string akcja) => akcja switch
+    {
+        UzytkownikEmailGraphAkcja.Dodaj => "Dodaj adres z M365",
+        UzytkownikEmailGraphAkcja.Popraw => "Popraw adres na zgodny z M365",
+        UzytkownikEmailGraphAkcja.Usun => "Usuń adres (konto nieaktywne)",
+        _ => string.Empty
+    };
+
+    private static string ColorStyle(string akcja) => akcja switch
+    {
+        UzytkownikEmailGraphAkcja.Dodaj => "color:#198754",
+        UzytkownikEmailGraphAkcja.Popraw => "color:#0d6efd",
+        UzytkownikEmailGraphAkcja.Usun => "color:#dc3545",
+        _ => string.Empty
+    };
+
+    private void Toggle(UzytkownikEmailGraphModel row, bool value)
+    {
+        if (value)
+        {
+            selected.Add(row.usrID);
+        }
+        else
+        {
+            selected.Remove(row.usrID);
+        }
+    }
+
+    private void SetAll(bool value)
+    {
+        selected.Clear();
+
+        if (value)
+        {
+            foreach (var zmiana in Zmiany)
+            {
+                selected.Add(zmiana.usrID);
+            }
+        }
+    }
+
+    private async Task Zatwierdz()
+    {
+        var wybrane = Zmiany.Where(w => selected.Contains(w.usrID)).ToList();
+
+        if (wybrane.Count == 0)
+        {
+            return;
+        }
+
+        var opis = $"Dodać: {wybrane.Count(w => w.akcja == UzytkownikEmailGraphAkcja.Dodaj)}, " +
+                   $"poprawić: {wybrane.Count(w => w.akcja == UzytkownikEmailGraphAkcja.Popraw)}, " +
+                   $"usunąć: {wybrane.Count(w => w.akcja == UzytkownikEmailGraphAkcja.Usun)}.";
+        var options = new ConfirmOptions { OkButtonText = "Zatwierdź", CancelButtonText = "Anuluj" };
+
+        if (await _dialogService.Confirm($"Zapisać zaznaczone zmiany adresów e-mail w indigoERP? {opis}", "Potwierdzenie", options) != true)
+        {
+            return;
+        }
+
+        busy = true;
+
+        try
+        {
+            var zmiany = wybrane.Select(w => new UzytkownikEmailGraphZmianaModel { usrID = w.usrID, akcja = w.akcja });
+            var (response, wynik) = await _uzytkownikService.UpdateDaneGraph(zmiany);
+
+            if (response.Code < 200 || response.Code >= 300 || wynik == null)
+            {
+                Notify(NotificationSeverity.Error, "Błąd", response.Message ?? "Nie udało się zapisać zmian.");
+                return;
+            }
+
+            var podsumowanie = $"Dodano: {wynik.dodano}, poprawiono: {wynik.poprawiono}, usunięto: {wynik.usunieto}, pominięto: {wynik.pominieto}.";
+            var szczegoly = wynik.komunikaty.Count > 0 ? " " + string.Join(" ", wynik.komunikaty.Take(3)) : string.Empty;
+            Notify(wynik.pominieto > 0 ? NotificationSeverity.Warning : NotificationSeverity.Success, "Zapisano", podsumowanie + szczegoly);
+
+            selected.Clear();
+            var (odswiezenie, dane) = await _uzytkownikService.SelectDaneGraph();
+
+            if (odswiezenie.Code >= 200 && odswiezenie.Code < 300)
+            {
+                Dane = dane.ToList();
+            }
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void Notify(NotificationSeverity severity, string summary, string detail)
+    {
+        _notificationService.Notify(new NotificationMessage { Severity = severity, Summary = summary, Detail = detail, Duration = 8000 });
+    }
 
     private void Close()
     {

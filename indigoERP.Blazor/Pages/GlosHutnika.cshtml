@@ -1,5 +1,8 @@
 ﻿@page "/gloshutnika"
 @model indigoERP.Blazor.Pages.GlosHutnikaModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Components.Web
+@using indigoERP.Blazor.Pages
 
 @{
     Layout = null;
@@ -11,9 +14,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Głos Hutnika</title>
+    <base href="~/" />
     <link href="~/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/css/fontawesome.min.css" rel="stylesheet" />
     <link href="~/css/site.css" rel="stylesheet" />
+    <link href="~/css/glos-hutnika.css" rel="stylesheet" />
+    @if (Model.MozeZarzadzac)
+    {
+        <link href="_content/Radzen.Blazor/css/material-base.css" rel="stylesheet" />
+        <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    }
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark header-color header-navbar">
@@ -25,13 +35,15 @@
         </div>
     </nav>
 
-    <div class="container my-4">
+    <div class="glos-page">
         @if (Model.Wybrana != null)
         {
-            <a asp-page="GlosHutnika" class="d-inline-block mb-3">&larr; Wróć do listy</a>
+            <div class="glos-naglowek">
+                <a asp-page="GlosHutnika">&larr; Wróć do listy</a>
+            </div>
             <h2>@Model.Wybrana.wiaTemat</h2>
             <p class="text-muted">@Model.Wybrana.wiaData?.ToString("g")</p>
-            <div class="border rounded p-3 mb-3">
+            <div class="border rounded p-3 mb-3 glos-tresc">
                 @Html.Raw(Model.Wybrana.wiaTresc)
             </div>
 
@@ -41,32 +53,68 @@
                 <ul class="list-unstyled">
                     @foreach (var zalacznik in Model.Zalaczniki)
                     {
-                        <li>
+                        <li class="mb-1">
                             <a asp-page-handler="Download" asp-route-wdoID="@zalacznik.wdoID">@zalacznik.wdoNazwa</a>
                         </li>
                     }
                 </ul>
             }
         }
-        else if (Model.Wiadomosci.Count == 0)
-        {
-            <p>Brak aktualnych ogłoszeń.</p>
-        }
         else
         {
-            <h2 class="mb-3">Ogłoszenia</h2>
-            <div class="list-group">
-                @foreach (var wiadomosc in Model.Wiadomosci)
+            <div class="glos-naglowek">
+                <h2 class="m-0">Ogłoszenia</h2>
+                @if (Model.MozeZarzadzac)
                 {
-                    <a asp-page="GlosHutnika" asp-route-wiaID="@wiadomosc.wiaID" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">@wiadomosc.wiaTemat</h5>
-                            <small class="text-muted">@wiadomosc.wiaData?.ToString("d")</small>
-                        </div>
-                    </a>
+                    <component type="typeof(indigoERP.Blazor.Pages.GlosHutnika.GlosZarzadzanie)" render-mode="Server" />
                 }
             </div>
+
+            @if (Model.Wiadomosci.Count == 0)
+            {
+                <p>Brak aktualnych ogłoszeń.</p>
+            }
+            else
+            {
+                <div class="glos-grid">
+                    @foreach (var wiadomosc in Model.Wiadomosci)
+                    {
+                        Model.PierwszePdf.TryGetValue(wiadomosc.wiaID, out var pdf);
+
+                        <article class="glos-kafelek">
+                            <a asp-page="GlosHutnika" asp-route-wiaID="@wiadomosc.wiaID" class="glos-miniatura">
+                                @if (pdf != null)
+                                {
+                                    <img src="@Url.Page("GlosHutnika", "Miniatura", new { wdoID = pdf.wdoID })"
+                                         alt="Pierwsza strona: @wiadomosc.wiaTemat" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="glos-miniatura-brak">Brak PDF</span>
+                                }
+                            </a>
+                            <div class="glos-kafelek-tresc">
+                                <small class="text-muted">@wiadomosc.wiaData?.ToString("d")</small>
+                                <h5><a asp-page="GlosHutnika" asp-route-wiaID="@wiadomosc.wiaID">@wiadomosc.wiaTemat</a></h5>
+                                <p>@GlosHutnikaModel.SkrocOpis(wiadomosc.wiaTresc)</p>
+                                <div class="glos-akcje">
+                                    <a class="btn btn-sm btn-outline-secondary" asp-page="GlosHutnika" asp-route-wiaID="@wiadomosc.wiaID">Czytaj</a>
+                                    @if (pdf != null)
+                                    {
+                                        <a class="btn btn-sm btn-primary" asp-page-handler="Download" asp-route-wdoID="@pdf.wdoID">Pobierz PDF</a>
+                                    }
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
         }
     </div>
+
+    @if (Model.MozeZarzadzac)
+    {
+        <script src="_framework/blazor.server.js"></script>
+    }
 </body>
 </html>

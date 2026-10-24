@@ -1,4 +1,5 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Api.Services;
 using indigoERP.Domain.Dtos._Wspolne;
 using indigoERP.Domain.Entities._Wspolne;
 using Mapster;
@@ -18,12 +19,15 @@ namespace indigoERP.Api.Controllers._Wspolne
         private readonly indigoERPContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
+        private readonly IWiadomoscMiniaturaService _miniatura;
 
-        public WiadomoscDokumentController(indigoERPContext context, IWebHostEnvironment environment, IConfiguration configuration)
+        public WiadomoscDokumentController(
+            indigoERPContext context, IWebHostEnvironment environment, IConfiguration configuration, IWiadomoscMiniaturaService miniatura)
         {
             _context = context;
             _environment = environment;
             _configuration = configuration;
+            _miniatura = miniatura;
         }
 
         // Załączniki wiadomości publicznej (Głos Hutnika) — bez autoryzacji, ale tylko jeśli
@@ -134,21 +138,57 @@ namespace indigoERP.Api.Controllers._Wspolne
         [HttpGet("{wdoID}")]
         public async Task<IActionResult> OpenPubliczny(int wdoID)
         {
-            var model = await _context.WiadomoscDokument.FindAsync(wdoID);
+            var model = await PobierzPubliczny(wdoID);
 
-            if (model == null || model.wdoStatus != "2" || model.wdoWiadomoscID == null)
-            {
-                return NotFound();
-            }
-
-            var jestPubliczna = await _context.Wiadomosc.AnyAsync(w => w.wiaID == model.wdoWiadomoscID && w.wiaPubliczna == true && w.wiaStatus == "2");
-
-            if (!jestPubliczna)
+            if (model == null)
             {
                 return NotFound();
             }
 
             return ServeFile(model);
+        }
+
+        // Miniatura pierwszej strony PDF do kafelka Głosu Hutnika — tylko dla załączników publicznych wiadomości.
+        [AllowAnonymous]
+        [HttpGet("{wdoID}")]
+        public async Task<IActionResult> MiniaturaPubliczna(int wdoID)
+        {
+            var model = await PobierzPubliczny(wdoID);
+
+            if (model == null || !string.Equals(model.wdoTyp, "pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound();
+            }
+
+            var path = ResolveStoragePath(model);
+
+            if (path == null || !System.IO.File.Exists(path))
+            {
+                return NotFound();
+            }
+
+            var miniatura = _miniatura.PobierzMiniature(path);
+
+            if (miniatura == null)
+            {
+                return NotFound();
+            }
+
+            return PhysicalFile(miniatura, "image/jpeg");
+        }
+
+        private async Task<WiadomoscDokument?> PobierzPubliczny(int wdoID)
+        {
+            var model = await _context.WiadomoscDokument.FindAsync(wdoID);
+
+            if (model == null || model.wdoStatus != "2" || model.wdoWiadomoscID == null)
+            {
+                return null;
+            }
+
+            var jestPubliczna = await _context.Wiadomosc.AnyAsync(w => w.wiaID == model.wdoWiadomoscID && w.wiaPubliczna == true && w.wiaStatus == "2");
+
+            return jestPubliczna ? model : null;
         }
 
         [HttpGet("{wdoID}")]

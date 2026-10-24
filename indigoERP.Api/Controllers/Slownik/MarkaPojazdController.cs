@@ -13,7 +13,7 @@ using indigoERP.Domain.Enumerators._Slownik;
 
 namespace indigoERP.Api.Controllers._Slownik
 {
-    [Route("api/[controller]/[action]/[action]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class MarkaPojazdController : ControllerBase
     {

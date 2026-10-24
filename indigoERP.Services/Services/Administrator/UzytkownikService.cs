@@ -157,5 +157,32 @@ namespace indigoERP.Service.Services._Administrator
                 return (new ResponseMessage(600, ex.Message, null), empty);
             }
         }
+
+        public async Task<(ResponseMessage Response, UzytkownikEmailGraphWynikModel? Wynik)> UpdateDaneGraph(
+            IEnumerable<UzytkownikEmailGraphZmianaModel> zmiany)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+
+            try
+            {
+                var model = new UzytkownikEmailGraphZatwierdzModel { zmiany = zmiany.ToList() };
+                var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+                var response = await httpClient.PutAsync("Uzytkownik/UpdateDaneGraph", content);
+                var apiResponse = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return (new ResponseMessage((int)response.StatusCode, apiResponse, null), null);
+                }
+
+                var wynik = JsonConvert.DeserializeObject<UzytkownikEmailGraphWynikModel>(apiResponse);
+
+                return (new ResponseMessage((int)response.StatusCode, string.Empty, null), wynik);
+            }
+            catch (Exception ex)
+            {
+                return (new ResponseMessage(600, ex.Message, null), null);
+            }
+        }
     }
 }

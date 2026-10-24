@@ -1,0 +1,270 @@
+﻿@using indigoERP.Domain.Models._Wspolne
+@using indigoERP.Domain.ViewModels._Wspolne
+@using indigoERP.Domain.Enumerators._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+
+@inject IWiadomoscPracownikService _wiadomoscPracownikService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+@inject IConfiguration _configuration
+
+<div class="glos-okno">
+    @if (Robocza)
+    {
+        <RadzenTextBox @bind-Value="@temat" Placeholder="Temat wiadomości" Style="width:100%" />
+
+        <div class="mt-2">
+            <RadzenHtmlEditor @bind-Value="@tresc" Style="height:220px" />
+        </div>
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="mt-2">
+            <InputFile OnChange="@WczytajPliki" multiple accept=".pdf" class="form-control form-control-sm" style="width:320px" />
+            <span class="text-muted">PDF, najwyżej @MaxPlikow plików, do 30 MB każdy (łącznie 60 MB)</span>
+        </RadzenStack>
+        @if (pliki.Count > 0)
+        {
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="mt-2">
+                @foreach (var plik in pliki)
+                {
+                    <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@($"{plik.Nazwa} ({Rozmiar(plik)})")" />
+                    <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Click="@(() => UsunPlik(plik))" />
+                }
+            </RadzenStack>
+        }
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
+            <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.Close(false))" />
+            <RadzenButton Text="Zapisz jako roboczy" Icon="save" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                          Click="@ZapiszRobocza" Disabled="@(!MoznaZapisacRobocza || busy)" />
+        </RadzenStack>
+        <div class="text-muted small mt-2">Numer roboczy nie jest jeszcze widoczny na stronie. Wysyłka odbywa się z listy „Robocze”.</div>
+    }
+    else
+    {
+        <div class="fw-semibold mb-2">@Tytul</div>
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenDropDown Data="@zakresy" TextProperty="wzaNazwa" ValueProperty="wzaID" TValue="int?"
+                            @bind-Value="@selectedZakresID" Change="@OnZakresChange" Placeholder="Wybierz zakres odbiorców"
+                            Style="width:280px" />
+            <RadzenButton Text="Zaznacz wszystko" Icon="select_all" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                          Variant="Variant.Outlined" Click="@ZaznaczWszystko" Disabled="@(pracownicy == null || pracownicy.Count == 0)" />
+            <RadzenButton Text="Odznacz wszystko" Icon="deselect" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                          Variant="Variant.Outlined" Click="@OdznaczWszystko" Disabled="@(selected.Count == 0)" />
+        </RadzenStack>
+
+        <div class="mt-2 administrator-grid-row">
+            @if (selectedZakresID == null)
+            {
+                <div class="p-3">Wybierz zakres odbiorców, aby zobaczyć listę pracowników.</div>
+            }
+            else if (pracownicy == null)
+            {
+                <Load />
+            }
+            else
+            {
+                <RadzenDataGridApp @ref="grid" Data="@pracownicy" TItem="WiadomoscZakresPracownikViewModel" AllowPaging="true" PageSize="10"
+                                   AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                   Density="Density.Compact" Class="administrator-grid" SelectionMode="DataGridSelectionMode.Multiple"
+                                   @bind-Value="@selected">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcNazwisko" Title="Nazwisko" Width="200px" />
+                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcImie" Title="Imię" Width="160px" />
+                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcKod" Title="Kod" Width="120px" />
+                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="kntKontakt" Title="E-mail" Width="320px" />
+                    </Columns>
+                </RadzenDataGridApp>
+            }
+        </div>
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
+            <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.Close(false))" />
+            <RadzenButton Text="@($"Wyślij ({selected.Count})")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                          Click="@Wyslij" Disabled="@(!MoznaWyslac || busy)" />
+        </RadzenStack>
+    }
+</div>
+
+@code {
+    private const long MaxRozmiarPliku = 30L * 1024 * 1024;
+    private const long MaxLacznyRozmiar = 60L * 1024 * 1024;
+    private const int MaxPlikow = 5;
+
+    /// <summary>Brak identyfikatora: nowy numer roboczy. Z identyfikatorem: wysyłka istniejącego numeru roboczego.</summary>
+    [Parameter] public int? WiadomoscID { get; set; }
+
+    /// <summary>Temat numeru roboczego (tylko do wyświetlenia przy wysyłce).</summary>
+    [Parameter] public string? Tytul { get; set; }
+
+    private bool Robocza => WiadomoscID == null;
+
+    private List<WiadomoscZakresEnumerator> zakresy = new();
+    private List<WiadomoscZakresPracownikViewModel>? pracownicy;
+    private IList<WiadomoscZakresPracownikViewModel> selected = new List<WiadomoscZakresPracownikViewModel>();
+    private RadzenDataGridApp<WiadomoscZakresPracownikViewModel>? grid;
+    private readonly List<WiadomoscPlikWysylki> pliki = new();
+    private int? selectedZakresID;
+    private string temat = string.Empty;
+    private string tresc = string.Empty;
+    private bool busy;
+
+    private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
+
+    private bool MoznaZapisacRobocza =>
+        !string.IsNullOrWhiteSpace(temat)
+        && !string.IsNullOrWhiteSpace(System.Text.RegularExpressions.Regex.Replace(tresc ?? string.Empty, "<[^>]*>", string.Empty).Trim());
+
+    private bool MoznaWyslac => selectedZakresID.HasValue && selected.Count > 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Robocza)
+        {
+            zakresy = (await _wiadomoscPracownikService.SelectZakresy(AppID)).ToList();
+        }
+    }
+
+    private async Task OnZakresChange()
+    {
+        selected = new List<WiadomoscZakresPracownikViewModel>();
+        pracownicy = null;
+
+        if (selectedZakresID.HasValue)
+        {
+            pracownicy = (await _wiadomoscPracownikService.SelectPracownicyZakres(selectedZakresID.Value)).ToList();
+        }
+    }
+
+    private void ZaznaczWszystko()
+    {
+        selected = (pracownicy ?? new List<WiadomoscZakresPracownikViewModel>()).ToList();
+    }
+
+    private void OdznaczWszystko()
+    {
+        selected = new List<WiadomoscZakresPracownikViewModel>();
+    }
+
+    private async Task WczytajPliki(InputFileChangeEventArgs e)
+    {
+        foreach (var plik in e.GetMultipleFiles(MaxPlikow))
+        {
+            if (pliki.Count >= MaxPlikow)
+            {
+                Notify(NotificationSeverity.Warning, "Limit plików", $"Można dołączyć najwyżej {MaxPlikow} plików.");
+                break;
+            }
+
+            if (!plik.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                Notify(NotificationSeverity.Error, "Nieprawidłowy plik", $"Dozwolone są tylko pliki PDF: {plik.Name}");
+                continue;
+            }
+
+            if (plik.Size > MaxRozmiarPliku)
+            {
+                Notify(NotificationSeverity.Error, "Za duży plik", $"Plik przekracza 30 MB: {plik.Name}");
+                continue;
+            }
+
+            if (pliki.Sum(p => p.Dane.LongLength) + plik.Size > MaxLacznyRozmiar)
+            {
+                Notify(NotificationSeverity.Error, "Za duży zestaw", "Łączny rozmiar załączników przekracza 60 MB.");
+                break;
+            }
+
+            using var strumien = plik.OpenReadStream(MaxRozmiarPliku);
+            using var bufor = new MemoryStream();
+            await strumien.CopyToAsync(bufor);
+            pliki.Add(new WiadomoscPlikWysylki(plik.Name, bufor.ToArray()));
+        }
+    }
+
+    private void UsunPlik(WiadomoscPlikWysylki plik)
+    {
+        pliki.Remove(plik);
+    }
+
+    private static string Rozmiar(WiadomoscPlikWysylki plik) => $"{plik.Dane.LongLength / 1024.0 / 1024.0:0.0} MB";
+
+    private async Task ZapiszRobocza()
+    {
+        busy = true;
+
+        try
+        {
+            var model = new WiadomoscRoboczaModel
+            {
+                wiaAplikacjaID = AppID,
+                wiaTemat = temat.Trim(),
+                wiaTresc = tresc
+            };
+
+            var (response, wiadomosc) = await _wiadomoscPracownikService.InsertRobocza(model, pliki);
+
+            if (response.Code < 200 || response.Code >= 300 || wiadomosc == null)
+            {
+                Notify(NotificationSeverity.Error, "Błąd", response.Message ?? "Nie udało się zapisać numeru roboczego.");
+                return;
+            }
+
+            Notify(NotificationSeverity.Success, "Zapisano", "Numer roboczy jest na liście „Robocze”. Wyślij go, gdy będzie gotowy.");
+            _dialogService.Close(true);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task Wyslij()
+    {
+        if (WiadomoscID == null || !selectedZakresID.HasValue || selected.Count == 0)
+        {
+            return;
+        }
+
+        var zakres = zakresy.FirstOrDefault(z => z.wzaID == selectedZakresID.Value)?.wzaNazwa ?? "wybrany zakres";
+        var options = new ConfirmOptions { OkButtonText = "Wyślij", CancelButtonText = "Anuluj" };
+
+        if (await _dialogService.Confirm($"Wysłać „{Tytul}” do {selected.Count} osób z zakresu „{zakres}”?", "Potwierdzenie", options) != true)
+        {
+            return;
+        }
+
+        busy = true;
+
+        try
+        {
+            var model = new WiadomoscWyslijRoboczaModel
+            {
+                wzaID = selectedZakresID.Value,
+                prcIDs = selected.Where(s => s.prcID.HasValue).Select(s => s.prcID!.Value).ToList()
+            };
+
+            var (response, wynik) = await _wiadomoscPracownikService.WyslijRobocza(WiadomoscID.Value, model);
+
+            if (response.Code < 200 || response.Code >= 300 || wynik == null)
+            {
+                Notify(NotificationSeverity.Error, "Błąd", response.Message ?? "Nie udało się wysłać wiadomości.");
+                return;
+            }
+
+            var szczegoly = wynik.komunikaty.Count > 0 ? " " + string.Join(" ", wynik.komunikaty.Take(3)) : string.Empty;
+            Notify(wynik.pominieto > 0 ? NotificationSeverity.Warning : NotificationSeverity.Success, "Wysłano",
+                $"Odbiorców: {wynik.dodano}, pominięto: {wynik.pominieto}.{szczegoly}");
+
+            _dialogService.Close(true);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void Notify(NotificationSeverity severity, string summary, string detail)
+    {
+        _notificationService.Notify(new NotificationMessage { Severity = severity, Summary = summary, Detail = detail, Duration = 8000 });
+    }
+}

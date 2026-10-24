@@ -33,116 +33,127 @@ namespace indigoERP.Api.Controllers._Administrator
         }
 
         /// <summary>
-        /// Dla użytkowników bez adresu e-mail szuka konta w Microsoft 365 (Graph) po loginie (usrNazwaAD, a w drugiej
-        /// kolejności usrNazwa) i zwraca znaleziony adres. TYLKO ODCZYT - nic nie jest zapisywane w bazie.
-        /// Dopasowanie: onPremisesSamAccountName, a gdy brak - część loginowa userPrincipalName. Adres = mail, a gdy pusty - UPN.
+        /// Porównuje adresy e-mail użytkowników indigoERP z kontami Microsoft 365 (Graph; źródło prawdy = M365) i zwraca różnice:
+        /// Dodaj (pusty adres, jest w M365), Popraw (adres inny niż w M365), Usun (konto ze statusem 1). Dodatkowo - bez akcji -
+        /// aktywni użytkownicy bez adresu, których nie udało się dopasować. TYLKO ODCZYT; zapis robi UpdateDaneGraph.
+        /// Dopasowanie po loginie: usrNazwaAD (potem usrNazwa) do onPremisesSamAccountName, a gdy brak - do części loginowej UPN.
         /// </summary>
-        /// <returns>Lista UzytkownikEmailGraphModel (wynik: Dopasowano / Niejednoznaczne / Brak).</returns>
+        /// <returns>Lista UzytkownikEmailGraphModel (wynik: Dopasowano / Niejednoznaczne / Brak; akcja: Dodaj / Popraw / Usun).</returns>
         [Authorize(Roles = IndigoAdministratorRole, AuthenticationSchemes = BearerScheme)]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UzytkownikEmailGraphModel>>> SelectDaneGraph(CancellationToken cancellationToken)
         {
-            if (!_graphUserService.IsConfigured)
+            var roznice = await PobierzRozniceGraphAsync(cancellationToken);
+
+            if (roznice.Blad != null)
             {
-                return Problem(
-                    "Brak konfiguracji Microsoft Graph (MicrosoftGraph_TenantId / MicrosoftGraph_ClientId / MicrosoftGraph_ClientSecret).",
-                    statusCode: StatusCodes.Status503ServiceUnavailable);
+                return roznice.Blad;
             }
 
-            IReadOnlyList<GraphUserInfo> graphUsers;
-
-            try
-            {
-                graphUsers = await _graphUserService.GetUsersAsync(cancellationToken);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway);
-            }
-
-            var bySam = graphUsers
-                .Where(g => !string.IsNullOrWhiteSpace(g.OnPremisesSamAccountName))
-                .GroupBy(g => g.OnPremisesSamAccountName!.Trim().ToLowerInvariant())
-                .ToDictionary(g => g.Key, g => g.ToList());
-            var byUpn = graphUsers
-                .Where(g => !string.IsNullOrWhiteSpace(g.UserPrincipalName))
-                .GroupBy(g => LoginPart(g.UserPrincipalName))
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var bezEmaila = await _context.Uzytkownik
+            var uzytkownicy = await _context.Uzytkownik
                 .AsNoTracking()
-                .Where(u => (u.Usuniety == false || u.Usuniety == null) && (u.usrEmail == null || u.usrEmail.Trim() == ""))
+                .Where(u => u.Usuniety == false || u.Usuniety == null)
                 .OrderBy(u => u.usrID)
                 .ToListAsync(cancellationToken);
 
-            var wynik = new List<UzytkownikEmailGraphModel>(bezEmaila.Count);
+            return uzytkownicy
+                .Select(u => roznice.Wynik!.Klasyfikuj(u))
+                .Where(UzytkownikEmailGraphRoznice.DoPokazania)
+                .OrderBy(p => p.akcja.Length == 0 ? 1 : 0)
+                .ThenBy(p => p.usrNazwa)
+                .ToList();
+        }
 
-            foreach (var u in bezEmaila)
+        /// <summary>
+        /// Zatwierdza zaznaczone zmiany adresów e-mail (dodanie / poprawa / usunięcie). Serwer ponownie wylicza różnice
+        /// i stosuje tylko te zmiany, których akcja zgadza się z żądaną; adres zawsze pochodzi z Microsoft 365, nigdy z klienta.
+        /// </summary>
+        /// <returns>Liczba dodanych, poprawionych, usuniętych i pominiętych adresów.</returns>
+        [Authorize(Roles = IndigoAdministratorRole, AuthenticationSchemes = BearerScheme)]
+        [HttpPut]
+        public async Task<ActionResult<UzytkownikEmailGraphWynikModel>> UpdateDaneGraph(
+            UzytkownikEmailGraphZatwierdzModel model, CancellationToken cancellationToken)
+        {
+            var wynik = new UzytkownikEmailGraphWynikModel();
+
+            if (model?.zmiany == null || model.zmiany.Count == 0)
             {
-                var pozycja = new UzytkownikEmailGraphModel
+                return wynik;
+            }
+
+            var roznice = await PobierzRozniceGraphAsync(cancellationToken);
+
+            if (roznice.Blad != null)
+            {
+                return roznice.Blad;
+            }
+
+            var ids = model.zmiany.Select(z => z.usrID).Distinct().ToList();
+            var uzytkownicy = await _context.Uzytkownik
+                .Where(u => ids.Contains(u.usrID) && (u.Usuniety == false || u.Usuniety == null))
+                .ToDictionaryAsync(u => u.usrID, cancellationToken);
+
+            foreach (var zmiana in model.zmiany.DistinctBy(z => z.usrID))
+            {
+                if (!uzytkownicy.TryGetValue(zmiana.usrID, out var u))
                 {
-                    usrID = u.usrID,
-                    usrNazwa = u.usrNazwa,
-                    usrNazwaAD = u.usrNazwaAD,
-                    usrImieNazwisko = u.usrImieNazwisko
-                };
-
-                foreach (var key in new[] { LoginPart(u.usrNazwaAD), LoginPart(u.usrNazwa) }.Where(k => k.Length > 0).Distinct())
-                {
-                    var kandydaci = (bySam.TryGetValue(key, out var sam) ? sam : byUpn.TryGetValue(key, out var upn) ? upn : null)
-                        ?.DistinctBy(k => k.Id).ToList();
-
-                    if (kandydaci == null || kandydaci.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    if (kandydaci.Count > 1)
-                    {
-                        pozycja.wynik = "Niejednoznaczne";
-                        break;
-                    }
-
-                    var g = kandydaci[0];
-                    var email = string.IsNullOrWhiteSpace(g.Mail) ? g.UserPrincipalName : g.Mail;
-
-                    if (!string.IsNullOrWhiteSpace(email))
-                    {
-                        pozycja.graphEmail = email;
-                        pozycja.graphDisplayName = g.DisplayName;
-                        pozycja.graphUserPrincipalName = g.UserPrincipalName;
-                        pozycja.wynik = "Dopasowano";
-                        break;
-                    }
+                    wynik.pominieto++;
+                    wynik.komunikaty.Add($"Użytkownik {zmiana.usrID}: nie znaleziono.");
+                    continue;
                 }
 
-                wynik.Add(pozycja);
+                var pozycja = roznice.Wynik!.Klasyfikuj(u);
+
+                if (pozycja.akcja.Length == 0 || !string.Equals(pozycja.akcja, zmiana.akcja, StringComparison.Ordinal))
+                {
+                    wynik.pominieto++;
+                    wynik.komunikaty.Add($"{u.usrNazwa}: dane zmieniły się od czasu podglądu (oczekiwano '{zmiana.akcja}').");
+                    continue;
+                }
+
+                switch (pozycja.akcja)
+                {
+                    case UzytkownikEmailGraphAkcja.Dodaj:
+                        u.usrEmail = pozycja.graphEmail;
+                        wynik.dodano++;
+                        break;
+                    case UzytkownikEmailGraphAkcja.Popraw:
+                        u.usrEmail = pozycja.graphEmail;
+                        wynik.poprawiono++;
+                        break;
+                    case UzytkownikEmailGraphAkcja.Usun:
+                        u.usrEmail = string.Empty;
+                        wynik.usunieto++;
+                        break;
+                }
             }
+
+            await _context.SaveChangesAsync(cancellationToken);
 
             return wynik;
         }
 
-        // Login do porównań: bez domeny (DOMENA\login, login@domena), małymi literami.
-        private static string LoginPart(string? value)
+        private async Task<(UzytkownikEmailGraphRoznice? Wynik, ObjectResult? Blad)> PobierzRozniceGraphAsync(
+            CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (!_graphUserService.IsConfigured)
             {
-                return string.Empty;
+                return (null, Problem(
+                    "Brak konfiguracji Microsoft Graph (MicrosoftGraph_TenantId / MicrosoftGraph_ClientId / MicrosoftGraph_ClientSecret).",
+                    statusCode: StatusCodes.Status503ServiceUnavailable));
             }
 
-            var login = value.Trim();
-            var slash = login.LastIndexOf('\\');
-
-            if (slash >= 0)
+            try
             {
-                login = login[(slash + 1)..];
+                var graphUsers = await _graphUserService.GetUsersAsync(cancellationToken);
+
+                return (new UzytkownikEmailGraphRoznice(graphUsers), null);
             }
-
-            var at = login.IndexOf('@');
-
-            return (at >= 0 ? login[..at] : login).ToLowerInvariant();
+            catch (InvalidOperationException ex)
+            {
+                return (null, Problem(ex.Message, statusCode: StatusCodes.Status502BadGateway));
+            }
         }
-
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UzytkownikViewModel>>> Select(string usrStatus)

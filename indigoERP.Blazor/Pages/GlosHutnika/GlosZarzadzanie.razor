@@ -1,0 +1,76 @@
+﻿@using indigoERP.Domain.Dtos._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+
+@inject DialogService _dialogService
+@inject NavigationManager _navigationManager
+@inject IWiadomoscPracownikService _wiadomoscPracownikService
+@inject IConfiguration _configuration
+
+@* Osadzone w publicznej stronie Razor (/gloshutnika) tylko dla ról Gazeta / Administrator. Okna wysyłki otwierają się z boku. *@
+<RadzenDialog />
+<RadzenNotification />
+
+<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+    <RadzenButton Text="Nowy numer" Icon="add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@OtworzNowy" />
+</RadzenStack>
+
+@if (robocze != null && robocze.Count > 0)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="w-100 mt-2">
+        <span class="text-muted small">Robocze:</span>
+        @foreach (var wiadomosc in robocze)
+        {
+            <RadzenButton Text="@($"Wyślij: {wiadomosc.wiaTemat}")" Icon="send" Size="ButtonSize.Small"
+                          ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Outlined" Click="@(() => OtworzWysylke(wiadomosc))" />
+        }
+    </RadzenStack>
+}
+
+@code {
+    private List<WiadomoscDto>? robocze;
+
+    private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
+
+    protected override async Task OnInitializedAsync()
+    {
+        robocze = (await _wiadomoscPracownikService.SelectRobocze(AppID)).ToList();
+    }
+
+    private async Task OtworzNowy()
+    {
+        var zmieniono = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+            "Nowy numer Głosu Hutnika",
+            new Dictionary<string, object?>(),
+            GetSideOptions());
+
+        // Po zapisie odświeżamy stronę, żeby numer roboczy pojawił się na liście.
+        OdswiezJesliZmieniono(zmieniono);
+    }
+
+    private async Task OtworzWysylke(WiadomoscDto wiadomosc)
+    {
+        var wyslano = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+            $"Wysyłka: {wiadomosc.wiaTemat}",
+            new Dictionary<string, object?> { ["WiadomoscID"] = wiadomosc.wiaID, ["Tytul"] = wiadomosc.wiaTemat },
+            GetSideOptions());
+
+        OdswiezJesliZmieniono(wyslano);
+    }
+
+    private void OdswiezJesliZmieniono(dynamic? wynik)
+    {
+        if (wynik is true)
+        {
+            _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private static SideDialogOptions GetSideOptions() => new()
+    {
+        Position = DialogPosition.Right,
+        Width = "1000px",
+        CloseDialogOnOverlayClick = false,
+        ShowTitle = true,
+        ShowClose = true
+    };
+}

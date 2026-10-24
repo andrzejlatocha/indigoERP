@@ -44,3 +44,23 @@ footer a[href^="mailto:"]:hover,
 footer a[href^="mailto:"]:focus {
     color: #fff;
 }
+
+/* Panel środowiska jak w atacamaDMS; line-height zostaje normalny, bo .footer ma 60px i rozpychał panel. */
+.footer-serwer-panel {
+    background-color: #454544;
+    border-radius: 1rem;
+    padding: 0.25rem 1rem;
+    font-size: 0.8em;
+    line-height: normal;
+    color: #C9C9C8;
+    vertical-align: middle;
+}
+
+html[data-bs-theme="dark"] .footer-serwer-panel {
+    background-color: #1C1C1B;
+}
+
+/* Stopka wyśrodkowana jak w atacamaDMS (gridlayout-item: text-align center). */
+.footer {
+    text-align: center;
+}

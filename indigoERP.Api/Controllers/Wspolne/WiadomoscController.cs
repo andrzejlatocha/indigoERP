@@ -26,38 +26,28 @@ namespace indigoERP.Api.Controllers._Wspolne
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> Select(int wiaAplikacjaID, string wiaStatus)
         {
-            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
+            return await _context.WiadomoscViewModel
+                .Where(w => w.wiaAplikacjaID == wiaAplikacjaID && (w.wiaStatus == wiaStatus || wiaStatus == "*"))
+                .ToListAsync();
         }
 
-        // Filtruje po appID + usrID (porównanie do wuzUzytkownikID), wiaStatus opcjonalny (domyślnie "*" = bez filtra).
+        // Filtruje po aplikacji i odbiorcy wiadomości; wiaStatus="*" oznacza brak filtru statusu.
         [AllowAnonymous]
         [HttpGet("{appID}/{usrID}")]
         public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectByUzytkownik(int appID, int usrID, string wiaStatus = "*")
         {
-            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == appID && w.wuzUzytkownikID == usrID && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
+            return await _context.WiadomoscViewModel
+                .Where(w => w.wiaAplikacjaID == appID && w.wiaUzytkownikID == usrID && (w.wiaStatus == wiaStatus || wiaStatus == "*"))
+                .ToListAsync();
         }
 
-        // Licznik nieprzeczytanych (wuzOdczyt = false) dla danego użytkownika w danej aplikacji — pod badge w UI,
-        // żeby nie trzeba było ściągać całej listy tylko po liczbę.
+        // Widok nie przechowuje stanu odczytania, dlatego licznik obejmuje wszystkie wiadomości odbiorcy w aplikacji.
         [AllowAnonymous]
         [HttpGet("{appID}/{usrID}")]
         public async Task<ActionResult<int>> SelectCountByUzytkownik(int appID, int usrID)
         {
-            return await _context.WiadomoscViewModel.CountAsync(w => w.wiaAplikacjaID == appID && w.wuzUzytkownikID == usrID && w.wuzOdczyt == false);
-        }
-
-        [AllowAnonymous]
-        [HttpGet("{wiaAplikacjaID}/{wuzUzytkownikID}")]
-        public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectOdczytByUzytkownik(int wiaAplikacjaID, int wuzUzytkownikID, string wiaStatus)
-        {
-            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && w.wuzOdczyt == true && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
-        }
-
-        [AllowAnonymous]
-        [HttpGet("{wiaAplikacjaID}/{wuzUzytkownikID}")]
-        public async Task<ActionResult<IEnumerable<WiadomoscViewModel>>> SelectBrakOdczytByUzytkownik(int wiaAplikacjaID, int wuzUzytkownikID, string wiaStatus)
-        {
-            return await _context.WiadomoscViewModel.Where(w => w.wiaAplikacjaID == wiaAplikacjaID && w.wuzUzytkownikID == wuzUzytkownikID && w.wuzOdczyt == false && (w.wiaStatus == wiaStatus || wiaStatus == "*")).ToListAsync();
+            return await _context.WiadomoscViewModel
+                .CountAsync(w => w.wiaAplikacjaID == appID && w.wiaUzytkownikID == usrID);
         }
 
         // Biuletyn publiczny (Głos Hutnika) — bez żadnej autoryzacji, serwowany osobnej,
@@ -76,7 +66,8 @@ namespace indigoERP.Api.Controllers._Wspolne
         // (ta ostatnia tabela w praktyce nie jest używana przez istniejące, systemowe wiadomości).
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<WiadomoscHistoriaViewModel>>> SelectHistoria(int wiaAplikacjaID, int? wiaUzytkownikID, string wiaStatus = "*")
+        public async Task<ActionResult<IEnumerable<WiadomoscHistoriaViewModel>>> SelectHistoria(
+            int wiaAplikacjaID, int? wiaUzytkownikID, string wiaStatus = "*")
         {
             return await _context.WiadomoscHistoriaViewModel
                 .Where(w => w.wiaAplikacjaID == wiaAplikacjaID
@@ -86,15 +77,14 @@ namespace indigoERP.Api.Controllers._Wspolne
                 .ToListAsync();
         }
 
-        // Jeden wiersz z widoku (wiadomość + konkretny odbiorca) — mvw.vWiadomosc ma teraz jeden wiersz
-        // na parę wiadomość/odbiorca (INNER JOIN do WiadomoscUzytkownik), stąd klucz złożony.
+        // Widok zawiera odbiorcę bezpośrednio w dbo.Wiadomosc, dlatego rekord jest identyfikowany przez wiaID i usrID.
         [AllowAnonymous]
         [HttpGet("{wiaID}/{usrID}")]
         public async Task<ActionResult<WiadomoscViewModel>> Detail(int wiaID, int usrID)
         {
             var wiadomosc = await _context.WiadomoscViewModel
                 .AsNoTracking()
-                .FirstOrDefaultAsync(w => w.wiaID == wiaID && w.wuzUzytkownikID == usrID);
+                .FirstOrDefaultAsync(w => w.wiaID == wiaID && w.wiaUzytkownikID == usrID);
 
             if (wiadomosc == null)
             {

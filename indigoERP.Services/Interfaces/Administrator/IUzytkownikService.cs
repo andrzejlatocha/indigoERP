@@ -17,5 +17,6 @@ namespace indigoERP.Service.Interfaces._Administrator
         Task<ResponseMessage> Delete(int usrID);
         Task<ResponseMessage> OdblokujLogowanie(string usrNazwa);
         Task<(ResponseMessage Response, IReadOnlyList<UzytkownikEmailGraphModel> Dane)> SelectDaneGraph();
+        Task<(ResponseMessage Response, UzytkownikEmailGraphWynikModel? Wynik)> UpdateDaneGraph(IEnumerable<UzytkownikEmailGraphZmianaModel> zmiany);
     }
 }

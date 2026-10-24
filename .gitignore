@@ -240,6 +240,12 @@ ClientBin/
 *.publishsettings
 orleans.codegen.cs
 
+# Wynik publikacji lokalnej (nie kod źródłowy)
+/_publish/
+
+# Dane robocze z Excela (nie są częścią repozytorium)
+/_Work/
+
 # Including strong name files can present a security risk
 # (https://github.com/github/gitignore/pull/2483#issue-259490424)
 #*.snk

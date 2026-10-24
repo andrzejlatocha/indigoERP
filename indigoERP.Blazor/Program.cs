@@ -102,6 +102,7 @@ services.AddScoped<IWiadomoscUzytkownikService, WiadomoscUzytkownikService>();
 services.AddScoped<IWiadomoscWzorzecService, WiadomoscWzorzecService>();
 services.AddScoped<IWiadomoscDokumentService, WiadomoscDokumentService>();
 services.AddScoped<IWiadomoscWysylkaService, WiadomoscWysylkaService>();
+services.AddScoped<IWiadomoscPracownikService, WiadomoscPracownikService>();
 
 //Aplikacja
 
@@ -137,6 +138,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapBlazorHub();
+app.MapRazorPages();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
