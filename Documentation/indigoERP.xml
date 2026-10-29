@@ -135,6 +135,25 @@
             DBContext dla klas aplikacji
             </summary>
         </member>
+        <member name="T:indigoERP.Api.Services.IEpicaHrPracownikEmailClient">
+            <summary>
+            Wywołuje epicaHR.Api (PracownikEmail/UstawEmailSluzbowy) tokenem service-to-service (klient indigoERP).
+            Dzięki temu adres e-mail służbowy zmienia się równocześnie w indigoERP i w epicaHR.
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.IEpicaHrPracownikEmailClient.UstawEmailSluzbowyAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <summary>Zwraca null przy sukcesie albo komunikat błędu.</summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.IEpicaHrServiceTokenProvider">
+            <summary>
+            Token service-to-service (authorizationSRV, Service/GetToken) dla wywołań indigoERP -> epicaHR.
+            Sekret klienta "indigoERP" czytany jest z zmiennej systemowej ServiceClient_indigoERP (ta sama wartość,
+            co w authorizationSRV). Token jest cache'owany do chwili wygaśnięcia.
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.IEpicaHrServiceTokenProvider.GetTokenAsync(System.Threading.CancellationToken)">
+            <summary>Zwraca token albo null, gdy nie da się go pobrać (brak sekretu, bramka odrzuciła żądanie).</summary>
+        </member>
         <member name="P:indigoERP.Api.Services.IMicrosoftGraphUserService.IsConfigured">
             <summary>Czy ustawiono MicrosoftGraph:TenantId, ClientId i ClientSecret.</summary>
         </member>
@@ -152,7 +171,8 @@
         <member name="T:indigoERP.Api.Services.UzytkownikEmailGraphRoznice">
             <summary>
             Porównanie adresów e-mail użytkowników indigoERP z kontami Microsoft 365 (za źródło prawdy przyjmujemy M365):
-            Dodaj (pusty adres, jest w M365), Popraw (adres różni się od M365), Usun (konto nieaktywne, status = '1').
+            Dodaj (pusty adres, jest w M365), Popraw (adres różni się od M365), Usun (konto nieaktywne, status = '1',
+            albo aktywne z adresem, którego nie ma w M365 - czyścimy tylko adres, rekord zostaje).
             </summary>
         </member>
         <member name="M:indigoERP.Api.Services.UzytkownikEmailGraphRoznice.Klasyfikuj(indigoERP.Domain.Entities._Administrator.Uzytkownik)">
