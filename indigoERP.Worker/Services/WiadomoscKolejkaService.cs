@@ -12,6 +12,7 @@ public sealed class WiadomoscKolejkaService
     private const string StatusNowa = "2";
     private const string StatusRozpoczeta = "3";
     private const string StatusZakonczona = "4";
+    private const string StatusBlad = "5";
     private readonly WiadomoscWorkerContextFactory _contextFactory;
     private readonly IMicrosoftGraphMailService _mailService;
     private readonly IConfiguration _configuration;
@@ -58,6 +59,86 @@ public sealed class WiadomoscKolejkaService
         }
 
         return processed;
+    }
+
+    // Odpowiedzi o niedostarczeniu wracają do skrzynki nadawcy. Adresat, którego adres występuje w takiej odpowiedzi
+    // po wysłaniu wiadomości, dostaje status StatusBlad. Sprawdzamy wiadomości wysłane w ostatnich 7 dniach.
+    public async Task OznaczNiedostarczoneAsync(CancellationToken cancellationToken)
+    {
+        if (!_mailService.IsConfigured)
+        {
+            return;
+        }
+
+        await using var context = _contextFactory.CreateDbContext();
+        var od = DateTime.Now.AddDays(-7);
+
+        var wyslane = await context.Wiadomosci
+            .Where(item => item.wiaStatus == StatusZakonczona && item.wiaEmail != null && item.wiaEmail != ""
+                && item.wiaData != null && item.wiaData >= od && (item.Usuniety == null || item.Usuniety == false))
+            .ToListAsync(cancellationToken);
+
+        if (wyslane.Count == 0)
+        {
+            return;
+        }
+
+        var wiadomoscIDs = wyslane.Select(item => item.wiaID).ToList();
+        var odbiorcy = await context.WiadomoscPracownicy
+            .Where(item => item.wprWiadomoscID != null && wiadomoscIDs.Contains(item.wprWiadomoscID.Value)
+                && item.wprStatus == StatusZakonczona && item.wprBlad == null && item.wprEmail != null && item.wprEmail != "")
+            .ToListAsync(cancellationToken);
+
+        var oznaczone = 0;
+
+        foreach (var grupa in wyslane.Where(item => odbiorcy.Any(o => o.wprWiadomoscID == item.wiaID)).GroupBy(item => item.wiaEmail!))
+        {
+            var najstarsza = grupa.Min(item => item.wiaData!.Value);
+            IReadOnlyList<UndeliveryNotice> powiadomienia;
+
+            try
+            {
+                powiadomienia = await _mailService.GetUndeliveryNoticesAsync(grupa.Key, new DateTimeOffset(najstarsza), cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Nie udało się odczytać odpowiedzi o niedostarczeniu z konta {Nadawca}.", grupa.Key);
+                continue;
+            }
+
+            foreach (var wiadomosc in grupa)
+            {
+                var adresaci = odbiorcy.Where(item => item.wprWiadomoscID == wiadomosc.wiaID).ToList();
+                var wyslano = new DateTimeOffset(wiadomosc.wiaData!.Value);
+
+                foreach (var powiadomienie in powiadomienia.Where(item => item.Received >= wyslano))
+                {
+                    var dopasowane = NdrDopasowanie.AdresyWTresci(
+                        powiadomienie.Tresc,
+                        adresaci.Select(item => item.wprEmail!).Distinct(StringComparer.OrdinalIgnoreCase));
+
+                    foreach (var adres in dopasowane)
+                    {
+                        var wpr = adresaci.FirstOrDefault(item =>
+                            string.Equals(item.wprEmail, adres, StringComparison.OrdinalIgnoreCase) && item.wprStatus == StatusZakonczona);
+                        if (wpr == null)
+                        {
+                            continue;
+                        }
+
+                        wpr.wprStatus = StatusBlad;
+                        wpr.wprBlad = $"Odpowiedź o niedostarczeniu z {powiadomienie.Received.LocalDateTime:dd.MM.yyyy HH:mm}";
+                        oznaczone++;
+                    }
+                }
+            }
+        }
+
+        if (oznaczone > 0)
+        {
+            await context.SaveChangesAsync(cancellationToken);
+            _logger.LogWarning("Oznaczono {Ile} adresatów jako niedostarczone na podstawie odpowiedzi o niedostarczeniu.", oznaczone);
+        }
     }
 
     private async Task<Wiadomosc?> ClaimNextAsync(CancellationToken cancellationToken)
@@ -127,7 +208,7 @@ public sealed class WiadomoscKolejkaService
             return;
         }
 
-        var recipients = await (
+        var userRecipients = await (
             from recipient in context.WiadomoscUzytkownicy
             join user in context.Uzytkownicy on recipient.wuzUzytkownikID equals user.usrID
             where recipient.wuzWiadomoscID == messageId
@@ -137,6 +218,16 @@ public sealed class WiadomoscKolejkaService
                 && !string.IsNullOrWhiteSpace(user.usrEmail)
             select new QueueRecipient(user.usrPracownikID, user.usrEmail!))
             .ToListAsync(cancellationToken);
+
+        // Adresaci wpisani ręcznie (bez konta w Uzytkownik) są w WiadomoscPracownik; ich status wysyłki zapisujemy w tym samym wierszu.
+        var manualRecipients = await context.WiadomoscPracownicy
+            .Where(item => item.wprWiadomoscID == messageId && item.wprStatus == StatusNowa && !string.IsNullOrWhiteSpace(item.wprEmail))
+            .ToListAsync(cancellationToken);
+
+        var recipients = userRecipients
+            .Concat(manualRecipients.Select(item => new QueueRecipient(item.wprPracownikID, item.wprEmail!)))
+            .DistinctBy(item => item.Email, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         if (recipients.Count == 0)
         {
@@ -172,12 +263,23 @@ public sealed class WiadomoscKolejkaService
                     cancellationToken);
 
                 context.WiadomoscWysylki.Add(CreateDispatch(messageId, recipient, attachmentNames, StatusNowa));
+                var wpr = FindManualRecipient(manualRecipients, recipient.Email);
+                if (wpr != null)
+                {
+                    wpr.wprStatus = StatusZakonczona;
+                }
                 await context.SaveChangesAsync(cancellationToken);
             }
             catch (Exception exception)
             {
                 hasError = true;
                 context.WiadomoscWysylki.Add(CreateDispatch(messageId, recipient, attachmentNames, StatusAnulowana));
+                var wpr = FindManualRecipient(manualRecipients, recipient.Email);
+                if (wpr != null)
+                {
+                    wpr.wprStatus = StatusBlad;
+                    wpr.wprBlad = exception.Message.Length > 4000 ? exception.Message[..4000] : exception.Message;
+                }
                 await context.SaveChangesAsync(cancellationToken);
                 _logger.LogError(exception, "Nie udało się wysłać wiadomości {MessageId} do {Email}.", messageId, recipient.Email);
             }
@@ -210,12 +312,15 @@ public sealed class WiadomoscKolejkaService
 
         foreach (var document in documents)
         {
-            if (string.IsNullOrWhiteSpace(document.wdoKatalog) || string.IsNullOrWhiteSpace(document.wdoPlik))
+            // Nowe załączniki wskazują rekord dbo.Plik (wzorzec epicaHR); stare mają ścieżkę w samym dokumencie.
+            var (katalog, plik) = await ResolveStorageAsync(context, document, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(katalog) || string.IsNullOrWhiteSpace(plik))
             {
                 throw new InvalidOperationException($"Załącznik {document.wdoID} nie ma wskazanej ścieżki.");
             }
 
-            var relativePath = Path.Combine(document.wdoKatalog, document.wdoPlik)
+            var relativePath = Path.Combine(katalog, plik)
                 .Replace('/', Path.DirectorySeparatorChar);
             var path = Path.GetFullPath(Path.Combine(root, relativePath));
 
@@ -228,6 +333,28 @@ public sealed class WiadomoscKolejkaService
         }
 
         return attachments;
+    }
+
+    private static async Task<(string? Katalog, string? Plik)> ResolveStorageAsync(
+        WiadomoscWorkerContext context,
+        WiadomoscDokument document,
+        CancellationToken cancellationToken)
+    {
+        if (document.wdoPlikID is not int plikID)
+        {
+            return (document.wdoKatalog, document.wdoPlik);
+        }
+
+        var rekord = await context.Pliki
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.plkID == plikID, cancellationToken);
+
+        if (rekord == null || string.IsNullOrWhiteSpace(rekord.plkFolder) || string.IsNullOrWhiteSpace(rekord.plkPlik))
+        {
+            throw new InvalidOperationException($"Załącznik {document.wdoID} wskazuje rekord Plik {plikID} bez katalogu lub nazwy pliku.");
+        }
+
+        return (rekord.plkFolder, rekord.plkPlik);
     }
 
     private static WiadomoscWysylka CreateDispatch(int messageId, QueueRecipient recipient, string attachments, string status) =>
@@ -248,6 +375,9 @@ public sealed class WiadomoscKolejkaService
         message.ModyfikacjaID = 0;
         await context.SaveChangesAsync(cancellationToken);
     }
+
+    private static WiadomoscPracownik? FindManualRecipient(IEnumerable<WiadomoscPracownik> manualRecipients, string email) =>
+        manualRecipients.FirstOrDefault(item => string.Equals(item.wprEmail, email, StringComparison.OrdinalIgnoreCase));
 
     private sealed record QueueRecipient(int? EmployeeId, string Email);
 }

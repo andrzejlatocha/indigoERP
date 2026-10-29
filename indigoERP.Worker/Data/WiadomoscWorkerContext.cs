@@ -12,8 +12,10 @@ public sealed class WiadomoscWorkerContext : DbContext
 
     public DbSet<Wiadomosc> Wiadomosci => Set<Wiadomosc>();
     public DbSet<WiadomoscUzytkownik> WiadomoscUzytkownicy => Set<WiadomoscUzytkownik>();
+    public DbSet<WiadomoscPracownik> WiadomoscPracownicy => Set<WiadomoscPracownik>();
     public DbSet<WiadomoscWzorzec> WiadomoscWzorce => Set<WiadomoscWzorzec>();
     public DbSet<WiadomoscDokument> WiadomoscDokumenty => Set<WiadomoscDokument>();
+    public DbSet<Plik> Pliki => Set<Plik>();
     public DbSet<WiadomoscWysylka> WiadomoscWysylki => Set<WiadomoscWysylka>();
     public DbSet<WiadomoscOdbiorca> Uzytkownicy => Set<WiadomoscOdbiorca>();
 
@@ -21,8 +23,10 @@ public sealed class WiadomoscWorkerContext : DbContext
     {
         modelBuilder.Entity<Wiadomosc>().ToTable("Wiadomosc", "dbo");
         modelBuilder.Entity<WiadomoscUzytkownik>().ToTable("WiadomoscUzytkownik", "dbo");
+        modelBuilder.Entity<WiadomoscPracownik>().ToTable("WiadomoscPracownik", "dbo");
         modelBuilder.Entity<WiadomoscWzorzec>().ToTable("WiadomoscWzorzec", "dbo");
         modelBuilder.Entity<WiadomoscDokument>().ToTable("WiadomoscDokument", "dbo");
+        modelBuilder.Entity<Plik>().ToTable("Plik", "dbo");
         modelBuilder.Entity<WiadomoscWysylka>().ToTable("WiadomoscWysylka", "dbo");
 
         modelBuilder.Entity<WiadomoscOdbiorca>(entity =>

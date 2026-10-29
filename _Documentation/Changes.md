@@ -1,5 +1,46 @@
 ﻿# Codex Changes
 
+## 2026-10-29 - Worker: odpowiedzi o niedostarczeniu oznaczają adresatów statusem 5
+
+- **Zgłoszenie:** worker nie sprawdzał skrzynki nadawcy, więc adresy nieistniejące były oznaczane jako wysłane (status 4), choć nie doszły.
+- **Zmiana (Worker):** `MicrosoftGraphMailService.GetUndeliveryNoticesAsync` czyta `users/{nadawca}/mailFolders/inbox/messages` od daty wysyłki i zwraca tylko powiadomienia (nadawca MAILER-DAEMON/postmaster albo temat „Undeliverable”, „Delivery Status Notification”, „Nie można dostarczyć”, „Nie dostarczono”).
+- **Zmiana (Worker):** `NdrDopasowanie` (czyste funkcje) dopasowuje adresy adresatów w treści powiadomienia z granicami słów, bez rozróżniania wielkości liter.
+- **Zmiana (Worker):** `WiadomoscKolejkaService.OznaczNiedostarczoneAsync` ustawia `wprStatus = '5'` i `wprBlad` dla dopasowanych adresatów wiadomości wysłanych w ostatnich 7 dniach. `WiadomoscWorker` wywołuje to co 15 minut.
+- **Uprawnienia:** odczyt skrzynki wymaga uprawnienia aplikacji `Mail.Read` w Microsoft Entra (zgoda administratora) dla konta nadawcy.
+- **Ryzyko:** treść powiadomienia może cytować oryginalną wiadomość z innymi adresami; wtedy dopasowanie oznaczy też adresatów, którzy dostali wiadomość. Do weryfikacji na pierwszym przebiegu.
+- **Nadawca:** docelowo konto `epica.hr@huta-czestochowa.pl`; epicaHR musi zapisywać je w `wiaEmail` zamiast adresu zalogowanego użytkownika (zmiana w epicaHR, osobno).
+- **Weryfikacja:** build `indigoERP.Worker` 0 błędów; `indigoERP.Worker.Tests` 16/16 (9 nowych dla `NdrDopasowanie`). Odczyt Graph i zapis do bazy nie są pokryte testami – luka.
+- **Status wdrożenia:** kod gotowy, niezacommitowany, niewdrożony na JAPET.
+
+## 2026-10-29 - Worker wysyła też do adresatów z WiadomoscPracownik
+
+- **Zgłoszenie:** adresaci wpisani ręcznie w epicaHR („Własna lista adresów”) trafiają do `dbo.WiadomoscPracownik`, a worker czytał wyłącznie `dbo.WiadomoscUzytkownik`. Takie wiadomości nigdy nie były wysyłane (test wiadomości 1094 dostał odrzucenie „nie ma aktywnych odbiorców”).
+- **Zmiana (Worker):** `WiadomoscKolejkaService` dołącza adresatów z `WiadomoscPracownik` (`wprStatus = '2'`, `wprEmail` niepusty), deduplikuje po adresie e-mail i po wysyłce ustawia `wprStatus` na `'4'`, a przy błędzie na `'5'` z treścią w `wprBlad` (obcięta do 4000 znaków).
+- **Zmiana (Worker):** `WiadomoscWorkerContext` – `DbSet<WiadomoscPracownik>` i mapowanie `dbo.WiadomoscPracownik`.
+- **Weryfikacja:** build `indigoERP.Worker` 0 błędów; `indigoERP.Worker.Tests` 7/7. Ścieżki EF (zapytania na bazie) nie są pokryte testami jednostkowymi – luka.
+- **Status wdrożenia:** kod gotowy, niezacommitowany, niewdrożony na JAPET (`Z:\Services\indigoERP.Worker`).
+
+## 2026-10-29 - Załączniki wiadomości w mechanizmie epicaHR (Plik + wdoPlikID), Worker czyta przez Plik
+
+- **Zgłoszenie:** załączniki wysyłek (Głos Hutnika i pozostałe wiadomości) mają działać jak w epicaHR: plik w `{appFolder}\{usrFolder}\{yyyyMMddHHmmss}\`, rekord `dbo.Plik`, powiązanie z wiadomością. Wysyłkę wykonuje indigoERP.Worker.
+- **Zmiana (Domain):** `Entities/Wspolne/WiadomoscDokument.cs` - nowe pole `wdoPlikID` (int?, powiązanie z `Plik`).
+- **Zmiana (API):** `Services/WiadomoscZalacznikStorage.cs` - `ZapiszPlik(plik, appFolder, usrFolder, ct)`, katalog `{appFolder}\{usrFolder}\{czas}`, metoda `Segment` (bez separatorów). `Controllers/Wspolne/WiadomoscPracownikController.cs` - `ZapiszZalaczniki` zapisuje plik, dodaje rekord `Plik` (`plkAplikacjaID`, `plkFolder`, `plkPlik`, `plkLink`, `plkRozszerzenie=pdf`) i ustawia `wdoPlikID`. Folder: claim `appFolder` / `usrFolder`, a gdy brak - `CORE{AppID:D4}` i `usrID:D12` (wzorzec z CLAUDE.md).
+- **Zmiana (Worker):** `Services/WiadomoscKolejkaService.cs` - `ResolveStorageAsync`: załącznik z `wdoPlikID` czyta ścieżkę z `Plik`; bez `wdoPlikID` (stare rekordy) zostaje `wdoKatalog`/`wdoPlik`. `Data/WiadomoscWorkerContext.cs` - `DbSet<Plik> Pliki`.
+- **Baza danych:** `_SQL Queries/GlosHutnika_WiadomoscDokument_wdoPlikID.sql` - kolumna `wdoPlikID` i indeks `IX_WiadomoscDokument01`. Uruchamia użytkownik w SSMS na JAPET. Bez tego skryptu nowe zapisy załączników się nie udadzą.
+- **Decyzja techniczna:** powiązanie trzymam w `WiadomoscDokument.wdoPlikID`, a nie w osobnej tabeli łączącej - ten sam wiersz już łączy wiadomość z plikiem, a mniej tabel do utrzymania. Stare załączniki nie są migrowane; Worker je obsługuje przez fallback.
+- **Status wdrożenia:** tylko repozytorium. Nie zacommitowano, nie opublikowano, skrypt SQL nie uruchomiony.
+- **Weryfikacja:** build Api, Worker, Blazor - 0 błędów. Testy: Api 45/45 (w tym nowy: plik w katalogu aplikacji/użytkownika, rekord Plik, wdoPlikID), Worker 7/7, Blazor 13/13.
+- **Luka:** `ResolveStorageAsync` w Workerze nie ma testu jednostkowego (metoda prywatna, kontekst EF). Propozycja: wydzielić ją do osobnej klasy `IZalacznikResolver` z testem na InMemory.
+- **Do sprawdzenia na serwerze:** claim `appFolder`/`usrFolder` w tokenie Bearer (jeśli go brak, działa fallback CORE0900); Worker musi mieć `FileStorage:Path` takie samo jak API oraz konto usługi z prawem odczytu do `C:\indigoERP_documents`.
+
+## 2026-10-28 - Grupy i role indigoERP dla bibliotek atacamaDMS (CERES)
+
+- **Zgłoszenie:** przygotować grupy i role w indigoERP dla bibliotek z transkrypcji obiegu dokumentów (Umowy, NDA, Zgody, Uchwały, Wnioski, Polecenia służbowe).
+- **Baza danych / Zmiana:** `_SQL Queries/indigoERP_grupy_role_biblioteki_CERES_20261028.sql` (wersja JAPET: `indigoERP_grupy_role_biblioteki_JAPET_20261028.sql`, nie uruchomiona). W `dbo.Grupa`, `dbo.Rola` i `dbo.RolaCzlonkowie` dla `groAplikacjaID` / `srlAplikacjaID` = 210 (atacamaDMS): 18 grup `HCZ-atacamaDMS-<Poziom> biblioteki - <nazwa>` (poziomy Administrator, Obsługa, Przeglądanie), 18 ról o tych samych nazwach, 18 powiązań rola-grupa. Bez członków.
+- **Decyzja techniczna:** skrypt jednorazowy (przy istniejącej nazwie zatrzymuje się bez zmian), nazwy z polskimi znakami przez `NCHAR()`, na złym serwerze przerywa przed zmianami.
+- **Status wdrożenia:** CERES uruchomiony przez użytkownika z `@Zatwierdz = 1` (COMMIT), wynik kontrolny: 18 grup, 18 ról, 18 powiązań. Test z `@Zatwierdz = 0` nie był wykonany przed zapisem. JAPET do wykonania przez użytkownika.
+- **Weryfikacja:** wynik kontrolny z SSMS (CERES, 2026-10-28 12:37). Członkostwa i `BibliotekaDostep` w atacamaDMS nie są częścią tego skryptu.
+
 ## 2026-10-24 - Głos Hutnika: kafelki numerów, okno wysyłki i miniatury PDF
 
 - **Zgłoszenie:** strona `/gloshutnika` ma pokazywać numery jako kafelki z miniaturą pierwszej strony PDF i opisem, z pobieraniem PDF dla każdego. Przyciski zarządzania (nowy numer, wysyłka) tylko dla ról HCZ-indigoERP-Gazeta i HCZ-indigoERP-Administrator. Wysyłka ma być oknem bocznym, a nie osobną stroną. `/glos-historia` i `/glos-wysylka` zastępuje `/gloshutnika`.

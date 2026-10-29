@@ -121,6 +121,12 @@
             względem zakresu; osoby spoza zakresu lub bez adresu e-mail są pomijane i zgłaszane w wyniku.
             </summary>
         </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.ZapiszZalaczniki(System.Int32,System.Int32,System.Collections.Generic.IEnumerable{Microsoft.AspNetCore.Http.IFormFile},System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Zapisuje PDF w {appFolder}\{usrFolder}\{czas}\ (wzorzec epicaHR), tworzy rekord dbo.Plik
+            i wiąże go z załącznikiem wiadomości przez wdoPlikID. Worker wysyła plik właśnie przez ten rekord.
+            </summary>
+        </member>
         <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.PrzygotujOdbiorcow(System.Collections.Generic.IReadOnlyList{indigoERP.Domain.ViewModels._Wspolne.WiadomoscZakresPracownikViewModel},System.Collections.Generic.IEnumerable{System.Int32},indigoERP.Domain.Models._Wspolne.WiadomoscWysylkaZakresWynikModel)">
             <summary>Wybiera odbiorców z zakresu z adresem e-mail; pozostałych zgłasza w wyniku.</summary>
         </member>
@@ -172,6 +178,9 @@
         </member>
         <member name="M:indigoERP.Api.Services.WiadomoscZalacznikStorage.Waliduj(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>Zwraca komunikat błędu albo null, gdy plik jest akceptowalny (PDF, do limitu rozmiaru, poprawny nagłówek).</summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.WiadomoscZalacznikStorage.Segment(System.String)">
+            <summary>Segment ścieżki bez separatorów i znaków niedozwolonych; pusta wartość daje "_".</summary>
         </member>
         <member name="M:indigoERP.Controllers.LoginController.Get(System.String,System.String,System.String,System.String)">
             <summary>

@@ -16,6 +16,8 @@ namespace indigoERP.Domain.Entities._Wspolne
         public string wdoNazwa { get; set; }
         public string wdoPlik { get; set; }
         public string wdoKatalog { get; set; }
+        // Powiązanie z rekordem dbo.Plik (wzorzec epicaHR). Null dla załączników zapisanych przed tą zmianą.
+        public int? wdoPlikID { get; set; }
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public string wdoLink { get; set; }

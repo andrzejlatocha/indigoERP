@@ -252,6 +252,40 @@ public sealed class WiadomoscWysylkaTests
         Assert.IsType<NotFoundResult>(result.Result);
     }
 
+    [Fact]
+    public async Task Wysylka_stores_the_pdf_in_app_and_user_folders_and_links_a_plik_record()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var katalog = Path.Combine(Path.GetTempPath(), "glos-plik-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")),
+                new WiadomoscZalacznikStorage(katalog));
+            var plik = Plik("gazeta.pdf", "%PDF-1.4 test");
+
+            await kontroler.InsertWysylka(Model(1), new FormFileCollection { plik }, CancellationToken.None);
+
+            var dokument = await context.WiadomoscDokument.SingleAsync();
+            Assert.NotNull(dokument.wdoPlikID);
+            var rekord = await context.Plik.FindAsync(dokument.wdoPlikID);
+            Assert.NotNull(rekord);
+            Assert.Equal(900, rekord.plkAplikacjaID);
+            Assert.Equal(dokument.wdoKatalog, rekord.plkFolder);
+            Assert.Equal(dokument.wdoPlik, rekord.plkPlik);
+            Assert.Equal("pdf", rekord.plkRozszerzenie);
+            Assert.StartsWith("CORE0900" + Path.DirectorySeparatorChar, dokument.wdoKatalog);
+            Assert.Contains("000000000101" + Path.DirectorySeparatorChar, dokument.wdoKatalog);
+            Assert.True(File.Exists(Path.Combine(katalog, rekord.plkFolder, rekord.plkPlik)));
+        }
+        finally
+        {
+            if (Directory.Exists(katalog))
+            {
+                Directory.Delete(katalog, recursive: true);
+            }
+        }
+    }
+
     private static FormFile Plik(string nazwa, string tresc)
     {
         var bajty = System.Text.Encoding.ASCII.GetBytes(tresc);

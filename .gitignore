@@ -367,3 +367,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Pliki użytkowników z testów lokalnych (nie są częścią repozytorium)
+/indigoERP.Blazor/wwwroot/_documents/
+/_documents/

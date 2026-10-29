@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
 
 namespace indigoERP.Api.Controllers._Wspolne;
 
@@ -128,7 +129,7 @@ public class WiadomoscPracownikController : ControllerBase
         _context.Wiadomosc.Add(wiadomosc);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await ZapiszZalaczniki(wiadomosc.wiaID, zalaczniki, usrID, cancellationToken);
+        await ZapiszZalaczniki(wiadomosc.wiaID, model.wiaAplikacjaID, zalaczniki, usrID, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         if (transakcja != null)
@@ -265,7 +266,7 @@ public class WiadomoscPracownikController : ControllerBase
         _context.Wiadomosc.Add(wiadomosc);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await ZapiszZalaczniki(wiadomosc.wiaID, zalaczniki, usrID, cancellationToken);
+        await ZapiszZalaczniki(wiadomosc.wiaID, model.wiaAplikacjaID, zalaczniki, usrID, cancellationToken);
         DodajOdbiorcow(wiadomosc.wiaID, doWyslania);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -367,19 +368,43 @@ public class WiadomoscPracownikController : ControllerBase
         return null;
     }
 
-    private async Task ZapiszZalaczniki(int wiaID, IEnumerable<IFormFile> zalaczniki, int usrID, CancellationToken cancellationToken)
+    /// <summary>
+    /// Zapisuje PDF w {appFolder}\{usrFolder}\{czas}\ (wzorzec epicaHR), tworzy rekord dbo.Plik
+    /// i wiąże go z załącznikiem wiadomości przez wdoPlikID. Worker wysyła plik właśnie przez ten rekord.
+    /// </summary>
+    private async Task ZapiszZalaczniki(
+        int wiaID, int appID, IEnumerable<IFormFile> zalaczniki, int usrID, CancellationToken cancellationToken)
     {
+        var appFolder = WiadomoscZalacznikStorage.Segment(User.FindFirstValue("appFolder") ?? $"CORE{appID:D4}");
+        var usrFolder = WiadomoscZalacznikStorage.Segment(User.FindFirstValue("usrFolder") ?? usrID.ToString("D12"));
+
         foreach (var plik in zalaczniki)
         {
-            var (katalog, nazwaPliku) = await _zalaczniki.ZapiszPlik(plik, usrID, cancellationToken);
+            var (katalog, nazwaPliku) = await _zalaczniki.ZapiszPlik(plik, appFolder, usrFolder, cancellationToken);
+            var nazwa = Path.GetFileName(plik.FileName);
+
+            var rekordPliku = new Plik
+            {
+                plkAplikacjaID = appID,
+                plkRozszerzenie = "pdf",
+                plkNazwa = nazwa,
+                plkPlik = nazwaPliku,
+                plkFolder = katalog,
+                plkLink = Path.Combine(katalog, nazwaPliku),
+                plkWersja = 1
+            };
+
+            _context.Plik.Add(rekordPliku);
+            await _context.SaveChangesAsync(cancellationToken);
 
             _context.WiadomoscDokument.Add(new WiadomoscDokument
             {
                 wdoWiadomoscID = wiaID,
                 wdoTyp = "pdf",
-                wdoNazwa = Path.GetFileName(plik.FileName),
+                wdoNazwa = nazwa,
                 wdoPlik = nazwaPliku,
                 wdoKatalog = katalog,
+                wdoPlikID = rekordPliku.plkID,
                 wdoStatus = "2"
             });
         }

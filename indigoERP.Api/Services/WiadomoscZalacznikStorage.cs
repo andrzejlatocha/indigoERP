@@ -6,7 +6,7 @@ namespace indigoERP.Api.Services
     /// <summary>Zapis załączników wysyłki w katalogu FileStorage:Path (ten sam katalog co dokumenty wiadomości).</summary>
     public interface IWiadomoscZalacznikStorage
     {
-        Task<(string Katalog, string Plik)> ZapiszPlik(IFormFile plik, int usrID, CancellationToken cancellationToken);
+        Task<(string Katalog, string Plik)> ZapiszPlik(IFormFile plik, string appFolder, string usrFolder, CancellationToken cancellationToken);
     }
 
     public sealed class WiadomoscZalacznikStorage : IWiadomoscZalacznikStorage
@@ -64,14 +64,16 @@ namespace indigoERP.Api.Services
             return null;
         }
 
-        public async Task<(string Katalog, string Plik)> ZapiszPlik(IFormFile plik, int usrID, CancellationToken cancellationToken)
+        public async Task<(string Katalog, string Plik)> ZapiszPlik(
+            IFormFile plik, string appFolder, string usrFolder, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(_root))
             {
                 throw new InvalidOperationException("Nie skonfigurowano katalogu plików (FileStorage:Path).");
             }
 
-            var katalog = Path.Combine("GLOS", usrID.ToString("D12"), DateTime.Now.ToString("yyyyMMddHHmmss"));
+            // Wzorzec epicaHR: {appFolder}\{usrFolder}\{yyyyMMddHHmmss}\{plik}.
+            var katalog = Path.Combine(Segment(appFolder), Segment(usrFolder), DateTime.Now.ToString("yyyyMMddHHmmss"));
             var folder = Path.Combine(_root, katalog);
             Directory.CreateDirectory(folder);
 
@@ -82,6 +84,17 @@ namespace indigoERP.Api.Services
             await plik.CopyToAsync(stream, cancellationToken);
 
             return (katalog, nazwa);
+        }
+
+        /// <summary>Segment ścieżki bez separatorów i znaków niedozwolonych; pusta wartość daje "_".</summary>
+        public static string Segment(string? wartosc)
+        {
+            var invalid = Path.GetInvalidFileNameChars();
+            var czysty = new string((wartosc ?? string.Empty)
+                .Where(c => !invalid.Contains(c) && c != Path.DirectorySeparatorChar && c != Path.AltDirectorySeparatorChar)
+                .ToArray()).Trim();
+
+            return string.IsNullOrEmpty(czysty) ? "_" : czysty;
         }
 
         private static string Sanitize(string nazwa)
