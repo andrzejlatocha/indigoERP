@@ -74,6 +74,8 @@ else
 
 services.AddHttpClient();
 services.AddSingleton<IMicrosoftGraphUserService, MicrosoftGraphUserService>();
+services.AddSingleton<IEpicaHrServiceTokenProvider, EpicaHrServiceTokenProvider>();
+services.AddScoped<IEpicaHrPracownikEmailClient, EpicaHrPracownikEmailClient>();
 services.AddScoped<IWiadomoscZakresPracownikSource, WiadomoscZakresPracownikSource>();
 services.AddSingleton<IWiadomoscMiniaturaService, WiadomoscMiniaturaService>();
 services.AddScoped<IWiadomoscZalacznikStorage>(sp =>

@@ -85,6 +85,18 @@ public sealed class UzytkownikEmailGraphTests
     }
 
     [Fact]
+    public void Active_account_with_address_but_missing_in_m365_gets_remove_action_and_keeps_the_record()
+    {
+        var roznice = Roznice(Graph("1", "jan.kowalski", "jan.kowalski@huta-czestochowa.pl"));
+
+        var bezKonta = roznice.Klasyfikuj(Uzytkownik(3, "ktos.inny", "ktos@huta-czestochowa.pl"));
+
+        Assert.Equal("Brak", bezKonta.wynik);
+        Assert.Equal(UzytkownikEmailGraphAkcja.Usun, bezKonta.akcja);
+        Assert.Equal("ktos@huta-czestochowa.pl", bezKonta.usrEmail);
+    }
+
+    [Fact]
     public async Task Update_applies_only_changes_matching_the_computed_action_and_takes_addresses_from_microsoft()
     {
         await using var context = ApiTestContextFactory.Create();
@@ -96,7 +108,8 @@ public sealed class UzytkownikEmailGraphTests
         var graph = new FakeGraph(
             Graph("1", "jan.kowalski", "jan.kowalski@huta-czestochowa.pl"),
             Graph("3", "piotr.zielinski", "piotr.zielinski@huta-czestochowa.pl"));
-        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), graph);
+        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), graph,
+            new FakeEpicaHrPracownikEmailClient());
 
         var result = await controller.UpdateDaneGraph(new UzytkownikEmailGraphZatwierdzModel
         {
@@ -119,10 +132,59 @@ public sealed class UzytkownikEmailGraphTests
     }
 
     [Fact]
+    public async Task Missing_m365_account_clears_service_email_in_epicaHR_and_indigoERP_when_epicaHR_accepts()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var uzytkownik = Uzytkownik(4, "ktos.inny", "ktos@huta-czestochowa.pl");
+        uzytkownik.usrPracownikID = 77;
+        context.Uzytkownik.Add(uzytkownik);
+        await context.SaveChangesAsync();
+        var epica = new FakeEpicaHrPracownikEmailClient();
+        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), new FakeGraph(), epica);
+
+        var result = await controller.UpdateDaneGraph(new UzytkownikEmailGraphZatwierdzModel
+        {
+            zmiany = [new UzytkownikEmailGraphZmianaModel { usrID = 4, akcja = UzytkownikEmailGraphAkcja.Usun }]
+        }, CancellationToken.None);
+
+        var wynik = Assert.IsType<UzytkownikEmailGraphWynikModel>(result.Value);
+        Assert.Equal(1, wynik.usunieto);
+        var wywolanie = Assert.Single(epica.Wywolania);
+        Assert.Equal(77, wywolanie.PracownikID);
+        Assert.Null(wywolanie.Email);
+        Assert.Equal(string.Empty, (await context.Uzytkownik.FindAsync(4))!.usrEmail);
+    }
+
+    [Fact]
+    public async Task When_epicaHR_rejects_the_change_indigo_keeps_the_address_and_reports_it()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var uzytkownik = Uzytkownik(5, "jan.nowak", "");
+        uzytkownik.usrPracownikID = 88;
+        context.Uzytkownik.Add(uzytkownik);
+        await context.SaveChangesAsync();
+        var graph = new FakeGraph(Graph("5", "jan.nowak", "jan.nowak@huta-czestochowa.pl"));
+        var epica = new FakeEpicaHrPracownikEmailClient { Blad = "epicaHR HTTP 403: brak roli" };
+        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), graph, epica);
+
+        var result = await controller.UpdateDaneGraph(new UzytkownikEmailGraphZatwierdzModel
+        {
+            zmiany = [new UzytkownikEmailGraphZmianaModel { usrID = 5, akcja = UzytkownikEmailGraphAkcja.Dodaj }]
+        }, CancellationToken.None);
+
+        var wynik = Assert.IsType<UzytkownikEmailGraphWynikModel>(result.Value);
+        Assert.Equal(0, wynik.dodano);
+        Assert.Equal(1, wynik.pominieto);
+        Assert.Contains(wynik.komunikaty, k => k.Contains("epicaHR HTTP 403"));
+        Assert.Equal(string.Empty, (await context.Uzytkownik.FindAsync(5))!.usrEmail);
+    }
+
+    [Fact]
     public async Task Select_returns_service_unavailable_when_microsoft_graph_is_not_configured()
     {
         await using var context = ApiTestContextFactory.Create();
-        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), new FakeGraph { Configured = false });
+        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), new FakeGraph { Configured = false },
+            new FakeEpicaHrPracownikEmailClient());
 
         var result = await controller.SelectDaneGraph(CancellationToken.None);
 
@@ -143,7 +205,8 @@ public sealed class UzytkownikEmailGraphTests
         var graph = new FakeGraph(
             Graph("1", "zbigniew.zielinski", "zbigniew.zielinski@huta-czestochowa.pl"),
             Graph("2", "adam.nowak", "adam.nowak@huta-czestochowa.pl"));
-        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), graph);
+        var controller = new UzytkownikController(context, ApiTestContextFactory.Configuration(), graph,
+            new FakeEpicaHrPracownikEmailClient());
 
         var result = await controller.SelectDaneGraph(CancellationToken.None);
 

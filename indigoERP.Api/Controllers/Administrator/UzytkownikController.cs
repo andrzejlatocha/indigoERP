@@ -24,12 +24,18 @@ namespace indigoERP.Api.Controllers._Administrator
         private readonly indigoERPContext _context;
         private readonly IConfiguration _configuration;
         private readonly IMicrosoftGraphUserService _graphUserService;
+        private readonly IEpicaHrPracownikEmailClient _epicaHr;
 
-        public UzytkownikController(indigoERPContext context, IConfiguration configuration, IMicrosoftGraphUserService graphUserService)
+        public UzytkownikController(
+            indigoERPContext context,
+            IConfiguration configuration,
+            IMicrosoftGraphUserService graphUserService,
+            IEpicaHrPracownikEmailClient epicaHr)
         {
             _context = context;
             _configuration = configuration;
             _graphUserService = graphUserService;
+            _epicaHr = epicaHr;
         }
 
         /// <summary>
@@ -109,6 +115,23 @@ namespace indigoERP.Api.Controllers._Administrator
                     wynik.pominieto++;
                     wynik.komunikaty.Add($"{u.usrNazwa}: dane zmieniły się od czasu podglądu (oczekiwano '{zmiana.akcja}').");
                     continue;
+                }
+
+                // Najpierw epicaHR (adres służbowy w PracownikKontakt), dopiero potem indigoERP.
+                // Błąd epicaHR zostawia adres w indigoERP bez zmian, więc pozycja nadal będzie widoczna do ponowienia.
+                if (u.usrPracownikID is int pracownikID)
+                {
+                    var blad = await _epicaHr.UstawEmailSluzbowyAsync(
+                        pracownikID,
+                        pozycja.akcja == UzytkownikEmailGraphAkcja.Usun ? null : pozycja.graphEmail,
+                        cancellationToken);
+
+                    if (blad != null)
+                    {
+                        wynik.pominieto++;
+                        wynik.komunikaty.Add($"{u.usrNazwa}: nie zapisano w epicaHR - {blad}");
+                        continue;
+                    }
                 }
 
                 switch (pozycja.akcja)

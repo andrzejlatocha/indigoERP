@@ -1,5 +1,26 @@
 ﻿# Codex Changes
 
+## 2026-10-29 - Adres e-mail służbowy: indigoERP -> epicaHR (PracownikKontakt), token service-to-service
+
+- **Zgłoszenie:** konto użytkownika nieobecne w Microsoft 365 ma czyścić adres e-mail (rekord użytkownika zostaje, usuwa go synchronizacja z epicaHR). Zmiana adresu w oknie różnic ma iść także do epicaHR: e-mail służbowy (typ kontaktu 9) w PracownikKontakt, z `Usuniety = true` zamiast kasowania. Pozostałe kontakty bez zmian.
+- **Zmiana (indigoERP.Api):** `Services/UzytkownikEmailGraphRoznice.cs` - aktywny użytkownik z adresem, którego nie ma w M365, dostaje akcję `Usun` (wynik `Brak`). `Controllers/Administrator/UzytkownikController.cs` - przed zapisem w indigoERP wywołanie epicaHR (`UstawEmailSluzbowyAsync`); błąd epicaHR pomija zmianę w indigoERP i raportuje ją w komunikatach. `Services/EpicaHrServiceTokenProvider.cs` - token service-to-service (`Service/GetToken`, clientApp `indigoERP`, target `epicaHR`), cache do wygaśnięcia. `Services/EpicaHrPracownikEmailClient.cs` - `PUT api/PracownikEmail/UstawEmailSluzbowy/{pracownikID}`.
+- **Zmiana (epicaHR.Api):** `Controllers/Kadry/PracownikEmailController.cs` - `UstawEmailSluzbowy`: pusty adres czyści (Usuniety = true) przypisania typu 9; adres aktualizuje istniejący kontakt w indigoERP albo tworzy nowy (`Kontakt/Insert`) i przypisanie. Autoryzacja: rola `HCZ-epicaHR-Kadry` (token service-to-service). `Domain/Entities/Kadry/PracownikKontakt.cs` - pole `Usuniety`.
+- **Zmiana (authorizationSRV):** `appsettings.json` (dev) - klient `indigoERP` w `ServiceClients`.
+- **Baza danych:**
+  - `_SQL Queries/indigoERP_AplikacjaUslugaUprawnienie_indigoERP_epicaHR.sql` - nadanie indigoERP -> epicaHR, rola `HCZ-epicaHR-Kadry` (idempotentne).
+  - `_SQL Queries/epicaHR_PracownikKontakt_utrIdPracownikKontakt.sql` - trigger `INSTEAD OF DELETE` zamieniający DELETE w `Usuniety = 1` (na bazie epicaHR).
+- **Decyzja techniczna:** wybrano token service-to-service (droga A), bo wywołanie idzie w imieniu systemu, a nie zalogowanego użytkownika. Klucz klienta to zmienna systemowa `ServiceClient_indigoERP` (ta sama wartość na authorizationSRV i na indigoERP.Api). Zapis do epicaHR jest przed zapisem w indigoERP, żeby błąd nie rozjechał obu baz.
+- **Kolejność wdrożenia (produkcja):**
+  1. Ustawić zmienną systemową `ServiceClient_indigoERP` (Machine) na JAPET (authorizationSRV) i na DEIMOS (indigoERP.Api) - ta sama wartość.
+  2. Dopiero potem dopisać `"indigoERP": ""` do `ServiceClients` w produkcyjnym `appsettings.json` authorizationSRV i opublikować go. Dopisanie klucza bez zmiennej blokuje start bramki (patrz wpis atacamaDMS 2026-09-07).
+  3. Uruchomić skrypt nadania (indigoERP) i trigger (epicaHR).
+  4. Publikacja epicaHR.Api (endpoint `PracownikEmail`) i indigoERP.Api.
+- **Status wdrożenia:** tylko repozytorium. Nie zacommitowano, nie opublikowano, skrypty SQL nie uruchomione.
+- **Weryfikacja:** build indigoERP.Api - 0 błędów; testy indigoERP.Api 52/52 (w tym 3 nowe w `UzytkownikEmailGraphTests`: czyszczenie przy braku konta w M365, wywołanie epicaHR, odrzucenie przez epicaHR; 4 nowe w `EpicaHrServiceTokenProviderTests`: nadanie klucza i cache tokenu, brak sekretu, odrzucenie przez bramkę, wymóg HTTPS). epicaHR.Api - build 0 błędów; `PracownikEmailControllerTests` 2/2 (czyszczenie tylko e-maila służbowego, dodanie nowego kontaktu).
+- **Luki:**
+  - Rola `HCZ-epicaHR-Kadry` to założenie wzięte z wdrożenia atacamaDMS; trzeba potwierdzić, że taka rola istnieje i jest właściwa dla zapisu adresów.
+  - Zakładam, że `usrPracownikID` w indigoERP jest tym samym numerem co `pktPracownikID` w epicaHR (potwierdzone przez użytkownika).
+
 ## 2026-10-29 - Worker: odpowiedzi o niedostarczeniu oznaczają adresatów statusem 5
 
 - **Zgłoszenie:** worker nie sprawdzał skrzynki nadawcy, więc adresy nieistniejące były oznaczane jako wysłane (status 4), choć nie doszły.

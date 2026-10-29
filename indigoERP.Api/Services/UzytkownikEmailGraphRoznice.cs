@@ -5,7 +5,8 @@ namespace indigoERP.Api.Services
 {
     /// <summary>
     /// Porównanie adresów e-mail użytkowników indigoERP z kontami Microsoft 365 (za źródło prawdy przyjmujemy M365):
-    /// Dodaj (pusty adres, jest w M365), Popraw (adres różni się od M365), Usun (konto nieaktywne, status = '1').
+    /// Dodaj (pusty adres, jest w M365), Popraw (adres różni się od M365), Usun (konto nieaktywne, status = '1',
+    /// albo aktywne z adresem, którego nie ma w M365 - czyścimy tylko adres, rekord zostaje).
     /// </summary>
     public sealed class UzytkownikEmailGraphRoznice
     {
@@ -76,6 +77,15 @@ namespace indigoERP.Api.Services
 
             if (znaleziony == null)
             {
+                // Brak konta w M365 przy aktywnym użytkowniku z adresem: czyścimy tylko adres e-mail.
+                // Rekordu nie kasujemy - usuwa go wyłącznie synchronizacja z epicaHR.
+                pozycja.wynik = "Brak";
+
+                if (obecny.Length > 0)
+                {
+                    pozycja.akcja = UzytkownikEmailGraphAkcja.Usun;
+                }
+
                 return pozycja;
             }
 
