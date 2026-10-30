@@ -370,3 +370,6 @@ FodyWeavers.xsd
 # Pliki użytkowników z testów lokalnych (nie są częścią repozytorium)
 /indigoERP.Blazor/wwwroot/_documents/
 /_documents/
+
+# Lokalne ustawienia z sekretami (wzór: appsettings.Development.json.example)
+indigoERP.Api/appsettings.Development.json

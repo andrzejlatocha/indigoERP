@@ -12,5 +12,18 @@
     "TenantId": "",
     "ClientId": "",
     "ClientSecret": ""
+  },
+  "connectionStrings": {
+    "indigoERPConnection": "<USTAW_LOKALNIE>"
+  },
+  "Jwt": {
+    "Key": "<USTAW_LOKALNIE>"
+  },
+  "InternalSso": {
+    "Key": "<USTAW_LOKALNIE>"
+  },
+  "appSettings": {
+    "MonitoringSqlPassword": "<USTAW_LOKALNIE>",
+    "ApiKey": "<USTAW_LOKALNIE>"
   }
 }
