@@ -38,10 +38,10 @@
 
     private async Task OtworzNowy()
     {
-        var zmieniono = await _dialogService.OpenAsync<GlosWysylkaOkno>(
+        var zmieniono = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
             "Nowy numer Głosu Hutnika",
             new Dictionary<string, object?>(),
-            GetDialogOptions());
+            GetSideOptions());
 
         // Po zapisie odświeżamy stronę, żeby numer roboczy pojawił się na liście.
         OdswiezJesliZmieniono(zmieniono);
@@ -49,10 +49,10 @@
 
     private async Task OtworzWysylke(WiadomoscDto wiadomosc)
     {
-        var wyslano = await _dialogService.OpenAsync<GlosWysylkaOkno>(
+        var wyslano = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
             $"Wysyłka: {wiadomosc.wiaTemat}",
             new Dictionary<string, object?> { ["WiadomoscID"] = wiadomosc.wiaID, ["Tytul"] = wiadomosc.wiaTemat },
-            GetDialogOptions());
+            GetSideOptions());
 
         OdswiezJesliZmieniono(wyslano);
     }
@@ -65,15 +65,14 @@
         }
     }
 
-    // Okno wyśrodkowane, nie większe niż widok: górna część (tytuł, temat, edytor) zawsze widoczna, treść się przewija.
-    private static DialogOptions GetDialogOptions() => new()
+    // Okno boczne z prawej, na całą wysokość widoku; siatka wypełnia wysokość, przyciski zostają na dole.
+    private static SideDialogOptions GetSideOptions() => new()
     {
+        Position = DialogPosition.Right,
         Width = "min(1000px, 95vw)",
-        Height = "min(88vh, 900px)",
-        Resizable = false,
-        Draggable = false,
         CloseDialogOnOverlayClick = false,
         ShowTitle = true,
-        ShowClose = true
+        ShowClose = true,
+        CssClass = "glos-okno-dialog"
     };
 }

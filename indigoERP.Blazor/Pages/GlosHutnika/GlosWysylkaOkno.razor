@@ -53,7 +53,7 @@
                           Variant="Variant.Outlined" Click="@OdznaczWszystko" Disabled="@(selected.Count == 0)" />
         </RadzenStack>
 
-        <div class="mt-2 administrator-grid-row">
+        <div class="glos-okno-siatka">
             @if (selectedZakresID == null)
             {
                 <div class="p-3">Wybierz zakres odbiorców, aby zobaczyć listę pracowników.</div>
@@ -66,7 +66,7 @@
             {
                 <RadzenDataGridApp @ref="grid" Data="@pracownicy" TItem="WiadomoscZakresPracownikViewModel" AllowPaging="true" PageSize="10"
                                    AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                   Density="Density.Compact" Class="administrator-grid" SelectionMode="DataGridSelectionMode.Multiple"
+                                   Density="Density.Compact" Class="administrator-grid" SelectionMode="DataGridSelectionMode.Multiple" Style="height:100%"
                                    @bind-Value="@selected">
                     <Columns>
                         <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcNazwisko" Title="Nazwisko" Width="200px" />

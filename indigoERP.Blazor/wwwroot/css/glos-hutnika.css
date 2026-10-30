@@ -90,9 +90,25 @@
     overflow-wrap: anywhere;
 }
 
-/* Okno wysyłki w oknie modalnym: treść przewija się, a nagłówek i stopka okna nie znikają poza ekranem. */
+/* Okno boczne wysyłki: wysokość na cały widok; siatka wypełnia wolne miejsce, przyciski zostają na dole. */
+.glos-okno-dialog .rz-dialog-content {
+    height: calc(100% - 3.5rem);
+    overflow: hidden;
+}
+
 .glos-okno {
-    max-height: calc(88vh - 120px);
-    overflow-y: auto;
-    padding-right: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.glos-okno-siatka {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.glos-okno-siatka .rz-data-grid {
+    height: 100%;
 }
