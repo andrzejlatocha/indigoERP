@@ -28,6 +28,12 @@ public class WiadomoscPracownikController : ControllerBase
     private const string StatusRobocza = "1";
     private const string StatusWyslana = "2";
 
+    /// <summary>Skrzynka, z której Worker wysyła Głos Hutnika (Worker bierze nadawcę z Wiadomosc.wiaEmail).</summary>
+    public const string NadawcaGlosu = "indigoERP@huta-czestochowa.pl";
+
+    // Każdy odbiorca to osobna wartość formularza (prcIDs); domyślny limit ASP.NET to 1024.
+    private const int LimitOdbiorcow = 20000;
+
     private readonly indigoERPContext _context;
     private readonly IWiadomoscZakresPracownikSource _zakresy;
     private readonly IWiadomoscZalacznikStorage _zalaczniki;
@@ -123,6 +129,7 @@ public class WiadomoscPracownikController : ControllerBase
             wiaTresc = model.wiaTresc,
             wiaData = DateTime.Now,
             wiaStatus = StatusRobocza,
+            wiaEmail = NadawcaGlosu,
             wiaPubliczna = true
         };
 
@@ -145,6 +152,7 @@ public class WiadomoscPracownikController : ControllerBase
     /// Odbiorcy są sprawdzani po stronie serwera względem zakresu.
     /// </summary>
     [HttpPost("{wiaID}")]
+    [RequestFormLimits(ValueCountLimit = LimitOdbiorcow)]
     public async Task<ActionResult<WiadomoscWysylkaZakresWynikModel>> WyslijRobocza(
         int wiaID, [FromForm] WiadomoscWyslijRoboczaModel model, CancellationToken cancellationToken)
     {
@@ -159,6 +167,12 @@ public class WiadomoscPracownikController : ControllerBase
         if (wiadomosc.wiaStatus != StatusRobocza)
         {
             return BadRequest("Ta wiadomość nie jest numerem roboczym i została już wysłana.");
+        }
+
+        // Worker wysyła z adresu zapisanego w wiaEmail; numery zapisane przed ustawieniem nadawcy dostają go przy wysyłce.
+        if (string.IsNullOrWhiteSpace(wiadomosc.wiaEmail))
+        {
+            wiadomosc.wiaEmail = NadawcaGlosu;
         }
 
         if (model.prcIDs.Count == 0)
@@ -208,7 +222,7 @@ public class WiadomoscPracownikController : ControllerBase
     /// </summary>
     [HttpPost]
     [RequestSizeLimit(WiadomoscZalacznikStorage.MaxLacznyRozmiar)]
-    [RequestFormLimits(MultipartBodyLengthLimit = WiadomoscZalacznikStorage.MaxLacznyRozmiar)]
+    [RequestFormLimits(MultipartBodyLengthLimit = WiadomoscZalacznikStorage.MaxLacznyRozmiar, ValueCountLimit = LimitOdbiorcow)]
     public async Task<ActionResult<WiadomoscWysylkaZakresWynikModel>> InsertWysylka(
         [FromForm] WiadomoscWysylkaZakresModel model, IFormFileCollection? pliki, CancellationToken cancellationToken)
     {
@@ -259,6 +273,7 @@ public class WiadomoscPracownikController : ControllerBase
             wiaTresc = model.wiaTresc,
             wiaData = DateTime.Now,
             wiaStatus = StatusWyslana,
+            wiaEmail = NadawcaGlosu,
             // Wysyłka z zakładki Głos Hutnika to numer publiczny — trafia na stronę /gloshutnika.
             wiaPubliczna = true
         };

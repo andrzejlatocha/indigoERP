@@ -286,6 +286,37 @@ public sealed class WiadomoscWysylkaTests
         }
     }
 
+    [Fact]
+    public async Task Robocza_is_saved_with_the_glos_sender_so_the_worker_can_send_it()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
+
+        await kontroler.InsertRobocza(
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 7", wiaTresc = "<p>Treść</p>" },
+            null, CancellationToken.None);
+
+        Assert.Equal("indigoERP@huta-czestochowa.pl", (await context.Wiadomosc.SingleAsync()).wiaEmail);
+    }
+
+    [Fact]
+    public async Task Send_fills_the_glos_sender_when_a_draft_has_none()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
+        var zapis = await kontroler.InsertRobocza(
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 7", wiaTresc = "<p>Treść</p>" },
+            null, CancellationToken.None);
+        var wiaID = Assert.IsType<WiadomoscDto>(Assert.IsType<OkObjectResult>(zapis.Result).Value).wiaID;
+        var wiadomosc = await context.Wiadomosc.SingleAsync();
+        wiadomosc.wiaEmail = null;
+        await context.SaveChangesAsync();
+
+        await kontroler.WyslijRobocza(wiaID, new WiadomoscWyslijRoboczaModel { wzaID = 1, prcIDs = [1] }, CancellationToken.None);
+
+        Assert.Equal("indigoERP@huta-czestochowa.pl", (await context.Wiadomosc.SingleAsync()).wiaEmail);
+    }
+
     private static FormFile Plik(string nazwa, string tresc)
     {
         var bajty = System.Text.Encoding.ASCII.GetBytes(tresc);

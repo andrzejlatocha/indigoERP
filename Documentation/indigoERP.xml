@@ -106,6 +106,9 @@
         <member name="T:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController">
             <summary>Wysyłka „Głos Hutnika” do pracowników zakresu (z załącznikami PDF). Dostęp: rola Gazeta lub Administrator.</summary>
         </member>
+        <member name="F:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.NadawcaGlosu">
+            <summary>Skrzynka, z której Worker wysyła Głos Hutnika (Worker bierze nadawcę z Wiadomosc.wiaEmail).</summary>
+        </member>
         <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.SelectRobocze(System.Int32)">
             <summary>Numery robocze aplikacji (zapisane, jeszcze nie wysłane), najnowsze pierwsze.</summary>
         </member>
