@@ -317,6 +317,22 @@ public sealed class WiadomoscWysylkaTests
         Assert.Equal("indigoERP@huta-czestochowa.pl", (await context.Wiadomosc.SingleAsync()).wiaEmail);
     }
 
+    [Fact]
+    public async Task Wysylka_uses_one_row_per_employee_when_the_zakres_lists_the_same_person_twice()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var zakres = new FakeZakres(
+            Odbiorca(1, "Kowalski", null),
+            Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl"));
+        var kontroler = Kontroler(context, zakres);
+
+        var result = await kontroler.InsertWysylka(Model(1), null, CancellationToken.None);
+
+        var wynik = Assert.IsType<WiadomoscWysylkaZakresWynikModel>(Assert.IsType<OkObjectResult>(result.Result).Value);
+        Assert.Equal(1, wynik.dodano);
+        var odbiorca = await context.WiadomoscPracownik.SingleAsync();
+        Assert.Equal("a@huta-czestochowa.pl", odbiorca.wprEmail);
+    }
     private static FormFile Plik(string nazwa, string tresc)
     {
         var bajty = System.Text.Encoding.ASCII.GetBytes(tresc);

@@ -429,7 +429,12 @@ public class WiadomoscPracownikController : ControllerBase
     private static List<WiadomoscZakresPracownikViewModel> PrzygotujOdbiorcow(
         IReadOnlyList<WiadomoscZakresPracownikViewModel> zakres, IEnumerable<int> prcIDs, WiadomoscWysylkaZakresWynikModel wynik)
     {
-        var odbiorcy = zakres.Where(z => z.prcID.HasValue).ToDictionary(z => z.prcID!.Value);
+        // Ten sam pracownik może występować w zakresie więcej niż raz (np. kilka kontaktów): bierzemy jeden wiersz,
+        // preferując ten z adresem e-mail, zamiast wywalać ToDictionary na duplikacie.
+        var odbiorcy = zakres
+            .Where(z => z.prcID.HasValue)
+            .GroupBy(z => z.prcID!.Value)
+            .ToDictionary(g => g.Key, g => g.OrderBy(z => string.IsNullOrWhiteSpace(z.kntKontakt) ? 1 : 0).First());
         var wybrani = prcIDs.Distinct().ToList();
 
         var spozaZakresu = wybrani.Count(id => !odbiorcy.ContainsKey(id));
