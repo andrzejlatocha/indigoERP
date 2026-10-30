@@ -1,5 +1,20 @@
 ﻿# Codex Changes
 
+## 2026-10-30 - Głos Hutnika: okno nowego numeru i wysyłki jako okno modalne (wersja 3.26.1030.11403)
+
+- **Zgłoszenie:** okno boczne „Nowy numer” / „Wyślij” na /gloshutnika było wyższe niż widok: tytuł, temat i edytor wypadały poza ekran, a przyciski nie były dostępne (zapis roboczego zablokowany, „Anuluj” bez reakcji).
+- **Zmiana (Blazor):** Pages/GlosHutnika/GlosZarzadzanie.razor - OpenAsync z DialogOptions (wyśrodkowane, szerokość min(1000px, 95vw), wysokość min(88vh, 900px)), zamiast OpenSideAsync. wwwroot/css/glos-hutnika.css - .glos-okno z przewijaniem treści.
+- **Wersja:** 3.26.1030.11403 (Api i Blazor w appsettings). Na serwerze publikowany tylko Blazor.
+- **Weryfikacja:** build Blazor 0 błędów; testy Blazor 13/13. Wyglądu nie sprawdzono w przeglądarce (strona wymaga logowania domenowego).
+- **Status wdrożenia:** commit na developer, merge do master; publikacja Blazora do sprawdzenia po cyklu app_offline.
+## 2026-10-30 - Wiadomość: podsumowanie adresatów (Wiadomosc/SelectPodsumowanie)
+
+- **Zgłoszenie:** epicaHR musi pokazać liczby wysłanych i błędów na wiadomość w liście (jeden wiersz na wiadomość).
+- **Zmiana (API):** `WiadomoscController.SelectPodsumowanie(wiaAplikacjaID)` (AllowAnonymous, jak `SelectHistoria`) zlicza `dbo.WiadomoscPracownik` po `wprWiadomoscID` dla aplikacji: `Razem`, `Wyslane` (status 4), `Bledy` (status 5), `Oczekujace` (status 2).
+- **Zmiana (Domain):** `WiadomoscPodsumowanieDto`.
+- **Weryfikacja:** build `indigoERP.Api` 0 błędów. Zapytanie nie jest pokryte testem na bazie – luka.
+- **Status wdrożenia:** kod gotowy, niezacommitowany, niewdrożony na JAPET (wymagane przed wdrożeniem epicaHR).
+
 ## 2026-10-29 - Adres e-mail służbowy: indigoERP -> epicaHR (PracownikKontakt), token service-to-service
 
 - **Zgłoszenie:** konto użytkownika nieobecne w Microsoft 365 ma czyścić adres e-mail (rekord użytkownika zostaje, usuwa go synchronizacja z epicaHR). Zmiana adresu w oknie różnic ma iść także do epicaHR: e-mail służbowy (typ kontaktu 9) w PracownikKontakt, z `Usuniety = true` zamiast kasowania. Pozostałe kontakty bez zmian.

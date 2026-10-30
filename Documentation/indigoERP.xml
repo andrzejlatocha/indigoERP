@@ -100,6 +100,9 @@
             <param name="lbaKOD"></param>
             <returns></returns>
         </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscController.SelectPodsumowanie(System.Int32)">
+            <summary>Liczby adresatów (wysłane, błędy, oczekujące) dla wiadomości aplikacji – jeden wiersz na wiadomość.</summary>
+        </member>
         <member name="T:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController">
             <summary>Wysyłka „Głos Hutnika” do pracowników zakresu (z załącznikami PDF). Dostęp: rola Gazeta lub Administrator.</summary>
         </member>

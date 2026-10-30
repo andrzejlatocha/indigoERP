@@ -6,7 +6,7 @@
 @inject IWiadomoscPracownikService _wiadomoscPracownikService
 @inject IConfiguration _configuration
 
-@* Osadzone w publicznej stronie Razor (/gloshutnika) tylko dla ról Gazeta / Administrator. Okna wysyłki otwierają się z boku. *@
+@* Osadzone w publicznej stronie Razor (/gloshutnika) tylko dla ról Gazeta / Administrator. Okna wysyłki otwierają się na środku. *@
 <RadzenDialog />
 <RadzenNotification />
 
@@ -38,10 +38,10 @@
 
     private async Task OtworzNowy()
     {
-        var zmieniono = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+        var zmieniono = await _dialogService.OpenAsync<GlosWysylkaOkno>(
             "Nowy numer Głosu Hutnika",
             new Dictionary<string, object?>(),
-            GetSideOptions());
+            GetDialogOptions());
 
         // Po zapisie odświeżamy stronę, żeby numer roboczy pojawił się na liście.
         OdswiezJesliZmieniono(zmieniono);
@@ -49,10 +49,10 @@
 
     private async Task OtworzWysylke(WiadomoscDto wiadomosc)
     {
-        var wyslano = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+        var wyslano = await _dialogService.OpenAsync<GlosWysylkaOkno>(
             $"Wysyłka: {wiadomosc.wiaTemat}",
             new Dictionary<string, object?> { ["WiadomoscID"] = wiadomosc.wiaID, ["Tytul"] = wiadomosc.wiaTemat },
-            GetSideOptions());
+            GetDialogOptions());
 
         OdswiezJesliZmieniono(wyslano);
     }
@@ -65,10 +65,13 @@
         }
     }
 
-    private static SideDialogOptions GetSideOptions() => new()
+    // Okno wyśrodkowane, nie większe niż widok: górna część (tytuł, temat, edytor) zawsze widoczna, treść się przewija.
+    private static DialogOptions GetDialogOptions() => new()
     {
-        Position = DialogPosition.Right,
-        Width = "1000px",
+        Width = "min(1000px, 95vw)",
+        Height = "min(88vh, 900px)",
+        Resizable = false,
+        Draggable = false,
         CloseDialogOnOverlayClick = false,
         ShowTitle = true,
         ShowClose = true

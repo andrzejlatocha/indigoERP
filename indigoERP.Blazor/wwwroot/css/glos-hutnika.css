@@ -89,3 +89,10 @@
 .glos-tresc {
     overflow-wrap: anywhere;
 }
+
+/* Okno wysyłki w oknie modalnym: treść przewija się, a nagłówek i stopka okna nie znikają poza ekranem. */
+.glos-okno {
+    max-height: calc(88vh - 120px);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
