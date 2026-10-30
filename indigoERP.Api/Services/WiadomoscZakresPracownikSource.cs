@@ -39,13 +39,20 @@ namespace indigoERP.Api.Services
 
             // viewName is an identifier validated against the fixed app.vWiadomoscZakres pattern.
 #pragma warning disable EF1002
-            return await _context.WiadomoscZakresPracownikViewModel
+            var wiersze = await _context.WiadomoscZakresPracownikViewModel
                 .FromSqlRaw($"SELECT prcID, prcKod, prcImie, prcNazwisko, kntID, kntKontakt FROM {viewName}")
                 .AsNoTracking()
                 .OrderBy(w => w.prcNazwisko)
                 .ThenBy(w => w.prcImie)
                 .ToListAsync(cancellationToken);
 #pragma warning restore EF1002
+
+            // Do wysyłki tylko pracownicy z adresem e-mail; jeden wiersz na pracownika (widok może zwracać kilka kontaktów).
+            return wiersze
+                .Where(w => w.prcID.HasValue && !string.IsNullOrWhiteSpace(w.kntKontakt))
+                .GroupBy(w => w.prcID!.Value)
+                .Select(g => g.First())
+                .ToList();
         }
 
         private static bool TryGetViewName(string widok, out string viewName)
