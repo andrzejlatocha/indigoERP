@@ -50,6 +50,17 @@ html, body {
     padding-bottom: 0;
 }
 
+.header-logo {
+    height: 38px;
+    width: auto;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
 .header-color .container-fluid {
     height: 56px;
     min-height: 56px;

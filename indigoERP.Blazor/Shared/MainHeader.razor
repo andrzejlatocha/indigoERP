@@ -1,9 +1,9 @@
 ﻿@inject IConfiguration _configuration
 
-<nav class="navbar navbar-dark bg-dark navbar-expand-md header-color header-navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">
-            <img class="app-header-logo" src="images/logo_white.svg" />
+<nav class="navbar navbar-dark navbar-expand-md header-color header-navbar">
+    <div class="container-fluid w-100">
+        <a class="navbar-brand ms-2" href="/">
+            <img class="header-logo" src="images/logo_white.svg" alt="indigoERP" />
         </a>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
@@ -27,10 +27,10 @@
                 <AuthorizeView Roles="HCZ-indigoERP-Podpisy">
                     <li class="nav-item"><a href="/podpis/" class="nav-link active">Podpisy</a></li>
                 </AuthorizeView>
-                <li class="nav-item"><a href="about" class="nav-link">O programie</a></li>
+                <li class="nav-item"><a href="about" class="nav-link">O systemie</a></li>
             </ul>
         </div>
-        <div class="text-light">
+        <div class="header-actions text-light">
             <LoginDisplay />
         </div>
     </div>

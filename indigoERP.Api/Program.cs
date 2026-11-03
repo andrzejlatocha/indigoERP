@@ -11,6 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+// DocumentPath (zmienna wspólna dla API, Blazora i Workera, bez prefiksu) wskazuje katalog załączników i nadpisuje FileStorage:Path.
+var documentPath = Environment.GetEnvironmentVariable("DocumentPath");
+
+if (!string.IsNullOrWhiteSpace(documentPath))
+{
+    builder.Configuration["FileStorage:Path"] = documentPath;
+}
+
 // Zmienne środowiskowe indigoERP_MonitoringIntervalMinutes / indigoERP_MonitoringSqlLogin /
 // indigoERP_MonitoringSqlPassword nadpisują appSettings:MonitoringIntervalMinutes/MonitoringSqlLogin/
 // MonitoringSqlPassword z appsettings.json. Prefiks indigoERP_ (nie goły appSettings_) — kilka aplikacji

@@ -5,7 +5,7 @@
     <Authorized Context="auth">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Class="login-display">
             <RadzenSwitch @bind-Value="@isDarkMode" Change="@ChangeTheme" />
-            <RadzenButton Text="@GetUserName(auth)" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" Class="login-display__user"
+            <RadzenButton Text="@GetUserName(auth)" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" Class="login-display__user btn btn-outline-light btn-sm"
                           Click="@WyswietlUzytkownik" />
         </RadzenStack>
     </Authorized>

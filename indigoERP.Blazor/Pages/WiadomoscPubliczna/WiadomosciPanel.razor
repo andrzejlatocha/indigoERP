@@ -8,16 +8,24 @@
 
 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
     <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="rok" Style="width: 110px;" />
-    <GlosZarzadzanie />
+    <GlosZarzadzanie OnZmieniono="@OdswiezAsync" />
 </RadzenStack>
 
-<ListaWiadomosci Lista="@WiadomosciRoku" />
+@if (ladowanie)
+{
+    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="height:4px; margin-top:1rem" />
+}
+else
+{
+    <ListaWiadomosci Lista="@WiadomosciRoku" />
+}
 
 @code {
     // Rekordy sprzed tej daty nie są pokazywane (ustalenie użytkownika).
     private static readonly DateTime DataOd = new(2026, 10, 1);
 
     private List<WiadomoscPodsumowanieDto> wszystkie = new();
+    private bool ladowanie = true;
 
     private int rok = DateTime.Now.Year;
 
@@ -40,6 +48,20 @@
 
     protected override async Task OnInitializedAsync()
     {
-        wszystkie = (await _wiadomoscPracownikService.SelectPodsumowanie(AppID)).ToList();
+        await OdswiezAsync();
+    }
+
+    private async Task OdswiezAsync()
+    {
+        ladowanie = true;
+
+        try
+        {
+            wszystkie = (await _wiadomoscPracownikService.SelectPodsumowanie(AppID)).ToList();
+        }
+        finally
+        {
+            ladowanie = false;
+        }
     }
 }

@@ -19,23 +19,19 @@ public sealed class GraphWiadomoscMailSender(IMicrosoftGraphMailService graph) :
         graph.SendAsync(message, cancellationToken);
 }
 
-// Wybór kanału po domenie nadawcy: hutaczestochowa.com.pl idzie przez wewnętrzny SMTP, pozostałe przez Graph.
-public sealed class RoutingWiadomoscMailSender(IWiadomoscMailSender graph, IWiadomoscMailSender smtp) : IWiadomoscMailSender
+// Kanał wysyłki: na razie wszystko przez nasz serwer SMTP (decyzja o powrocie do Graph odłożona).
+public sealed class RoutingWiadomoscMailSender(IWiadomoscMailSender smtp) : IWiadomoscMailSender
 {
     private const string DomenaSmtp = "@hutaczestochowa.com.pl";
 
-    public bool IsConfigured => graph.IsConfigured || smtp.IsConfigured;
+    public bool IsConfigured => smtp.IsConfigured;
 
     // Nadawcy z domeny SMTP nie mają skrzynki w M365, więc nie czytamy dla nich odpowiedzi NDR przez Graph.
     public static bool UzywaSmtp(string? nadawca) =>
         nadawca?.EndsWith(DomenaSmtp, StringComparison.OrdinalIgnoreCase) == true;
 
-    public Task SendAsync(GraphMailMessage message, CancellationToken cancellationToken)
-    {
-        var kanal = UzywaSmtp(message.Nadawca) ? smtp : graph;
-
-        return kanal.SendAsync(message, cancellationToken);
-    }
+    public Task SendAsync(GraphMailMessage message, CancellationToken cancellationToken) =>
+        smtp.SendAsync(message, cancellationToken);
 }
 
 public sealed class SmtpWiadomoscMailSender(IConfiguration configuration) : IWiadomoscMailSender

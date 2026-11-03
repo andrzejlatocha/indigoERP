@@ -92,11 +92,11 @@
             <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="height:4px" Class="mt-3" />
         }
 
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3 w-100">
             @if (potwierdzenie)
             {
-                <span>Wysłać „@Tytul” do @selected.Count osób z zakresu „@NazwaZakresu”?</span>
-                <RadzenButton Text="Tak, wyślij" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                <span class="flex-grow-1" style="font-size:0.8rem; color:#4a4a4a;">Wysłać „@Tytul” do @selected.Count osób z zakresu „@NazwaZakresu”?</span>
+                <RadzenButton Text="WYŚLIJ" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                               Click="@Wyslij" IsBusy="@busy" Disabled="@busy" />
                 <RadzenButton Text="Nie" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@AnulujPotwierdzenie" Disabled="@busy" />
             }

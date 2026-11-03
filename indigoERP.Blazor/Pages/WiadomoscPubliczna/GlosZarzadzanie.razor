@@ -2,7 +2,6 @@
 @using indigoERP.Service.Interfaces._Wspolne
 
 @inject DialogService _dialogService
-@inject NavigationManager _navigationManager
 @inject IWiadomoscPracownikService _wiadomoscPracownikService
 @inject IConfiguration _configuration
 
@@ -14,7 +13,11 @@
     <RadzenButton Text="Nowy numer" Icon="add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@OtworzNowy" />
 </RadzenStack>
 
-@if (robocze != null && robocze.Count > 0)
+@if (ladowanie)
+{
+    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="height:4px; width:200px" />
+}
+else if (robocze is { Count: > 0 })
 {
     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="w-100 mt-2">
         <span class="text-muted small">Robocze:</span>
@@ -28,12 +31,28 @@
 
 @code {
     private List<WiadomoscDto>? robocze;
+    private bool ladowanie = true;
+
+    /// <summary>Wywoływane po zapisie lub wysyłce, żeby rodzic odświeżył swoją listę.</summary>
+    [Parameter] public EventCallback OnZmieniono { get; set; }
 
     private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
 
     protected override async Task OnInitializedAsync()
     {
-        robocze = (await _wiadomoscPracownikService.SelectRobocze(AppID)).ToList();
+        await OdswiezRobocze();
+    }
+
+    private async Task OdswiezRobocze()
+    {
+        try
+        {
+            robocze = (await _wiadomoscPracownikService.SelectRobocze(AppID)).ToList();
+        }
+        finally
+        {
+            ladowanie = false;
+        }
     }
 
     private async Task OtworzNowy()
@@ -43,7 +62,6 @@
             new Dictionary<string, object?>(),
             GetSideOptions());
 
-        // Po zapisie odświeżamy stronę, żeby numer roboczy pojawił się na liście.
         await OdswiezJesliZmieniono(zmieniono);
     }
 
@@ -59,12 +77,14 @@
 
     private async Task OdswiezJesliZmieniono(dynamic? wynik)
     {
-        if (wynik is true)
+        if (wynik is not true)
         {
-            // Chwila na komunikat o wysłaniu, zanim strona się przeładuje (przeładowanie kasuje komunikaty).
-            await Task.Delay(TimeSpan.FromSeconds(4));
-            _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
+            return;
         }
+
+        // Bez przeładowania strony: komunikat zostaje na ekranie, a listy odświeżają się same.
+        await OdswiezRobocze();
+        await OnZmieniono.InvokeAsync();
     }
 
     // Okno boczne z prawej, szerokość 1000px; zawartość przewija się w całości, nic nie jest ucinane.

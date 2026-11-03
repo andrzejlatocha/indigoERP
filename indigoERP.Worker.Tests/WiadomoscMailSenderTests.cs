@@ -36,27 +36,23 @@ public class WiadomoscMailSenderTests
     [Fact]
     public async Task Routing_SendsInternalSenderDomainThroughSmtp()
     {
-        var graph = new FakeSender();
         var smtp = new FakeSender();
-        var sender = new RoutingWiadomoscMailSender(graph, smtp);
+        var sender = new RoutingWiadomoscMailSender(smtp);
 
         await sender.SendAsync(new GraphMailMessage("informacje@hutaczestochowa.com.pl", ["a@huta-czestochowa.pl"], "T", "B", []), CancellationToken.None);
 
         Assert.Single(smtp.Wyslane);
-        Assert.Empty(graph.Wyslane);
     }
 
     [Fact]
-    public async Task Routing_SendsOtherSendersThroughGraph()
+    public async Task Routing_SendsEverySenderThroughSmtp()
     {
-        var graph = new FakeSender();
         var smtp = new FakeSender();
-        var sender = new RoutingWiadomoscMailSender(graph, smtp);
+        var sender = new RoutingWiadomoscMailSender(smtp);
 
         await sender.SendAsync(new GraphMailMessage("itsupport@huta-czestochowa.pl", ["a@huta-czestochowa.pl"], "T", "B", []), CancellationToken.None);
 
-        Assert.Single(graph.Wyslane);
-        Assert.Empty(smtp.Wyslane);
+        Assert.Single(smtp.Wyslane);
     }
 
     [Theory]
@@ -69,11 +65,11 @@ public class WiadomoscMailSenderTests
         Assert.Equal(oczekiwany, RoutingWiadomoscMailSender.UzywaSmtp(nadawca));
     }
 
-    private sealed class FakeSender : IWiadomoscMailSender
+    private sealed class FakeSender(bool configured = true) : IWiadomoscMailSender
     {
         public List<GraphMailMessage> Wyslane { get; } = [];
 
-        public bool IsConfigured => true;
+        public bool IsConfigured => configured;
 
         public Task SendAsync(GraphMailMessage message, CancellationToken cancellationToken)
         {

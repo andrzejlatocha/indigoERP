@@ -1,6 +1,4 @@
-﻿using System.Security.Principal;
-
-namespace indigoERP.Worker.Services;
+﻿namespace indigoERP.Worker.Services;
 
 // Diagnostyka braku pliku załącznika: konto procesu, każdy katalog po drodze, zawartość katalogu i wynik próby odczytu.
 public static class SciezkaDiagnostyka
@@ -9,7 +7,7 @@ public static class SciezkaDiagnostyka
     {
         var linie = new List<string>
         {
-            $"Konto procesu: {WindowsIdentity.GetCurrent().Name}",
+            $"Konto procesu: {Environment.UserDomainName}\\{Environment.UserName}",
             $"Ścieżka: {path}",
             $"File.Exists: {File.Exists(path)}"
         };

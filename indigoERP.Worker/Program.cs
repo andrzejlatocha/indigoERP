@@ -15,7 +15,7 @@ var environmentOverrides = new Dictionary<string, string?>();
 MapEnvironmentVariable("MicrosoftGraph_TenantId", "MicrosoftGraph:TenantId");
 MapEnvironmentVariable("MicrosoftGraph_ClientId", "MicrosoftGraph:ClientId");
 MapEnvironmentVariable("MicrosoftGraph_ClientSecret", "MicrosoftGraph:ClientSecret");
-MapEnvironmentVariable("indigoERP_FileStorage_Path", "FileStorage:Path");
+MapEnvironmentVariable("DocumentPath", "FileStorage:Path");
 
 if (environmentOverrides.Count > 0)
 {
@@ -28,10 +28,8 @@ builder.Services.Configure<WorkerOptions>(builder.Configuration.GetSection(Worke
 builder.Services.AddSingleton<WiadomoscWorkerContextFactory>();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IMicrosoftGraphMailService, MicrosoftGraphMailService>();
-builder.Services.AddSingleton<IWiadomoscMailSender>(sp =>
-    new RoutingWiadomoscMailSender(
-        new GraphWiadomoscMailSender(sp.GetRequiredService<IMicrosoftGraphMailService>()),
-        new SmtpWiadomoscMailSender(builder.Configuration)));
+builder.Services.AddSingleton<IWiadomoscMailSender>(_ =>
+    new RoutingWiadomoscMailSender(new SmtpWiadomoscMailSender(builder.Configuration)));
 builder.Services.AddSingleton<WiadomoscKolejkaService>();
 builder.Services.AddHostedService<WiadomoscWorker>();
 

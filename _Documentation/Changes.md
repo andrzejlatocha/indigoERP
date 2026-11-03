@@ -1,5 +1,14 @@
 ﻿# Codex Changes
 
+## 2026-11-03 - Głos Hutnika: wysyłka SMTP, DocumentPath, okno wysyłki i nagłówek
+
+- **Zgłoszenie:** wysyłka numeru GH nie mogła ruszyć (załącznik 1098 niewidoczny dla workera, Graph zamiast serwera pocztowego), okno wysyłki nie zamykało się po zapisie i pokazywało pustą stronę podczas ładowania, nagłówek Blazora odbiegał od wzorca.
+- **Diagnoza:** worker i API czytały załączniki z różnych katalogów (`c:\_documents` na JAPET i `C:\indigoERP_documents` na DEIMOS); okno zamykało się przez `forceLoad` po 4 s; nagłówek używał `logo_white.svg` w strukturze bez `container-fluid`.
+- **Zmiana:** Worker wysyła przez SMTP (`RoutingWiadomoscMailSender` używa tylko `SmtpWiadomoscMailSender`), katalog załączników z `DocumentPath` (`Program.cs`); API czyta `DocumentPath` jako `FileStorage:Path`; okno wysyłki odświeża listy bez przeładowania, pokazuje wskaźnik ładowania, przycisk potwierdzenia „WYŚLIJ”; nagłówek: `container-fluid w-100`, `header-logo` 38 px, `header-actions`, przycisk użytkownika `btn-outline-light`, pozycja menu „O systemie”.
+- **Decyzja techniczna:** `DocumentPath` bez prefiksu, bo to zmienna wspólna dla API, Blazora i Workera (ustawiona na DEIMOS i JAPET jako `c:\_documents`). Logo zostaje `logo_white.svg`: `logo.svg` ma tekst `#575756` i byłby niewidoczny na tle nagłówka. Odczyt NDR przez Graph pozostał bez zmian; wysyłka SMTP nie daje odpowiedzi NDR na skrzynki M365.
+- **Status wdrożenia:** API `3.26.1103.11411` wdrożone na DEIMOS (21:50 okno offline); Blazor `3.26.1103.11411` wdrożony na DEIMOS (22:37 okno offline); Worker wdrożony na JAPET (Z:, kopia `_backup_20261103_pre_docpath`), usługa uruchomiona. Pliki z `C:\indigoERP_documents` na DEIMOS przeniesione do `c:\_documents` (WENUS, 354 pliki w `CORE0900`). Publikacje wykonano z drzewa roboczego `developer`, nie z `master`; ten commit to ich zapis w repo.
+- **Weryfikacja:** build Release bez błędów; testy Api 57/57, Blazor 24/24, Services 10/10, Worker 34/34; worker po restarcie wysłał 100 adresatów wiadomości 1098 (20:57:55 wg logu); hash DLL na serwerach zgodny z publikacją; API i Blazor odpowiadają (Blazor 401 bez Kerberos, API 200). Wyglądu nagłówka i okna wysyłki nie sprawdzono w przeglądarce.
+
 ## 2026-11-03 - Strona O programie z nowościami z indigoERP
 
 - **Zgłoszenie:** aplikacja ma mieć stronę O programie z informacjami o programie, grafiką i tabelą nowości (od najnowszej); tytuł nowości otwiera okno z pełnym opisem w HTML.
