@@ -1,5 +1,103 @@
 ﻿# Codex Changes
 
+## 2026-11-03 - Strona O programie z nowościami z indigoERP
+
+- **Zgłoszenie:** aplikacja ma mieć stronę O programie z informacjami o programie, grafiką i tabelą nowości (od najnowszej); tytuł nowości otwiera okno z pełnym opisem w HTML.
+- **Zmiana:** katalog `OProgramie` (komponenty `OProgramieStrona` i `OProgramieNowosci`, klient `OProgramieNowosciClient`, `OProgramieHtml`), strona `About.razor` (`/about`) oparta na wspólnym komponencie; rejestracja `AddOProgramie` w `Program.cs`; pozycja menu O programie tam, gdzie istnieje menu. Nowości: `GET Nowosc/SelectByAplikacja/{AppID}?nowStatus=2` z API indigoERP (`appSettings:IndigoApiUrl`, produkcja: zmienna `indigoERP_Api_Url`).
+- **Decyzja techniczna:** komponent niezależny od biblioteki UI (HTML/CSS, bez Radzen i DevExpress), opis nowości czyszczony z skryptów, atrybutów zdarzeń i adresów javascript:.
+- **Status wdrożenia:** zmiana w kodzie, niewdrożona.
+- **Weryfikacja:** przebudowa projektu Blazor (0 błędów), testy bUnit klasy OProgramieTests: 11/11 zaliczonych; podgląd w przeglądarce (namibPMS).
+
+## 2026-11-03 - Ujednolicenie nagłówka i stopki (logo 38 px, ikony z images/footer)
+
+- **Zgłoszenie:** logo w nagłówku ma mieć wysokość 38 px, a ikony stopki (telefon, e-mail) mają pochodzić z katalogu `images/footer`.
+- **Zmiana:** wysokość logo w nagłówku ustawiona na 38 px (atrybut `height` lub CSS `.header-logo`); ikony stopki `ico_phone.png` i `ico_email.png` z `wwwroot/images/footer` (dodane tam, gdzie brakowało).
+- **Status wdrożenia:** zmiana w kodzie, niewdrożona.
+- **Weryfikacja:** przebudowa projektu Blazor (0 błędów).
+
+## 2026-11-03 - Dane wrażliwe przeniesione z appsettings.json do appsettings.Development.json
+
+- **Zgłoszenie:** dane wrażliwe (klucze, hasła, connection stringi z loginem SQL) nie mogą być w `appsettings.json`; lokalne wartości mają być w `appsettings.Development.json` ignorowanym przez git.
+- **Zmiana:** wartości przeniesione do `appsettings.Development.json` (istniejące wartości w tym pliku zachowane), w `appsettings.json` wyzerowane (connection stringi: usunięty login i hasło, `Trusted_Connection=True`); dodany wzorzec `appsettings.Development.json.example` (bez wartości tajnych); `**/appsettings.Development.json` w `.gitignore`; plik Development wycofany z indeksu git (`git rm --cached`, zostaje na dysku). Klucze: indigoERP.Api: Logging:LogLevel:Default; indigoERP.Api: Logging:LogLevel:Microsoft.AspNetCore; indigoERP.Api: FileStorage:Path; indigoERP.Api: MicrosoftGraph:TenantId; indigoERP.Api: MicrosoftGraph:ClientId; indigoERP.Api: MicrosoftGraph:ClientSecret; indigoERP.Api: connectionStrings:indigoERPConnection; indigoERP.Api: Jwt:Key; indigoERP.Api: InternalSso:Key; indigoERP.Api: appSettings:MonitoringSqlPassword; indigoERP.Api: appSettings:ApiKey; indigoERP.Blazor: InternalSso:Key; indigoERP.WebUI: appSettings:ApiKey.
+- **Decyzja techniczna:** produkcyjne wartości mają pochodzić ze zmiennych systemowych serwera; klucze bez nadpisania w kodzie wymagają dopisania odczytu zmiennej przed publikacją. Historia git nadal zawiera dawne wartości – zalecana rotacja kluczy i haseł.
+- **Status wdrożenia:** zmiana w kodzie, niewdrożona; przed publikacją ustawić zmienne systemowe.
+- **Weryfikacja:** poprawność JSON wszystkich plików appsettings; ponowny skan nie znajduje wartości wrażliwych w `appsettings.json`.
+
+## 2026-11-01 - indigoERP.Agent: podpis PDF z wyborem miejsca (szkielet)
+
+- **Zgłoszenie:** nowa aplikacja w autostarcie na koncie użytkownika do podpisywania PDF kwalifikowanym podpisem z wizualnym wzorem (np. PIT-11 dla pracownika). Miejsce podpisu wybierane w oknie podglądu, ustawialne w konfiguracji.
+- **Zmiana:** nowy projekt `indigoERP.Agent` (WinForms, net10.0-windows), dodany do `indigoERP.sln`. `Signing\PdfSignatureService.cs` (podpis PKCS#7 certyfikatem po numerze seryjnym, grafika wzoru, DevExpress.Pdf), `Forms\PdfPlacementForm.cs` (podgląd PDF, kliknięcie ustawia lewy dolny róg), `Signing\SignatureSettings.cs` (sekcja `Signing` w `appsettings.json`: `ShowPlacementWindow`, domyślna strona i prostokąt).
+- **Wywołanie:** `indigoERP.Agent.exe <wejście.pdf> <wyjście.pdf> <numer seryjny> <obraz podpisu>`. Bez okna, gdy `ShowPlacementWindow` = false.
+- **Decyzja techniczna:** logika podpisu skopiowana z `atacamaDMS.Agent` (ta sama biblioteka DevExpress i ten sam sposób wyboru certyfikatu). Podpis XML PIT-11 nie wchodzi tutaj, zostaje w `epicaHR.Agent`.
+- **Hasło do PDF:** pole w oknie podglądu (maskowane). Puste = PDF bez zabezpieczenia, podpis elektroniczny bez szyfrowania. Podane hasło otwiera plik `PdfDocumentSigner(stream, hasło)`. Hasło nie jest zapisywane w pliku ani w logu. Gdy `ShowPlacementWindow` = false, hasło nie jest pytane (podpis bez hasła). Ustalenie: zapis wyjścia z zachowaniem szyfrowania nie jest jeszcze sprawdzone na prawdziwym PDF.
+- **Otwarte:** integracja z bazą epica (`usp_SelectPodatekPITPodpisz` / `usp_UpdatePodatekPITPodpisz`, `pod_plik_pit`) jeszcze nie zrobiona.
+- **Status wdrożenia:** nie wdrożone, brak publikacji.
+- **Weryfikacja:** `dotnet build indigoERP.Agent` — 0 błędów, 0 ostrzeżeń. Nie uruchamiano okna ani podpisu na prawdziwym PDF i certyfikacie. Nie sprawdzono, czy `PdfDocumentPosition.PageNumber` jest numerowane od 1 i czy `Point` jest w przestrzeni PDF (lewy dolny róg). Brak testów jednostkowych `SignatureSettings` (do dodania z projektem testowym).
+## 2026-10-31 - Głos Hutnika: wybór wzorca w oknie „Nowy numer” (wymagany)
+
+- **Zgłoszenie:** wiadomość z formularza ma być opakowana w wybrany szablon z listy dla aplikacji 900, bez domyślnej wartości.
+- **Zmiana (API):** WiadomoscPracownikController.cs — `InsertRobocza` i `InsertWysylka` zwracają `400` bez `wiaWzorzecID`, a zapisują wybrany wzorzec. Stała `WzorzecGlosu = 9` zostaje tylko jako wartość przy `WyslijRobocza` dla starych szkiców.
+- **Zmiana (Blazor):** GlosWysylkaOkno.razor — combo wzorców (`WiadomoscWzorzec/SelectLookup?msgAplikacjaID=900&msgStatus=2`), puste na starcie, bez wyboru nie da się zapisać szkicu. IWiadomoscPracownikService/WiadomoscPracownikService.cs — `SelectWzorce`, `wiaWzorzecID` w formularzu. Modele WiadomoscRoboczaModel/WiadomoscWysylkaZakresModel — pole `wiaWzorzecID`.
+- **Testy:** Api 57/57, Blazor 13/13, Services 10/10.
+- **Do ustalenia:** domyślny szablon 9 („Huta Częstochowa - powiadomienie”) vs 10 („Głos Hutnika”) — fallback w `WyslijRobocza` nadal 9.
+- **Status wdrożenia:** kod niezacommitowany, API i Blazor nie wdrożone.
+
+## 2026-10-31 - API: wiadomości z formularza Głosu Hutnika dostają wzorzec 9
+
+- **Zgłoszenie:** wiadomość 1095 doszła bez opakowania w szablon (`wiaWzorzecID` był pusty), a numery z wcześniejszych wysyłek szły z wzorcem.
+- **Zmiana (API):** WiadomoscPracownikController.cs — stała `WzorzecGlosu = 9`; ustawiana przy `InsertRobocza`, `InsertWysylka`, a w `WyslijRobocza` uzupełniana dla szkiców bez wzorca.
+- **Zmiana (testy):** WiadomoscWysylkaTests.cs — asercja wzorca w teście zapisu szkicu. Testy Api 55/55.
+- **Status wdrożenia:** kod niezacommitowany, API nie wdrożone. Wiadomość 1095 już wysłana bez wzorca, nie wysyłano ponownie.
+- **Do sprawdzenia przed wdrożeniem:** czy wzorzec 9 jest aktywny (`msgStatus = '2'`) w `dbo.WiadomoscWzorzec`.
+
+## 2026-10-30 - Worker: wysyłka 1095 (załącznik na WENUS, nadawca tymczasowo itsupport)
+
+- **Zgłoszenie:** wiadomość 1095 („Głos Hutnika 29/2026”) nie wychodziła: worker nie czytał załącznika, a potem Graph odrzucał nadawcę `indigoERP@`, bo skrzynka nie istniała w M365.
+- **Diagnoza:** (1) załącznik leżał na udziale `\\WENUS\Documents$`, na który wskazuje dowiązanie `c:\_documents` na JAPET; konto `JAPET\svc-indigoWorker` (lokalne) nie miało dostępu na WENUS. Naprawione przez konto na WENUS z tym samym hasłem. (2) Graph: `ErrorInvalidUser` dla `indigoERP@` (skrzynka nieutworzona).
+- **Zmiana (Worker):** SciezkaDiagnostyka.cs — przy braku pliku komunikat zawiera konto procesu, stan katalogów po drodze i wynik odczytu (wdrożone 20:39). Testy Worker 20/20.
+- **Zmiana (dane, tymczasowo):** 1095 — `wiaEmail` = `itsupport@huta-czestochowa.pl`; 936 adresatów z `ErrorInvalidUser` przywrócone do statusu `2`. Dla 299 pozostałych adresatów nic nie zmieniano.
+- **Decyzja:** wysyłka 1095 kończy się z `itsupport@`. Kod (NadawcaGlosu) zostaje `indigoERP@huta-czestochowa.pl`, skrzynka została utworzona w M365; przed kolejnymi wysyłkami trzeba potwierdzić uprawnienie Mail.Send dla aplikacji workera.
+- **Status wdrożenia:** worker uruchomiony na JAPET 21:03; log bez błędów od startu.
+
+## 2026-10-30 - Worker: wiadomości z formularza bez wzorca nie były wysyłane (1095)
+
+- **Zgłoszenie:** wiadomość 1095 „Głos Hutnika 29/2026” (utworzona w oknie „Nowy numer”, 1 załącznik) od 18:59 stoi w statusie `2`, bez wysyłki.
+- **Diagnoza:** `WiadomoscKolejkaService.ClaimNextAsync` pobierał tylko wiadomości z `wiaWzorzecID IS NOT NULL`. API (`WiadomoscPracownikController` InsertRobocza/WyslijRobocza) nie ustawia wzorca, więc wiadomości z formularza nigdy nie były podejmowane. Wiadomości 1093/1094 wysłały się dzięki ręcznemu wznowieniu z wzorcem.
+- **Zmiana (Worker):** WiadomoscKolejkaService.cs — claim obejmuje też wiadomości bez wzorca; bez wzorca treść idzie z formularza (`WiadomoscTrescFactory.Prepare(wiadomosc)`), z wzorcem jak dotąd. WiadomoscTrescFactory.cs — nowa metoda bez wzorca.
+- **Zmiana (testy):** indigoERP.Worker.Tests/WiadomoscTrescFactoryTests.cs — 2 testy dla treści bez wzorca. Testy Worker 18/18, build Worker 0 błędów.
+- **Doraźnie:** _SQL Queries/indigoERP20261030_wznow_1095.sql — ustawia wzorzec 1095 (wymaga ID wzorca w `@wzorzecID`). Nie uruchomiony; uruchamia użytkownik.
+- **Status wdrożenia:** kod niezacommitowany, worker na Z: nie wdrożony (wymaga zatrzymania usługi indigoERP.Worker i podmiany plików).
+
+## 2026-10-30 - Strona główna: wysokość kafelków i ikony hutaForms/Głos
+
+- **Zgłoszenie:** ostatni kafelek (OneDrive) był ucięty na ~70% wysokości, a ikony hutaForms i Głosu były mniejsze niż w pozostałych kafelkach.
+- **Zmiana (Blazor):** Pages/Home.razor.css — wiersze `repeat(6, minmax(0, 1fr)) minmax(0, 0.5fr)` (bez minimum wysokości, panel nie przewija się), ikony FontAwesome hutaForms i Głosu `2.6rem` z `line-height: 1`.
+- **Diagnoza (miniatura/pobieranie 404):** nie błąd kodu. Lokalnie nie ma katalogu `indigoERP.Api\wwwroot\_documents` (ani `C:\indigoERP_documents`), więc `MiniaturaPubliczna` i `OpenPubliczny` zwracają 404 zgodnie z założeniem. Do sprawdzenia na serwerze z plikami.
+- **Status wdrożenia:** niezacommitowane.
+
+## 2026-10-30 - Strona główna: kafelek Głos Hutnika; wysyłka: potwierdzenie w oknie, komunikat, odświeżenie
+
+- **Zgłoszenie:** na stronie głównej w lewym panelu (pod hutaForms) ma być Głos Hutnika, kafelki mają się zmieścić na wysokość ekranu. Na /wiadomosc: usunięty opis „Brak aktualnych ogłoszeń”, toast „Wysłano” w jednej linii, wskaźnik podczas wysyłki, po wysłaniu zamknięcie slide, komunikat i odświeżenie. „Anuluj” nie zamykał okna slide.
+- **Zmiana (Blazor):** Pages/Home.razor — kafelek Głos Hutnika (`/gloshutnika`). Pages/Home.razor.css — 6 wierszy kafelków `minmax(72px, 1fr)`, ikona 52 px, padding 8 px. Pages/WiadomoscPubliczna.cshtml — usunięty komunikat „Brak aktualnych ogłoszeń”. Pages/WiadomoscPubliczna/GlosWysylkaOkno.razor — potwierdzenie wysyłki w oknie slide (zamiast Radzen Confirm), `RadzenProgressBar` i `IsBusy` podczas wysyłki, najpierw `Close(true)`, potem toast. Pages/WiadomoscPubliczna/GlosZarzadzanie.razor — odświeżenie strony po 4 s od zamknięcia slide. wwwroot/css/glos-hutnika.css — toast `width: min(760px, 92vw)`, `white-space: nowrap`.
+- **Decyzja techniczna:** Radzen `DialogService.Close` zamyka ostatni dialog na liście. Drugie okno (Confirm) mogło zostać na liście i „Anuluj”/zamknięcie po wysłaniu trafiały w nie zamiast w slide. Potwierdzenie jest więc w tym samym oknie. Hipoteza nie została potwierdzona w przeglądarce.
+- **Weryfikacja:** build Blazor 0 błędów; testy Blazor 13/13. Przeglądarka nie otworzyła localhost:8900 (`navigate` odrzucone), więc wyglądu i zachowania slide nie sprawdzono.
+- **Status wdrożenia:** niezacommitowane.
+
+## 2026-10-30 - Wiadomości (/wiadomosc): panel z rokiem, stronicowanie, status 1, cutoff 1.10.2026
+
+- **Zgłoszenie:** na /wiadomosc (zarządzanie) combo roku przed „+ NOWY NUMER”, lista z paginacją w całości na ekranie, najnowsze pierwsze, status „1” z ikoną „oczekujący na wysłanie”, ukrycie rekordów sprzed 1.10.2026. W oknie wysyłki grid o 2 wiersze więcej.
+- **Zmiana (Blazor):** Pages/WiadomoscPubliczna/WiadomosciPanel.razor (nowy) — combo roku (domyślnie bieżący), `GlosZarzadzanie` obok, lista; filtr `DataOd = 2026-10-01`. ListaWiadomosci.razor — parametr `Lista`, PageSize 10, `max-height: calc(100vh - 16rem)`, status „1” → 2.png. Pages/WiadomoscPubliczna.cshtml — zamiast osobnych komponentów panel. Pages/WiadomoscPubliczna/GlosWysylkaOkno.razor — PageSize 21 → 23.
+- **Weryfikacja:** build Blazor 0 błędów; testy Blazor 13/13. Wyglądu nie sprawdzono w przeglądarce.
+- **Status wdrożenia:** niezacommitowane.
+
+## 2026-10-30 - Głos Hutnika: menu, strona /gloshutnika z wyborem roku i lista wiadomości
+
+- **Zgłoszenie:** w menu zaraz po „Główna” ma być „Głos Hutnika” prowadzące do /gloshutnika z miniaturami numerów (siatka 10 kolumn, combo roku, najnowsze pierwsze, klik pobiera PDF). Na /wiadomosc: nagłówek „Ogłoszenia” ma być „Wiadomości” i lista wysłanych wiadomości ze statusem dla Gazety/Administratora.
+- **Zmiana (Blazor):** Pages/GlosHutnika.cshtml(.cs) — nowa strona, `GlosHutnikaModel`, miniatury i pobieranie przez handlery `WiadomoscPubliczna` (Miniatura, Download). wwwroot/css/glos-hutnika.css — siatka `.glos-gh-siatka` (10 / 5 / 2 kolumny). Shared/MainHeader.razor — pozycja menu „Głos Hutnika” (target _blank jak „Wiadomości”). Pages/WiadomoscPubliczna.cshtml — nagłówek „Wiadomości”, komponent `ListaWiadomosci` (tylko dla ról). Pages/WiadomoscPubliczna/ListaWiadomosci.razor — RadzenDataGrid z WiadomoscPracownik/SelectPodsumowanie, ikony statusu `images/wiadomosc/status/{status}.png`.
+- **Zmiana (Api/Domain):** WiadomoscPodsumowanieDto — pola wiaTemat, wiaData, wiaStatus (wypełniane w WiadomoscPracownikController.SelectPodsumowanie).
+- **Weryfikacja:** build Blazor 0 błędów; testy Blazor 13/13 (stub z SelectPodsumowanie). Build Api: kompilacja bez błędów CS, ale kopia DLL zablokowana przez działające VS i indigoERP.Api.exe (MSB3027/MSB3021). Wyglądu w przeglądarce nie sprawdzono (strona wymaga logowania domenowego dla części funkcji).
+- **Status wdrożenia:** niezacommitowane; do decyzji użytkownika.
+
 ## 2026-10-30 - Głos Hutnika: okno nowego numeru i wysyłki jako okno modalne (wersja 3.26.1030.11403)
 
 - **Zgłoszenie:** okno boczne „Nowy numer” / „Wyślij” na /gloshutnika było wyższe niż widok: tytuł, temat i edytor wypadały poza ekran, a przyciski nie były dostępne (zapis roboczego zablokowany, „Anuluj” bez reakcji).

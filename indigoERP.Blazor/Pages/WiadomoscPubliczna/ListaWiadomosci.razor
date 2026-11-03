@@ -1,0 +1,35 @@
+﻿@using indigoERP.Domain.Dtos._Wspolne
+
+@* Lista wysłanych wiadomości ze statusem; dane i filtr roku podaje WiadomosciPanel. *@
+
+<RadzenDataGrid Data="@Lista" TItem="WiadomoscPodsumowanieDto" AllowSorting="true" AllowFiltering="false" AllowPaging="true" PageSize="10"
+                Density="Density.Compact" EmptyText="Brak wysłanych wiadomości." Style="margin-top: 1rem; max-height: calc(100vh - 16rem);">
+    <Columns>
+        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaData" Title="Data" Width="160px" FormatString="{0:dd.MM.yyyy HH:mm}" />
+        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaTemat" Title="Temat" />
+        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Title="Wysłano" Width="120px" Sortable="false">
+            <Template Context="wiadomosc">
+                @wiadomosc.Wyslane / @wiadomosc.Razem
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="Bledy" Title="Błędy" Width="90px" />
+        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaStatus" Title="Status" Width="80px" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="wiadomosc">
+                <img src="@GetStatusIcon(wiadomosc.wiaStatus)" alt="Status @wiadomosc.wiaStatus" title="Status @wiadomosc.wiaStatus" width="20" height="20" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [Parameter]
+    public IEnumerable<WiadomoscPodsumowanieDto> Lista { get; set; } = Enumerable.Empty<WiadomoscPodsumowanieDto>();
+
+    // Status „1” (robocza) pokazujemy ikoną „oczekujący na wysłanie” (2.png, jak w epicaHR).
+    private static string GetStatusIcon(string? status) => status switch
+    {
+        "1" => "/images/wiadomosc/status/2.png",
+        "2" or "3" or "4" => $"/images/wiadomosc/status/{status}.png",
+        _ => "/images/wiadomosc/status/0.png"
+    };
+}

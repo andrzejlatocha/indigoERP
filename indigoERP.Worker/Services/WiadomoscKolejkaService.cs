@@ -15,6 +15,7 @@ public sealed class WiadomoscKolejkaService
     private const string StatusBlad = "5";
     private readonly WiadomoscWorkerContextFactory _contextFactory;
     private readonly IMicrosoftGraphMailService _mailService;
+    private readonly IWiadomoscMailSender _sender;
     private readonly IConfiguration _configuration;
     private readonly IOptions<WorkerOptions> _options;
     private readonly ILogger<WiadomoscKolejkaService> _logger;
@@ -22,12 +23,14 @@ public sealed class WiadomoscKolejkaService
     public WiadomoscKolejkaService(
         WiadomoscWorkerContextFactory contextFactory,
         IMicrosoftGraphMailService mailService,
+        IWiadomoscMailSender sender,
         IConfiguration configuration,
         IOptions<WorkerOptions> options,
         ILogger<WiadomoscKolejkaService> logger)
     {
         _contextFactory = contextFactory;
         _mailService = mailService;
+        _sender = sender;
         _configuration = configuration;
         _options = options;
         _logger = logger;
@@ -35,10 +38,10 @@ public sealed class WiadomoscKolejkaService
 
     public async Task<int> ProcessAsync(CancellationToken cancellationToken)
     {
-        if (!_mailService.IsConfigured)
+        if (!_sender.IsConfigured)
         {
             _logger.LogError(
-                "Wysyłka wstrzymana: nie ustawiono MicrosoftGraph_TenantId, MicrosoftGraph_ClientId lub MicrosoftGraph_ClientSecret.");
+                "Wysyłka wstrzymana: żaden kanał poczty nie jest skonfigurowany (MicrosoftGraph_* albo Mail:Smtp z Informacje_Mail_Password).");
             return 0;
         }
 
@@ -77,6 +80,9 @@ public sealed class WiadomoscKolejkaService
             .Where(item => item.wiaStatus == StatusZakonczona && item.wiaEmail != null && item.wiaEmail != ""
                 && item.wiaData != null && item.wiaData >= od && (item.Usuniety == null || item.Usuniety == false))
             .ToListAsync(cancellationToken);
+
+        // Nadawcy SMTP nie mają skrzynki w M365, więc NDR czytamy tylko dla nadawców Graph.
+        wyslane = wyslane.Where(item => !RoutingWiadomoscMailSender.UzywaSmtp(item.wiaEmail)).ToList();
 
         if (wyslane.Count == 0)
         {
@@ -145,14 +151,13 @@ public sealed class WiadomoscKolejkaService
     {
         await using var context = _contextFactory.CreateDbContext();
         await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
-        var retryBefore = DateTime.Now.AddMinutes(-Math.Max(1, _options.Value.RetryIntervalMinutes));
+        var retryBefore = DateTime.Now.AddSeconds(-Math.Max(1, _options.Value.RetryIntervalMinutes));
 
         var message = await context.Wiadomosci
             .FromSqlInterpolated($"""
                 SELECT TOP (1) *
                 FROM dbo.Wiadomosc WITH (UPDLOCK, READPAST, ROWLOCK)
                 WHERE ISNULL(Usuniety, 0) = 0
-                    AND wiaWzorzecID IS NOT NULL
                     AND (wiaStatus = {StatusNowa} OR (wiaStatus = {StatusRozpoczeta} AND wiaData <= {retryBefore}))
                 ORDER BY CASE WHEN wiaStatus = {StatusNowa} THEN 0 ELSE 1 END, wiaID
                 """)
@@ -184,14 +189,20 @@ public sealed class WiadomoscKolejkaService
             return;
         }
 
-        var template = await context.WiadomoscWzorce.SingleOrDefaultAsync(
-            item => item.msgID == message.wiaWzorzecID && item.msgStatus == StatusNowa,
-            cancellationToken);
+        // Wiadomość z formularza (Nowy numer / wysyłka roboczego) nie ma wzorca: idzie jako treść z formularza.
+        WiadomoscWzorzec? template = null;
 
-        if (template == null)
+        if (message.wiaWzorzecID != null)
         {
-            _logger.LogError("Wiadomość {MessageId} nie ma aktywnego wzorca {TemplateId}.", messageId, message.wiaWzorzecID);
-            return;
+            template = await context.WiadomoscWzorce.SingleOrDefaultAsync(
+                item => item.msgID == message.wiaWzorzecID && item.msgStatus == StatusNowa,
+                cancellationToken);
+
+            if (template == null)
+            {
+                _logger.LogError("Wiadomość {MessageId} nie ma aktywnego wzorca {TemplateId}.", messageId, message.wiaWzorzecID);
+                return;
+            }
         }
 
         WiadomoscTresc content;
@@ -199,7 +210,9 @@ public sealed class WiadomoscKolejkaService
 
         try
         {
-            content = WiadomoscTrescFactory.Prepare(message, template);
+            content = template == null
+                ? WiadomoscTrescFactory.Prepare(message)
+                : WiadomoscTrescFactory.Prepare(message, template);
             attachments = await LoadAttachmentsAsync(context, messageId, cancellationToken);
         }
         catch (Exception exception)
@@ -243,6 +256,9 @@ public sealed class WiadomoscKolejkaService
         var attachmentNames = string.Join("; ", attachments.Select(item => item.Nazwa));
         var hasError = false;
 
+        var wyslanoWCyklu = 0;
+        var limit = _options.Value.MailSendCount;
+
         foreach (var recipient in recipients.Where(item => !sentRecipientEmails.Contains(item.Email, StringComparer.OrdinalIgnoreCase)))
         {
             var status = await context.Wiadomosci
@@ -256,19 +272,43 @@ public sealed class WiadomoscKolejkaService
                 return;
             }
 
+            // Limit cyklu: reszta adresatów zostaje w kolejce; wiadomość wróci po MailDelay minutach.
+            if (limit > 0 && wyslanoWCyklu >= limit)
+            {
+                _logger.LogInformation(
+                    "Wiadomość {MessageId}: wysłano {Ile} adresatów w cyklu, kolejna partia po {Sekundy} s.",
+                    messageId, wyslanoWCyklu, _options.Value.RetryIntervalMinutes);
+                hasError = true;
+                break;
+            }
+
             try
             {
-                await _mailService.SendAsync(
+                await _sender.SendAsync(
                     new GraphMailMessage(message.wiaEmail ?? string.Empty, [recipient.Email], content.Temat, content.Tresc, attachments),
                     cancellationToken);
 
                 context.WiadomoscWysylki.Add(CreateDispatch(messageId, recipient, attachmentNames, StatusNowa));
+                wyslanoWCyklu++;
+
+                // Przerwa między wysyłkami do kolejnych adresatów (MailDelay w sekundach).
+                if (_options.Value.MailDelay > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(_options.Value.MailDelay), cancellationToken);
+                }
                 var wpr = FindManualRecipient(manualRecipients, recipient.Email);
                 if (wpr != null)
                 {
                     wpr.wprStatus = StatusZakonczona;
                 }
                 await context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception) when (BledyWysylki.Przejsciowy(exception))
+            {
+                // Błąd przejściowy (np. limit Graph): adresat zostaje w kolejce, a partia wraca przy następnej próbie.
+                _logger.LogWarning(exception, "Przejściowy błąd wysyłki wiadomości {MessageId} do {Email}; wysyłka wstrzymana do kolejnej próby.", messageId, recipient.Email);
+                hasError = true;
+                break;
             }
             catch (Exception exception)
             {
@@ -326,7 +366,9 @@ public sealed class WiadomoscKolejkaService
 
             if (!path.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(path))
             {
-                throw new FileNotFoundException($"Nie znaleziono załącznika wiadomości: {document.wdoNazwa}.", path);
+                throw new FileNotFoundException(
+                    $"Nie znaleziono załącznika wiadomości: {document.wdoNazwa}.{Environment.NewLine}{SciezkaDiagnostyka.Opisz(path)}",
+                    path);
             }
 
             attachments.Add(GraphMailAttachment.Create(document.wdoNazwa ?? document.wdoPlik, await File.ReadAllBytesAsync(path, cancellationToken)));

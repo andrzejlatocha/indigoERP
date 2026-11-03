@@ -109,6 +109,9 @@
         <member name="F:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.NadawcaGlosu">
             <summary>Skrzynka, z której Worker wysyła Głos Hutnika (Worker bierze nadawcę z Wiadomosc.wiaEmail).</summary>
         </member>
+        <member name="F:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.WzorzecGlosu">
+            <summary>Wzorzec szablonu, w który Worker opakowuje treść z formularza Głosu Hutnika (dbo.WiadomoscWzorzec.msgID).</summary>
+        </member>
         <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.SelectRobocze(System.Int32)">
             <summary>Numery robocze aplikacji (zapisane, jeszcze nie wysłane), najnowsze pierwsze.</summary>
         </member>
@@ -126,6 +129,9 @@
             Zapisuje wiadomość, załączniki PDF i odbiorców w jednej transakcji. Odbiorcy są sprawdzani po stronie serwera
             względem zakresu; osoby spoza zakresu lub bez adresu e-mail są pomijane i zgłaszane w wyniku.
             </summary>
+        </member>
+        <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.SelectPodsumowanie(System.Int32)">
+            <summary>Podsumowanie wysyłki każdej wiadomości aplikacji: odbiorcy razem, wysłani, z błędem i oczekujący.</summary>
         </member>
         <member name="M:indigoERP.Api.Controllers._Wspolne.WiadomoscPracownikController.ZapiszZalaczniki(System.Int32,System.Int32,System.Collections.Generic.IEnumerable{Microsoft.AspNetCore.Http.IFormFile},System.Int32,System.Threading.CancellationToken)">
             <summary>

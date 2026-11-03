@@ -10,6 +10,7 @@ public interface IMicrosoftGraphMailService
 {
     bool IsConfigured { get; }
     Task SendAsync(GraphMailMessage message, CancellationToken cancellationToken);
+    Task<IReadOnlyList<UndeliveryNotice>> GetUndeliveryNoticesAsync(string sender, DateTimeOffset since, CancellationToken cancellationToken);
 }
 
 public sealed class MicrosoftGraphMailService : IMicrosoftGraphMailService
@@ -180,6 +181,62 @@ public sealed class MicrosoftGraphMailService : IMicrosoftGraphMailService
                 EnsureSuccess(uploadResponse, uploadBody, $"wysłanie załącznika {attachment.Nazwa}");
             }
         }
+    }
+
+    public async Task<IReadOnlyList<UndeliveryNotice>> GetUndeliveryNoticesAsync(
+        string sender,
+        DateTimeOffset since,
+        CancellationToken cancellationToken)
+    {
+        if (!IsConfigured)
+        {
+            throw new InvalidOperationException(
+                "Brak konfiguracji Graph. Ustaw MicrosoftGraph_TenantId, MicrosoftGraph_ClientId i MicrosoftGraph_ClientSecret.");
+        }
+
+        ValidateEmail(sender, "nadawcy");
+
+        var client = _httpClientFactory.CreateClient();
+        var token = await GetAccessTokenAsync(client, cancellationToken);
+        var od = since.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+        var filter = Uri.EscapeDataString($"receivedDateTime ge {od}");
+        var url = $"https://graph.microsoft.com/v1.0/users/{Uri.EscapeDataString(sender)}/mailFolders/inbox/messages"
+            + $"?$filter={filter}&$select=subject,from,body,receivedDateTime&$top=100";
+
+        using var request = CreateGraphRequest(HttpMethod.Get, url, token);
+        using var response = await client.SendAsync(request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        EnsureSuccess(response, responseBody, "odczyt skrzynki nadawcy");
+
+        using var document = JsonDocument.Parse(responseBody);
+        var powiadomienia = new List<UndeliveryNotice>();
+
+        foreach (var item in document.RootElement.GetProperty("value").EnumerateArray())
+        {
+            var temat = item.TryGetProperty("subject", out var subjectValue) ? subjectValue.GetString() ?? string.Empty : string.Empty;
+            var nadawca = item.TryGetProperty("from", out var fromValue)
+                && fromValue.TryGetProperty("emailAddress", out var emailValue)
+                && emailValue.TryGetProperty("address", out var addressValue)
+                    ? addressValue.GetString() ?? string.Empty
+                    : string.Empty;
+
+            if (!NdrDopasowanie.CzyPowiadomienie(nadawca, temat))
+            {
+                continue;
+            }
+
+            var tresc = item.TryGetProperty("body", out var bodyValue) && bodyValue.TryGetProperty("content", out var contentValue)
+                ? NdrDopasowanie.OczyscHtml(contentValue.GetString() ?? string.Empty)
+                : string.Empty;
+            var received = item.TryGetProperty("receivedDateTime", out var receivedValue)
+                && DateTimeOffset.TryParse(receivedValue.GetString(), out var receivedParsed)
+                    ? receivedParsed
+                    : DateTimeOffset.MinValue;
+
+            powiadomienia.Add(new UndeliveryNotice(received, tresc));
+        }
+
+        return powiadomienia;
     }
 
     private async Task SendDraftAsync(HttpClient client, string token, string sender, string draftId, CancellationToken cancellationToken)

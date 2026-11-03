@@ -52,4 +52,23 @@ public class WiadomoscTrescFactoryTests
 
         Assert.Throws<InvalidOperationException>(() => WiadomoscTrescFactory.Prepare(wiadomosc, wzorzec));
     }
+
+    [Fact]
+    public void Prepare_WithoutTemplate_UsesFormSubjectAndBodyAsIs()
+    {
+        var wiadomosc = new Wiadomosc { wiaID = 1095, wiaTemat = "Głos Hutnika 29/2026", wiaTresc = "<p>Treść</p>" };
+
+        var result = WiadomoscTrescFactory.Prepare(wiadomosc);
+
+        Assert.Equal("Głos Hutnika 29/2026", result.Temat);
+        Assert.Equal("<p>Treść</p>", result.Tresc);
+    }
+
+    [Fact]
+    public void Prepare_WithoutTemplate_ThrowsWhenThereIsNoSubject()
+    {
+        var wiadomosc = new Wiadomosc { wiaID = 1095, wiaTresc = "<p>Treść</p>" };
+
+        Assert.Throws<InvalidOperationException>(() => WiadomoscTrescFactory.Prepare(wiadomosc));
+    }
 }

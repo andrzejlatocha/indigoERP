@@ -10,9 +10,9 @@ using Radzen;
 
 namespace indigoERP.Blazor.Tests;
 
-public sealed class GlosHutnikaPageTests : BunitContext
+public sealed class WiadomoscPublicznaPageTests : BunitContext
 {
-    public GlosHutnikaPageTests()
+    public WiadomoscPublicznaPageTests()
     {
         Services.AddLogging();
         Services.AddScoped<DialogService>();
@@ -29,7 +29,7 @@ public sealed class GlosHutnikaPageTests : BunitContext
     [Fact]
     public void Okno_wysylki_asks_for_scope_before_listing_recipients()
     {
-        var cut = Render<Pages.GlosHutnika.GlosWysylkaOkno>();
+        var cut = Render<Pages.WiadomoscPubliczna.GlosWysylkaOkno>();
 
         cut.WaitForAssertion(() => Assert.Contains("Zapisz jako roboczy", cut.Markup));
         Assert.DoesNotContain("Wybierz zakres odbiorców", cut.Markup);
@@ -38,7 +38,7 @@ public sealed class GlosHutnikaPageTests : BunitContext
     [Fact]
     public void Okno_wysylki_numeru_roboczego_pokazuje_zakres_i_przycisk_wyslij()
     {
-        var cut = Render<Pages.GlosHutnika.GlosWysylkaOkno>(parameters => parameters
+        var cut = Render<Pages.WiadomoscPubliczna.GlosWysylkaOkno>(parameters => parameters
             .Add(p => p.WiadomoscID, 7)
             .Add(p => p.Tytul, "Gazeta nr 6"));
 
@@ -50,7 +50,7 @@ public sealed class GlosHutnikaPageTests : BunitContext
     [Fact]
     public void SkrocOpis_usuwa_znaczniki_html_i_skraca_tekst()
     {
-        var wynik = Pages.GlosHutnikaModel.SkrocOpis("<p>Ala&nbsp;ma <b>kota</b></p>", 10);
+        var wynik = Pages.WiadomoscPublicznaModel.SkrocOpis("<p>Ala&nbsp;ma <b>kota</b></p>", 10);
 
         Assert.Equal("Ala ma kot…", wynik);
     }
@@ -58,7 +58,7 @@ public sealed class GlosHutnikaPageTests : BunitContext
     [Fact]
     public void Zarzadzanie_renderuje_przycisk_nowego_numeru()
     {
-        var cut = Render<Pages.GlosHutnika.GlosZarzadzanie>();
+        var cut = Render<Pages.WiadomoscPubliczna.GlosZarzadzanie>();
 
         cut.WaitForAssertion(() => Assert.Contains("Nowy numer", cut.Markup));
     }
@@ -93,5 +93,14 @@ public sealed class GlosHutnikaPageTests : BunitContext
 
         public Task<IEnumerable<WiadomoscPracownikViewModel>> SelectWyslane(int appID) =>
             Task.FromResult<IEnumerable<WiadomoscPracownikViewModel>>([]);
+
+        public Task<IEnumerable<WiadomoscWzorzecEnumerator>> SelectWzorce(int appID) =>
+            Task.FromResult<IEnumerable<WiadomoscWzorzecEnumerator>>(
+            [
+                new WiadomoscWzorzecEnumerator { msgID = 9, msgTemat = "Głos Hutnika", msgStatus = "2" }
+            ]);
+
+        public Task<IEnumerable<WiadomoscPodsumowanieDto>> SelectPodsumowanie(int appID) =>
+            Task.FromResult<IEnumerable<WiadomoscPodsumowanieDto>>([]);
     }
 }

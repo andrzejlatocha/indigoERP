@@ -45,6 +45,7 @@ public sealed class WiadomoscWysylkaTests
         wiaAplikacjaID = 900,
         wiaTemat = "Temat",
         wiaTresc = "<p>Treść</p>",
+        wiaWzorzecID = 9,
         wzaID = 1,
         prcIDs = prcIDs.ToList()
     };
@@ -118,7 +119,7 @@ public sealed class WiadomoscWysylkaTests
     [Fact]
     public void Message_endpoints_are_limited_to_gazeta_and_administrator_roles()
     {
-        var expected = "HCZ-indigoERP-Gazeta,HCZ-indigoERP-Administrator";
+        var expected = "HCZ-indigoERP-Wiadomość,HCZ-indigoERP-Administrator";
 
         foreach (var typ in new[] { typeof(WiadomoscPracownikController), typeof(WiadomoscZakresController) })
         {
@@ -189,7 +190,7 @@ public sealed class WiadomoscWysylkaTests
         var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
 
         var result = await kontroler.InsertRobocza(
-            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 6", wiaTresc = "<p>Treść</p>" },
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 6", wiaTresc = "<p>Treść</p>", wiaWzorzecID = 9 },
             null, CancellationToken.None);
 
         var wiadomosc = Assert.IsType<WiadomoscDto>(Assert.IsType<OkObjectResult>(result.Result).Value);
@@ -209,7 +210,7 @@ public sealed class WiadomoscWysylkaTests
             Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl"),
             Odbiorca(2, "Nowak", null)));
         var zapis = await kontroler.InsertRobocza(
-            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 6", wiaTresc = "<p>Treść</p>" },
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 6", wiaTresc = "<p>Treść</p>", wiaWzorzecID = 9 },
             null, CancellationToken.None);
         var wiaID = Assert.IsType<WiadomoscDto>(Assert.IsType<OkObjectResult>(zapis.Result).Value).wiaID;
 
@@ -230,7 +231,7 @@ public sealed class WiadomoscWysylkaTests
         await using var context = ApiTestContextFactory.Create();
         var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
         var zapis = await kontroler.InsertRobocza(
-            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 6", wiaTresc = "<p>Treść</p>" },
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 6", wiaTresc = "<p>Treść</p>", wiaWzorzecID = 9 },
             null, CancellationToken.None);
         var wiaID = Assert.IsType<WiadomoscDto>(Assert.IsType<OkObjectResult>(zapis.Result).Value).wiaID;
         await kontroler.WyslijRobocza(wiaID, new WiadomoscWyslijRoboczaModel { wzaID = 1, prcIDs = [1] }, CancellationToken.None);
@@ -293,10 +294,39 @@ public sealed class WiadomoscWysylkaTests
         var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
 
         await kontroler.InsertRobocza(
-            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 7", wiaTresc = "<p>Treść</p>" },
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 7", wiaTresc = "<p>Treść</p>", wiaWzorzecID = 9 },
             null, CancellationToken.None);
 
-        Assert.Equal("indigoERP@huta-czestochowa.pl", (await context.Wiadomosc.SingleAsync()).wiaEmail);
+        var wiadomosc = await context.Wiadomosc.SingleAsync();
+        Assert.Equal("indigoERP@huta-czestochowa.pl", wiadomosc.wiaEmail);
+        Assert.Equal(9, wiadomosc.wiaWzorzecID);
+    }
+
+    [Fact]
+    public async Task Robocza_is_saved_with_the_template_chosen_by_the_user()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
+
+        await kontroler.InsertRobocza(
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 8", wiaTresc = "<p>Treść</p>", wiaWzorzecID = 5 },
+            null, CancellationToken.None);
+
+        Assert.Equal(5, (await context.Wiadomosc.SingleAsync()).wiaWzorzecID);
+    }
+
+    [Fact]
+    public async Task Robocza_without_template_is_rejected()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
+
+        var zapis = await kontroler.InsertRobocza(
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 9", wiaTresc = "<p>Treść</p>" },
+            null, CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(zapis.Result);
+        Assert.Empty(await context.Wiadomosc.ToListAsync());
     }
 
     [Fact]
@@ -305,7 +335,7 @@ public sealed class WiadomoscWysylkaTests
         await using var context = ApiTestContextFactory.Create();
         var kontroler = Kontroler(context, new FakeZakres(Odbiorca(1, "Kowalski", "a@huta-czestochowa.pl")));
         var zapis = await kontroler.InsertRobocza(
-            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 7", wiaTresc = "<p>Treść</p>" },
+            new WiadomoscRoboczaModel { wiaAplikacjaID = 900, wiaTemat = "Gazeta nr 7", wiaTresc = "<p>Treść</p>", wiaWzorzecID = 9 },
             null, CancellationToken.None);
         var wiaID = Assert.IsType<WiadomoscDto>(Assert.IsType<OkObjectResult>(zapis.Result).Value).wiaID;
         var wiadomosc = await context.Wiadomosc.SingleAsync();

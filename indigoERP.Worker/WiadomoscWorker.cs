@@ -23,6 +23,8 @@ public sealed class WiadomoscWorker : BackgroundService
     {
         _logger.LogInformation("Uruchomiono kolejkę wiadomości indigoERP.Worker.");
 
+        var nastepneSprawdzenieOdpowiedzi = DateTimeOffset.MinValue;
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -32,6 +34,20 @@ public sealed class WiadomoscWorker : BackgroundService
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Nie udało się przetworzyć kolejki wiadomości.");
+            }
+
+            if (DateTimeOffset.UtcNow >= nastepneSprawdzenieOdpowiedzi)
+            {
+                try
+                {
+                    await _kolejkaService.OznaczNiedostarczoneAsync(stoppingToken);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Nie udało się sprawdzić odpowiedzi o niedostarczeniu.");
+                }
+
+                nastepneSprawdzenieOdpowiedzi = DateTimeOffset.UtcNow.AddMinutes(15);
             }
 
             var seconds = Math.Max(5, _options.Value.PollingIntervalSeconds);

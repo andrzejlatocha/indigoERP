@@ -4,6 +4,17 @@ namespace indigoERP.Worker.Services;
 
 public static class WiadomoscTrescFactory
 {
+    // Wiadomość bez wzorca: temat i treść wprost z formularza.
+    public static WiadomoscTresc Prepare(Wiadomosc wiadomosc)
+    {
+        if (string.IsNullOrWhiteSpace(wiadomosc.wiaTemat))
+        {
+            throw new InvalidOperationException($"Wiadomość {wiadomosc.wiaID} nie ma tematu.");
+        }
+
+        return new WiadomoscTresc(wiadomosc.wiaTemat, wiadomosc.wiaTresc ?? string.Empty);
+    }
+
     public static WiadomoscTresc Prepare(Wiadomosc wiadomosc, WiadomoscWzorzec wzorzec)
     {
         if (string.IsNullOrWhiteSpace(wzorzec.msgTresc))

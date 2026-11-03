@@ -11,7 +11,9 @@
 <div class="glos-okno">
     @if (Robocza)
     {
-        <RadzenTextBox @bind-Value="@temat" Placeholder="Temat wiadomości" Style="width:100%" />
+        <RadzenDropDown TValue="int?" Data="@wzorce" TextProperty="msgTemat" ValueProperty="msgID" @bind-Value="@wzorzecID"
+                        AllowFiltering="true" Placeholder="Wybierz wzorzec" Style="width:100%" />
+        <RadzenTextBox @bind-Value="@temat" Placeholder="Temat wiadomości" Style="width:100%" Class="mt-2" />
 
         <div class="mt-2">
             <RadzenHtmlEditor @bind-Value="@tresc" Style="height:220px" />
@@ -46,42 +48,64 @@
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
             <RadzenDropDown Data="@zakresy" TextProperty="wzaNazwa" ValueProperty="wzaID" TValue="int?"
                             @bind-Value="@selectedZakresID" Change="@OnZakresChange" Placeholder="Wybierz zakres odbiorców"
-                            Style="width:280px" />
+                            Style="flex:1 1 0; min-width:200px" />
             <RadzenButton Text="Zaznacz wszystko" Icon="select_all" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
                           Variant="Variant.Outlined" Click="@ZaznaczWszystko" Disabled="@(pracownicy == null || pracownicy.Count == 0)" />
             <RadzenButton Text="Odznacz wszystko" Icon="deselect" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
                           Variant="Variant.Outlined" Click="@OdznaczWszystko" Disabled="@(selected.Count == 0)" />
         </RadzenStack>
 
-        <div class="glos-okno-siatka">
-            @if (selectedZakresID == null)
+        <div class="glos-okno-siatka mt-3">
+        @if (selectedZakresID == null)
+        {
+            <div class="p-3" style="font-size:0.85rem; color:#4a4a4a;">Wybierz zakres odbiorców, aby zobaczyć listę pracowników.</div>
+        }
+        else if (pracownicy == null)
+        {
+            <Load />
+        }
+        else
+        {
+            <RadzenDataGridApp @ref="grid" Data="@pracownicy" TItem="WiadomoscZakresPracownikViewModel" AllowPaging="true" PageSize="23"
+                               AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                               Density="Density.Compact" Class="administrator-grid" Style="height:calc(100vh - 15rem)">
+                <Columns>
+                    <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Sortable="false" Filterable="false" Width="50px" TextAlign="TextAlign.Center">
+                        <HeaderTemplate>
+                            <RadzenCheckBox TValue="bool" Value="@WszyscyZaznaczeni" Change="@(v => ZaznaczWszystkoPrzelacz(v))" />
+                        </HeaderTemplate>
+                        <Template Context="odbiorca">
+                            <RadzenCheckBox TValue="bool" Value="@selected.Contains(odbiorca)" Change="@(v => PrzelaczOdbiorce(odbiorca, v))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcNazwisko" Title="Nazwisko" Width="200px" />
+                    <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcImie" Title="Imię" Width="160px" />
+                    <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcKod" Title="Kod" Width="120px" />
+                    <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="kntKontakt" Title="E-mail" Width="320px" />
+                </Columns>
+            </RadzenDataGridApp>
+        }
+        </div>
+
+        @if (busy)
+        {
+            <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="height:4px" Class="mt-3" />
+        }
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
+            @if (potwierdzenie)
             {
-                <div class="p-3">Wybierz zakres odbiorców, aby zobaczyć listę pracowników.</div>
-            }
-            else if (pracownicy == null)
-            {
-                <Load />
+                <span>Wysłać „@Tytul” do @selected.Count osób z zakresu „@NazwaZakresu”?</span>
+                <RadzenButton Text="Tak, wyślij" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                              Click="@Wyslij" IsBusy="@busy" Disabled="@busy" />
+                <RadzenButton Text="Nie" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@AnulujPotwierdzenie" Disabled="@busy" />
             }
             else
             {
-                <RadzenDataGridApp @ref="grid" Data="@pracownicy" TItem="WiadomoscZakresPracownikViewModel" AllowPaging="true" PageSize="10"
-                                   AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                   Density="Density.Compact" Class="administrator-grid" SelectionMode="DataGridSelectionMode.Multiple" Style="height:100%"
-                                   @bind-Value="@selected">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcNazwisko" Title="Nazwisko" Width="200px" />
-                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcImie" Title="Imię" Width="160px" />
-                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcKod" Title="Kod" Width="120px" />
-                        <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="kntKontakt" Title="E-mail" Width="320px" />
-                    </Columns>
-                </RadzenDataGridApp>
+                <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.Close(false))" Disabled="@busy" />
+                <RadzenButton Text="@($"Wyślij ({selected.Count})")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                              Click="@PoprosOPotwierdzenie" Disabled="@(!MoznaWyslac || busy)" />
             }
-        </div>
-
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
-            <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.Close(false))" />
-            <RadzenButton Text="@($"Wyślij ({selected.Count})")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
-                          Click="@Wyslij" Disabled="@(!MoznaWyslac || busy)" />
         </RadzenStack>
     }
 </div>
@@ -108,18 +132,28 @@
     private string temat = string.Empty;
     private string tresc = string.Empty;
     private bool busy;
+    private bool potwierdzenie;
+    private List<WiadomoscWzorzecEnumerator> wzorce = new();
+    private int? wzorzecID;
 
     private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
 
+    private string NazwaZakresu => zakresy.FirstOrDefault(z => z.wzaID == selectedZakresID)?.wzaNazwa ?? "wybrany zakres";
+
     private bool MoznaZapisacRobocza =>
         !string.IsNullOrWhiteSpace(temat)
-        && !string.IsNullOrWhiteSpace(System.Text.RegularExpressions.Regex.Replace(tresc ?? string.Empty, "<[^>]*>", string.Empty).Trim());
+        && !string.IsNullOrWhiteSpace(System.Text.RegularExpressions.Regex.Replace(tresc ?? string.Empty, "<[^>]*>", string.Empty).Trim())
+        && wzorzecID.HasValue;
 
     private bool MoznaWyslac => selectedZakresID.HasValue && selected.Count > 0;
 
     protected override async Task OnInitializedAsync()
     {
-        if (!Robocza)
+        if (Robocza)
+        {
+            wzorce = (await _wiadomoscPracownikService.SelectWzorce(AppID)).ToList();
+        }
+        else
         {
             zakresy = (await _wiadomoscPracownikService.SelectZakresy(AppID)).ToList();
         }
@@ -136,6 +170,24 @@
         }
     }
 
+    private bool WszyscyZaznaczeni => pracownicy is { Count: > 0 } && pracownicy.All(p => selected.Contains(p));
+
+    private void PrzelaczOdbiorce(WiadomoscZakresPracownikViewModel odbiorca, bool zaznaczony)
+    {
+        if (zaznaczony)
+        {
+            if (!selected.Contains(odbiorca)) selected.Add(odbiorca);
+        }
+        else
+        {
+            selected.Remove(odbiorca);
+        }
+    }
+
+    private void ZaznaczWszystkoPrzelacz(bool zaznaczony)
+    {
+        selected = zaznaczony ? (pracownicy ?? new List<WiadomoscZakresPracownikViewModel>()).ToList() : new List<WiadomoscZakresPracownikViewModel>();
+    }
     private void ZaznaczWszystko()
     {
         selected = (pracownicy ?? new List<WiadomoscZakresPracownikViewModel>()).ToList();
@@ -198,7 +250,8 @@
             {
                 wiaAplikacjaID = AppID,
                 wiaTemat = temat.Trim(),
-                wiaTresc = tresc
+                wiaTresc = tresc,
+                wiaWzorzecID = wzorzecID
             };
 
             var (response, wiadomosc) = await _wiadomoscPracownikService.InsertRobocza(model, pliki);
@@ -218,17 +271,22 @@
         }
     }
 
+    private void PoprosOPotwierdzenie()
+    {
+        if (MoznaWyslac)
+        {
+            potwierdzenie = true;
+        }
+    }
+
+    private void AnulujPotwierdzenie()
+    {
+        potwierdzenie = false;
+    }
+
     private async Task Wyslij()
     {
         if (WiadomoscID == null || !selectedZakresID.HasValue || selected.Count == 0)
-        {
-            return;
-        }
-
-        var zakres = zakresy.FirstOrDefault(z => z.wzaID == selectedZakresID.Value)?.wzaNazwa ?? "wybrany zakres";
-        var options = new ConfirmOptions { OkButtonText = "Wyślij", CancelButtonText = "Anuluj" };
-
-        if (await _dialogService.Confirm($"Wysłać „{Tytul}” do {selected.Count} osób z zakresu „{zakres}”?", "Potwierdzenie", options) != true)
         {
             return;
         }
@@ -251,15 +309,16 @@
                 return;
             }
 
+            // Najpierw zamykamy okno, potem komunikat; odświeżenie strony robi okno nadrzędne po chwili, żeby komunikat zdążył się pokazać.
             var szczegoly = wynik.komunikaty.Count > 0 ? " " + string.Join(" ", wynik.komunikaty.Take(3)) : string.Empty;
+            _dialogService.Close(true);
             Notify(wynik.pominieto > 0 ? NotificationSeverity.Warning : NotificationSeverity.Success, "Wysłano",
                 $"Odbiorców: {wynik.dodano}, pominięto: {wynik.pominieto}.{szczegoly}");
-
-            _dialogService.Close(true);
         }
         finally
         {
             busy = false;
+            potwierdzenie = false;
         }
     }
 

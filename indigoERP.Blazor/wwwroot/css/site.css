@@ -104,13 +104,13 @@ html, body {
     display: block;
     width: auto;
     max-width: 260px;
-    height: 40px;
+    height: 38px;
     max-height: 40px;
     object-fit: contain;
 }
 
 .navbar-brand > img.app-header-logo {
-    height: 40px;
+    height: 38px;
     max-height: 40px;
 }
 

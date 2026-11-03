@@ -1,0 +1,337 @@
+﻿@using System.Linq
+@using System.Runtime.InteropServices
+@using Microsoft.Extensions.Configuration
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Hosting
+@inject IConfiguration Configuration
+@inject IHostEnvironment HostEnvironment
+
+<style>
+    .op-page {
+        background: linear-gradient(145deg, #f7f9fc 0%, #eef2f8 100%);
+        box-sizing: border-box;
+        color: #17243a;
+        min-height: 100%;
+        padding: clamp(1rem, 3vw, 3rem);
+        width: 100%;
+    }
+    .op-page *, .op-page *::before, .op-page *::after {
+        box-sizing: border-box;
+    }
+    .op-hero {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #dbe3ef;
+        border-radius: 1.5rem;
+        box-shadow: 0 1rem 2.5rem rgba(27, 52, 85, .08);
+        display: grid;
+        gap: clamp(1.25rem, 3vw, 3rem);
+        grid-template-columns: minmax(0, 1fr) minmax(260px, .9fr);
+        margin: 0 auto 1.5rem;
+        max-width: 1280px;
+        overflow: hidden;
+        padding: clamp(1.25rem, 4vw, 3.5rem);
+    }
+    .op-eyebrow {
+        align-items: center;
+        color: #c26110;
+        display: flex;
+        font-size: .8rem;
+        font-weight: 700;
+        gap: .5rem;
+        letter-spacing: .1em;
+        margin: 0 0 1rem;
+        text-transform: uppercase;
+    }
+    .op-eyebrow svg {
+        height: 1.1rem;
+        width: 1.1rem;
+    }
+    .op-page h1 {
+        color: #132b4c;
+        font-size: clamp(2rem, 3.8vw, 3.6rem);
+        font-weight: 750;
+        letter-spacing: -.035em;
+        line-height: 1.08;
+        margin: 0 0 1.25rem;
+    }
+    .op-lead {
+        color: #4e5e74;
+        font-size: clamp(1rem, 1.2vw, 1.15rem);
+        line-height: 1.7;
+        margin: 0;
+    }
+    .op-illustration {
+        border-radius: 1rem;
+        box-shadow: 0 .75rem 2rem rgba(19, 43, 76, .16);
+        display: block;
+        height: auto;
+        max-width: 100%;
+        width: 100%;
+    }
+    .op-facts {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin: 0 auto 1.5rem;
+        max-width: 1280px;
+    }
+    .op-fact {
+        background: #fff;
+        border: 1px solid #dbe3ef;
+        border-radius: 1rem;
+        padding: 1.1rem 1.25rem;
+    }
+    .op-fact dt {
+        color: #7a889c;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        margin: 0 0 .35rem;
+        text-transform: uppercase;
+    }
+    .op-fact dd {
+        color: #132b4c;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+    .op-features {
+        display: grid;
+        gap: 1.25rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin: 0 auto 1.5rem;
+        max-width: 1280px;
+    }
+    .op-feature {
+        background: #fff;
+        border: 1px solid #dbe3ef;
+        border-radius: 1rem;
+        padding: 1.6rem;
+    }
+    .op-feature-icon {
+        align-items: center;
+        background: #fff2e8;
+        border-radius: .75rem;
+        color: #d26d18;
+        display: inline-flex;
+        height: 3rem;
+        justify-content: center;
+        margin-bottom: 1.1rem;
+        width: 3rem;
+    }
+    .op-feature-icon svg {
+        height: 1.5rem;
+        width: 1.5rem;
+    }
+    .op-feature h2 {
+        color: #1b365c;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 .55rem;
+    }
+    .op-feature p {
+        color: #5b6a7e;
+        line-height: 1.65;
+        margin: 0;
+    }
+    .op-summary {
+        align-items: center;
+        background: #193a63;
+        border-radius: 1rem;
+        color: #fff;
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+        margin: 0 auto;
+        max-width: 1280px;
+        padding: clamp(1.5rem, 3.5vw, 2.75rem);
+    }
+    .op-summary .op-eyebrow {
+        color: #ffc691;
+    }
+    .op-summary h2 {
+        color: #fff;
+        font-size: clamp(1.35rem, 2.2vw, 2rem);
+        font-weight: 750;
+        line-height: 1.2;
+        margin: 0;
+    }
+    .op-summary p {
+        color: #dbe8f7;
+        line-height: 1.65;
+        margin: 0;
+    }
+    .op-summary a {
+        color: #ffc691;
+    }
+    @@media (max-width: 900px) {
+        .op-hero, .op-summary, .op-features {
+            grid-template-columns: 1fr;
+        }
+        .op-facts {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @@media (max-width: 576px) {
+        .op-facts {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="op-page">
+    <div class="op-hero">
+        <div>
+            <p class="op-eyebrow">@IkonaSvg("info") @Nazwa</p>
+            <h1>@Haslo</h1>
+            <p class="op-lead">@Opis</p>
+        </div>
+        @if (string.IsNullOrWhiteSpace(ObrazUrl))
+        {
+            <svg class="op-illustration" viewBox="0 0 560 380" role="img"
+                aria-label="Ilustracja przedstawiająca nowoczesne, zintegrowane środowisko pracy Huty Częstochowa">
+                <defs>
+                    <linearGradient id="op-tlo" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#17345a" />
+                        <stop offset="1" stop-color="#245f9c" />
+                    </linearGradient>
+                    <linearGradient id="op-ogien" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#ffc07a" />
+                        <stop offset="1" stop-color="#ef7d00" />
+                    </linearGradient>
+                    <radialGradient id="op-blask" cx="0.5" cy="0.5" r="0.5">
+                        <stop offset="0" stop-color="#ffb066" stop-opacity=".55" />
+                        <stop offset="1" stop-color="#ffb066" stop-opacity="0" />
+                    </radialGradient>
+                </defs>
+                <rect width="560" height="380" fill="url(#op-tlo)" />
+                <circle cx="430" cy="105" r="150" fill="url(#op-blask)" />
+                <circle cx="430" cy="105" r="62" fill="url(#op-ogien)" />
+                <circle cx="430" cy="105" r="88" fill="none" stroke="#ffc07a" stroke-opacity=".5" stroke-width="2" />
+                <circle cx="430" cy="105" r="116" fill="none" stroke="#ffc07a" stroke-opacity=".25" stroke-width="2" />
+                <circle cx="96" cy="92" r="30" fill="none" stroke="#9fc3ea" stroke-opacity=".55" stroke-width="12" stroke-dasharray="9 7" />
+                <circle cx="96" cy="92" r="9" fill="#9fc3ea" fill-opacity=".7" />
+                <g fill="#dbe8f7" fill-opacity=".16">
+                    <rect x="40" y="258" width="470" height="14" rx="4" />
+                    <rect x="40" y="316" width="470" height="14" rx="4" />
+                    <rect x="60" y="272" width="24" height="44" />
+                    <rect x="268" y="272" width="24" height="44" />
+                    <rect x="476" y="272" width="24" height="44" />
+                </g>
+                <g>
+                    <rect x="70" y="150" width="190" height="96" rx="12" fill="#fff" fill-opacity=".94" />
+                    <rect x="86" y="168" width="70" height="9" rx="4.5" fill="#ef7d00" />
+                    <rect x="86" y="186" width="150" height="7" rx="3.5" fill="#c9d4e3" />
+                    <rect x="86" y="200" width="120" height="7" rx="3.5" fill="#c9d4e3" />
+                    <polyline points="86,232 112,222 138,228 166,210 196,216 232,196" fill="none" stroke="#245f9c" stroke-width="3.5"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="290" y="166" width="150" height="80" rx="12" fill="#fff" fill-opacity=".94" />
+                    <rect x="306" y="184" width="42" height="42" rx="9" fill="#ffe7d1" />
+                    <path d="M319 206l8 8 14-17" fill="none" stroke="#d26d18" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="360" y="188" width="64" height="8" rx="4" fill="#c9d4e3" />
+                    <rect x="360" y="204" width="46" height="8" rx="4" fill="#c9d4e3" />
+                </g>
+                <g fill="#fff" fill-opacity=".9">
+                    <rect x="40" y="338" width="120" height="10" rx="5" />
+                    <rect x="40" y="354" width="76" height="8" rx="4" fill-opacity=".5" />
+                </g>
+            </svg>
+        }
+        else
+        {
+            <img class="op-illustration" src="@ObrazUrl" alt="@ObrazOpis" />
+        }
+    </div>
+
+    <dl class="op-facts">
+        <div class="op-fact"><dt>Wersja</dt><dd>@Wersja</dd></div>
+        <div class="op-fact"><dt>Numer aplikacji</dt><dd>@(AppId?.ToString() ?? "–")</dd></div>
+        <div class="op-fact"><dt>Środowisko</dt><dd>@(HostEnvironment.IsDevelopment() ? "Testowe (Development)" : "Produkcyjne")</dd></div>
+        <div class="op-fact"><dt>Platforma</dt><dd>@RuntimeInformation.FrameworkDescription</dd></div>
+    </dl>
+
+    <div class="op-features" aria-label="Najważniejsze cechy systemu">
+        @foreach (var cecha in CechyDoWyswietlenia)
+        {
+            <article class="op-feature">
+                <div class="op-feature-icon">@IkonaSvg(cecha.Ikona)</div>
+                <h2>@cecha.Tytul</h2>
+                <p>@cecha.Tekst</p>
+            </article>
+        }
+    </div>
+
+    <OProgramieNowosci />
+
+    <div class="op-summary">
+        <div>
+            <p class="op-eyebrow">Wsparcie</p>
+            <h2>@PodsumowanieTytul</h2>
+        </div>
+        <p>
+            Huta Częstochowa Sp. z o.o. · tel. +48 34 323 8000 ·
+            <a href="mailto:itsupport@huta-czestochowa.pl">itsupport@huta-czestochowa.pl</a>
+        </p>
+    </div>
+</section>
+
+@code {
+    /// <summary>Nazwa aplikacji (np. namibPMS).</summary>
+    [Parameter, EditorRequired] public string Nazwa { get; set; } = string.Empty;
+
+    /// <summary>Hasło przewodnie wyświetlane jako nagłówek.</summary>
+    [Parameter] public string Haslo { get; set; } = "Jedno miejsce do codziennej pracy.";
+
+    /// <summary>Krótki opis przeznaczenia aplikacji.</summary>
+    [Parameter] public string Opis { get; set; } = string.Empty;
+
+    /// <summary>Własna grafika hero (adres obrazu); domyślnie wbudowana ilustracja SVG.</summary>
+    [Parameter] public string? ObrazUrl { get; set; }
+
+    /// <summary>Tekst alternatywny własnej grafiki hero.</summary>
+    [Parameter] public string ObrazOpis { get; set; } = "Ilustracja aplikacji";
+
+    /// <summary>Nagłówek niebieskiego pola z podsumowaniem i wsparciem.</summary>
+    [Parameter] public string PodsumowanieTytul { get; set; } = "Masz pytania lub uwagi do programu? Napisz do działu IT.";
+
+    /// <summary>Dodatkowy tekst w polu z podsumowaniem (przed danymi kontaktowymi).</summary>
+    [Parameter] public string? PodsumowanieTekst { get; set; }
+
+    /// <summary>Karty z najważniejszymi cechami (domyślnie trzy standardowe).</summary>
+    [Parameter] public IReadOnlyList<OProgramieCecha>? Cechy { get; set; }
+
+    private static readonly OProgramieCecha[] CechyDomyslne = new OProgramieCecha[]
+    {
+        new("shield", "Bezpieczny dostęp", "Logowanie firmowe (SSO), a widoczność funkcji i danych wynika z ról użytkownika."),
+        new("news", "Aktualna wiedza o zmianach", "Poniżej znajdziesz nowości w programie – od najnowszej, z pełnym opisem."),
+        new("support", "Wsparcie działu IT", "W razie pytań lub błędów skontaktuj się z działem IT – dane kontaktowe znajdziesz niżej.")
+    };
+
+    private IReadOnlyList<OProgramieCecha> CechyDoWyswietlenia => Cechy is { Count: > 0 } ? Cechy : CechyDomyslne;
+
+    private string? Wersja => Configuration["appSettings:Version"] is { Length: > 0 } w ? w : "–";
+
+    private int? AppId => int.TryParse(Configuration["appSettings:AppID"], out var id) ? id : null;
+
+    private static MarkupString IkonaSvg(string nazwa)
+    {
+        var sciezka = nazwa switch
+        {
+            "shield" => "M12 3l8 3v6c0 4.5-3.2 8.2-8 9-4.8-.8-8-4.5-8-9V6l8-3zm-1 11l5-5-1.4-1.4L11 11.2 9.4 9.6 8 11l3 3z",
+            "news" => "M4 5h13a2 2 0 012 2v12H6a2 2 0 01-2-2V5zm2 3v2h9V8H6zm0 4v2h9v-2H6zm0 4v1h6v-1H6zM19 9h2v8a2 2 0 01-2 2v-2V9z",
+            "support" => "M12 3a8 8 0 00-8 8v4a3 3 0 003 3h1v-6H6v-1a6 6 0 1112 0v1h-2v6h2a2 2 0 01-2 2h-3v2h3a4 4 0 004-4v-8a8 8 0 00-8-8z",
+            "route" => "M6 3a3 3 0 00-.9 5.9V15a3 3 0 106 0v-1h4.5a3.5 3.5 0 000-7H11.5V8.9A3 3 0 006 3zm0 2a1 1 0 110 2 1 1 0 " +
+                "010-2zm9.5 4a1.5 1.5 0 010 3H11V9h4.5zM8 19a1 1 0 110-2 1 1 0 010 2z",
+            "docs" => "M6 2h8l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2zm7 1.5V8h4.5L13 3.5zM7 12v2h10v-2H7zm0 4v2h7v-2H7z",
+            "gear" => "M19.4 13a7.6 7.6 0 000-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 00-1.7-1l-.4-2.6h-4l-.4 2.6a7.6 7.6 0 00-1.7 1l-2.4-1-2 " +
+                "3.4 2 1.6a7.6 7.6 0 000 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.4 1 " +
+                "2-3.4-2-1.6zM12 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z",
+            "chart" => "M4 20V4h2v14h14v2H4zm4-4V9h3v7H8zm5 0V6h3v10h-3zm5 0v-5h3v5h-3z",
+            _ => "M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+        };
+
+        return new MarkupString($"<svg viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"{sciezka}\"/></svg>");
+    }
+}

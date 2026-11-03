@@ -9,6 +9,7 @@ namespace indigoERP.Service.Interfaces._Wspolne
     {
         Task<IEnumerable<WiadomoscZakresEnumerator>> SelectZakresy(int appID);
         Task<IEnumerable<WiadomoscZakresPracownikViewModel>> SelectPracownicyZakres(int wzaID);
+        Task<IEnumerable<WiadomoscWzorzecEnumerator>> SelectWzorce(int appID);
         Task<(ResponseMessage Response, WiadomoscWysylkaZakresWynikModel? Wynik)> InsertWysylka(
             WiadomoscWysylkaZakresModel model, IReadOnlyList<WiadomoscPlikWysylki> pliki);
         Task<(ResponseMessage Response, WiadomoscDto? Wiadomosc)> InsertRobocza(
@@ -17,5 +18,6 @@ namespace indigoERP.Service.Interfaces._Wspolne
         Task<(ResponseMessage Response, WiadomoscWysylkaZakresWynikModel? Wynik)> WyslijRobocza(
             int wiaID, WiadomoscWyslijRoboczaModel model);
         Task<IEnumerable<WiadomoscPracownikViewModel>> SelectWyslane(int appID);
+        Task<IEnumerable<WiadomoscPodsumowanieDto>> SelectPodsumowanie(int appID);
     }
 }

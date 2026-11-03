@@ -7,7 +7,8 @@
         </a>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a href="@BaseUrl" class="nav-link active">Główna</a></li>                
+                <li class="nav-item"><a href="@BaseUrl" class="nav-link active">Główna</a></li>
+                <li class="nav-item"><a href="/gloshutnika" class="nav-link" target="_blank">Głos Hutnika</a></li>
 @*
                 <li class="nav-item"><a href="/desktop" class="nav-link">Pulpit</a></li>
                 <li class="nav-item"><a href="task" class="nav-link">Zadania</a></li>
@@ -16,7 +17,7 @@
                 <li class="nav-item"><a href="/dokument" class="nav-link">Dokumenty</a></li> 
                 <li class="nav-item"><a href="https://intranet.hcz.com.pl:8350" class="nav-link">Service desk</a></li>
 *@
-                <li class="nav-item"><a href="/gloshutnika" class="nav-link" target="_blank">Głos Hutnika</a></li>
+                <li class="nav-item"><a href="/wiadomosc" class="nav-link" target="_blank">Wiadomości</a></li>
 @*                 
                 <li class="nav-item"><a href="#" class="nav-link">Telefony</a></li> 
 *@
@@ -26,9 +27,7 @@
                 <AuthorizeView Roles="HCZ-indigoERP-Podpisy">
                     <li class="nav-item"><a href="/podpis/" class="nav-link active">Podpisy</a></li>
                 </AuthorizeView>
-                <AuthorizeView Roles="HCZ-indigoERP-Wiadomość">
-                    <li class="nav-item"><a href="/wiadomosc/" class="nav-link">Wiadomości</a></li>
-                </AuthorizeView>
+                <li class="nav-item"><a href="about" class="nav-link">O programie</a></li>
             </ul>
         </div>
         <div class="text-light">

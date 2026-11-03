@@ -21,15 +21,23 @@ namespace indigoERP.Api.Controllers._Wspolne;
 [Authorize(Roles = GazetaRoles, AuthenticationSchemes = BearerScheme)]
 public class WiadomoscPracownikController : ControllerBase
 {
-    private const string GazetaRoles = "HCZ-indigoERP-Gazeta,HCZ-indigoERP-Administrator";
+    private const string GazetaRoles = "HCZ-indigoERP-Wiadomość,HCZ-indigoERP-Administrator";
     private const string BearerScheme = "Bearer";
 
-    // Numer roboczy: zapisany, niewidoczny publicznie. Numer wysłany: status "2" (widoczny na /gloshutnika).
+    // Numer roboczy: zapisany, niewidoczny publicznie. Numer wysłany: status "2" (widoczny na /wiadomosc).
     private const string StatusRobocza = "1";
     private const string StatusWyslana = "2";
 
+    // Statusy odbiorcy (WiadomoscPracownik.wprStatus), zgodne z Workerem.
+    private const string WprStatusNowa = "2";
+    private const string WprStatusZakonczona = "4";
+    private const string WprStatusBlad = "5";
+
     /// <summary>Skrzynka, z której Worker wysyła Głos Hutnika (Worker bierze nadawcę z Wiadomosc.wiaEmail).</summary>
     public const string NadawcaGlosu = "indigoERP@huta-czestochowa.pl";
+
+    /// <summary>Wzorzec szablonu, w który Worker opakowuje treść z formularza Głosu Hutnika (dbo.WiadomoscWzorzec.msgID).</summary>
+    public const int WzorzecGlosu = 9;
 
     // Każdy odbiorca to osobna wartość formularza (prcIDs); domyślny limit ASP.NET to 1024.
     private const int LimitOdbiorcow = 20000;
@@ -107,6 +115,11 @@ public class WiadomoscPracownikController : ControllerBase
             return BadRequest("Temat i treść wiadomości są wymagane.");
         }
 
+        if (model.wiaWzorzecID == null)
+        {
+            return BadRequest("Wybierz wzorzec wiadomości.");
+        }
+
         var zalaczniki = pliki?.ToList() ?? new List<IFormFile>();
         var blad = WalidujZalaczniki(zalaczniki);
 
@@ -130,6 +143,7 @@ public class WiadomoscPracownikController : ControllerBase
             wiaData = DateTime.Now,
             wiaStatus = StatusRobocza,
             wiaEmail = NadawcaGlosu,
+            wiaWzorzecID = model.wiaWzorzecID.Value,
             wiaPubliczna = true
         };
 
@@ -174,6 +188,9 @@ public class WiadomoscPracownikController : ControllerBase
         {
             wiadomosc.wiaEmail = NadawcaGlosu;
         }
+
+        // Szkice zapisane przed ustawieniem wzorca dostają go przy wysyłce.
+        wiadomosc.wiaWzorzecID ??= WzorzecGlosu;
 
         if (model.prcIDs.Count == 0)
         {
@@ -231,6 +248,11 @@ public class WiadomoscPracownikController : ControllerBase
             return BadRequest("Temat i treść wiadomości są wymagane.");
         }
 
+        if (model.wiaWzorzecID == null)
+        {
+            return BadRequest("Wybierz wzorzec wiadomości.");
+        }
+
         if (model.prcIDs.Count == 0)
         {
             return BadRequest("Wybierz co najmniej jednego odbiorcę.");
@@ -274,7 +296,8 @@ public class WiadomoscPracownikController : ControllerBase
             wiaData = DateTime.Now,
             wiaStatus = StatusWyslana,
             wiaEmail = NadawcaGlosu,
-            // Wysyłka z zakładki Głos Hutnika to numer publiczny — trafia na stronę /gloshutnika.
+            wiaWzorzecID = model.wiaWzorzecID.Value,
+            // Wysyłka z zakładki Głos Hutnika to numer publiczny — trafia na stronę /wiadomosc.
             wiaPubliczna = true
         };
 
@@ -296,6 +319,49 @@ public class WiadomoscPracownikController : ControllerBase
         return Ok(wynik);
     }
 
+    /// <summary>Podsumowanie wysyłki każdej wiadomości aplikacji: odbiorcy razem, wysłani, z błędem i oczekujący.</summary>
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<WiadomoscPodsumowanieDto>>> SelectPodsumowanie(int appID)
+    {
+        var wiadomosci = await _context.Wiadomosc
+            .AsNoTracking()
+            .Where(w => w.wiaAplikacjaID == appID && w.Usuniety != true)
+            .OrderByDescending(w => w.wiaData)
+            .Select(w => new { w.wiaID, w.wiaTemat, w.wiaData, w.wiaStatus })
+            .ToListAsync();
+
+        var ids = wiadomosci.Select(w => w.wiaID).ToList();
+        var liczby = await _context.WiadomoscPracownik
+            .AsNoTracking()
+            .Where(p => p.wprWiadomoscID != null && ids.Contains(p.wprWiadomoscID.Value))
+            .GroupBy(p => p.wprWiadomoscID!.Value)
+            .Select(g => new
+            {
+                WiadomoscID = g.Key,
+                Razem = g.Count(),
+                Wyslane = g.Count(p => p.wprStatus == WprStatusZakonczona),
+                Bledy = g.Count(p => p.wprStatus == WprStatusBlad),
+                Oczekujace = g.Count(p => p.wprStatus == WprStatusNowa)
+            })
+            .ToListAsync();
+        var slownik = liczby.ToDictionary(x => x.WiadomoscID);
+
+        return wiadomosci.Select(w =>
+        {
+            slownik.TryGetValue(w.wiaID, out var l);
+            return new WiadomoscPodsumowanieDto
+            {
+                wiaID = w.wiaID,
+                wiaTemat = w.wiaTemat,
+                wiaData = w.wiaData,
+                wiaStatus = w.wiaStatus,
+                Razem = l?.Razem ?? 0,
+                Wyslane = l?.Wyslane ?? 0,
+                Bledy = l?.Bledy ?? 0,
+                Oczekujace = l?.Oczekujace ?? 0
+            };
+        }).ToList();
+    }
     [HttpGet("{wprWiadomoscID}")]
     public async Task<ActionResult<IEnumerable<WiadomoscPracownikDto>>> SelectByWiadomosc(int wprWiadomoscID, string wprStatus = "2")
     {

@@ -6,7 +6,7 @@
 @inject IWiadomoscPracownikService _wiadomoscPracownikService
 @inject IConfiguration _configuration
 
-@* Osadzone w publicznej stronie Razor (/gloshutnika) tylko dla ról Gazeta / Administrator. Okna wysyłki otwierają się na środku. *@
+@* Osadzone w publicznej stronie Razor (/wiadomosc) tylko dla ról Gazeta / Administrator. Okna wysyłki otwierają się na środku. *@
 <RadzenDialog />
 <RadzenNotification />
 
@@ -38,40 +38,40 @@
 
     private async Task OtworzNowy()
     {
-        var zmieniono = await _dialogService.OpenAsync<GlosWysylkaOkno>(
-            "Nowy numer Głosu Hutnika",
+        var zmieniono = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+            "Nowa wiadomość",
             new Dictionary<string, object?>(),
-            GetDialogOptions());
+            GetSideOptions());
 
         // Po zapisie odświeżamy stronę, żeby numer roboczy pojawił się na liście.
-        OdswiezJesliZmieniono(zmieniono);
+        await OdswiezJesliZmieniono(zmieniono);
     }
 
     private async Task OtworzWysylke(WiadomoscDto wiadomosc)
     {
-        var wyslano = await _dialogService.OpenAsync<GlosWysylkaOkno>(
+        var wyslano = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
             $"Wysyłka: {wiadomosc.wiaTemat}",
             new Dictionary<string, object?> { ["WiadomoscID"] = wiadomosc.wiaID, ["Tytul"] = wiadomosc.wiaTemat },
-            GetDialogOptions());
+            GetSideOptions());
 
-        OdswiezJesliZmieniono(wyslano);
+        await OdswiezJesliZmieniono(wyslano);
     }
 
-    private void OdswiezJesliZmieniono(dynamic? wynik)
+    private async Task OdswiezJesliZmieniono(dynamic? wynik)
     {
         if (wynik is true)
         {
+            // Chwila na komunikat o wysłaniu, zanim strona się przeładuje (przeładowanie kasuje komunikaty).
+            await Task.Delay(TimeSpan.FromSeconds(4));
             _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
         }
     }
 
-    // Okno wyśrodkowane, o wysokości ograniczonej do widoku; siatka wypełnia okno, a przyciski zostają na dole.
-    private static DialogOptions GetDialogOptions() => new()
+    // Okno boczne z prawej, szerokość 1000px; zawartość przewija się w całości, nic nie jest ucinane.
+    private static SideDialogOptions GetSideOptions() => new()
     {
-        Width = "min(1000px, 95vw)",
-        Height = "min(88vh, 900px)",
-        Resizable = false,
-        Draggable = false,
+        Position = DialogPosition.Right,
+        Width = "1000px",
         CloseDialogOnOverlayClick = false,
         ShowTitle = true,
         ShowClose = true,

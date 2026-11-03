@@ -28,6 +28,10 @@ builder.Services.Configure<WorkerOptions>(builder.Configuration.GetSection(Worke
 builder.Services.AddSingleton<WiadomoscWorkerContextFactory>();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IMicrosoftGraphMailService, MicrosoftGraphMailService>();
+builder.Services.AddSingleton<IWiadomoscMailSender>(sp =>
+    new RoutingWiadomoscMailSender(
+        new GraphWiadomoscMailSender(sp.GetRequiredService<IMicrosoftGraphMailService>()),
+        new SmtpWiadomoscMailSender(builder.Configuration)));
 builder.Services.AddSingleton<WiadomoscKolejkaService>();
 builder.Services.AddHostedService<WiadomoscWorker>();
 

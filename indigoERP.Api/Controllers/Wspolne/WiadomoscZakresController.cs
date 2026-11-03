@@ -11,7 +11,7 @@ namespace indigoERP.Api.Controllers._Wspolne;
 [Authorize(Roles = GazetaRoles, AuthenticationSchemes = "Bearer")]
 public sealed class WiadomoscZakresController : ControllerBase
 {
-    private const string GazetaRoles = "HCZ-indigoERP-Gazeta,HCZ-indigoERP-Administrator";
+    private const string GazetaRoles = "HCZ-indigoERP-Wiadomość,HCZ-indigoERP-Administrator";
 
     private readonly indigoERPContext _context;
 

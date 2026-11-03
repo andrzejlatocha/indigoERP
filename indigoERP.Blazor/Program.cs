@@ -19,8 +19,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 using Radzen;
 using System.Globalization;
+using indigoERP.Blazor.OProgramie;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddOProgramie(builder.Configuration, builder.Environment);
 
 // Zmienna środowiskowa InternalSso nadpisuje InternalSso:Key z appsettings.json — jedna, wspólna
 // zmienna systemowa dla wszystkich aplikacji na tym serwerze (nie per-appka), patrz też indigoERP.Api\Program.cs.

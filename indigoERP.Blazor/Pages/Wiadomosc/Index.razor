@@ -1,4 +1,4 @@
-﻿@page "/wiadomosc"
+﻿@page "/wiadomosci-wewnetrzne"
 
 @using indigoERP.Blazor.Pages.Wiadomosc.Wzorzec
 
@@ -15,7 +15,7 @@
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
             <RadzenButton Text="Nowa wiadomość" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@InsertRow" />
             <AuthorizeView Roles="HCZ-indigoERP-Wiadomość">
-                <RadzenButton Text="Wzorce wiadomości" Icon="description" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@(() => _navigationManager.NavigateTo("/wiadomosc/wzorzec"))" />
+                <RadzenButton Text="Wzorce wiadomości" Icon="description" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Click="@(() => _navigationManager.NavigateTo("/wiadomosci-wewnetrzne/wzorzec"))" />
             </AuthorizeView>
         </RadzenStack>
     </div>

@@ -51,7 +51,7 @@ namespace indigoERP.Api.Controllers._Wspolne
         }
 
         // Biuletyn publiczny (Głos Hutnika) — bez żadnej autoryzacji, serwowany osobnej,
-        // nie-Blazorowej stronie Razor Pages (Pages/GlosHutnika.cshtml), żeby nie trzeba
+        // nie-Blazorowej stronie Razor Pages (Pages/WiadomoscPubliczna.cshtml), żeby nie trzeba
         // było otwierać całego kręgu Blazor na anonimowy dostęp. Widok mvw.vWiadomoscPubliczna
         // już ogranicza wynik do wiaAplikacjaID=900 + wiaPubliczna=1 + wiaStatus='2'.
         [AllowAnonymous]
@@ -74,6 +74,27 @@ namespace indigoERP.Api.Controllers._Wspolne
                     && (wiaUzytkownikID == null || w.wiaUzytkownikID == wiaUzytkownikID)
                     && (w.wiaStatus == wiaStatus || wiaStatus == "*"))
                 .OrderByDescending(w => w.wiaData)
+                .ToListAsync();
+        }
+
+        /// <summary>Liczby adresatów (wysłane, błędy, oczekujące) dla wiadomości aplikacji – jeden wiersz na wiadomość.</summary>
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<WiadomoscPodsumowanieDto>>> SelectPodsumowanie(int wiaAplikacjaID)
+        {
+            return await (
+                from p in _context.WiadomoscPracownik.AsNoTracking()
+                join w in _context.Wiadomosc.AsNoTracking() on p.wprWiadomoscID equals w.wiaID
+                where w.wiaAplikacjaID == wiaAplikacjaID
+                group p by p.wprWiadomoscID into g
+                select new WiadomoscPodsumowanieDto
+                {
+                    wiaID = g.Key!.Value,
+                    Razem = g.Count(),
+                    Wyslane = g.Count(x => x.wprStatus == "4"),
+                    Bledy = g.Count(x => x.wprStatus == "5"),
+                    Oczekujace = g.Count(x => x.wprStatus == "2")
+                })
                 .ToListAsync();
         }
 

@@ -1,0 +1,45 @@
+﻿@using indigoERP.Domain.Dtos._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+
+@inject IWiadomoscPracownikService _wiadomoscPracownikService
+@inject IConfiguration _configuration
+
+@* Panel zarządzania na publicznej stronie (/wiadomosc) tylko dla ról Gazeta / Administrator: wybór roku, przycisk nowego numeru i lista. *@
+
+<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+    <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="rok" Style="width: 110px;" />
+    <GlosZarzadzanie />
+</RadzenStack>
+
+<ListaWiadomosci Lista="@WiadomosciRoku" />
+
+@code {
+    // Rekordy sprzed tej daty nie są pokazywane (ustalenie użytkownika).
+    private static readonly DateTime DataOd = new(2026, 10, 1);
+
+    private List<WiadomoscPodsumowanieDto> wszystkie = new();
+
+    private int rok = DateTime.Now.Year;
+
+    private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
+
+    private IEnumerable<WiadomoscPodsumowanieDto> Widoczne => wszystkie.Where(w => w.wiaData >= DataOd);
+
+    // Bieżący rok zawsze na liście, nawet bez wiadomości.
+    private List<int> Lata => Widoczne
+        .Where(w => w.wiaData != null)
+        .Select(w => w.wiaData!.Value.Year)
+        .Append(DateTime.Now.Year)
+        .Distinct()
+        .OrderByDescending(y => y)
+        .ToList();
+
+    private IEnumerable<WiadomoscPodsumowanieDto> WiadomosciRoku => Widoczne
+        .Where(w => w.wiaData?.Year == rok)
+        .OrderByDescending(w => w.wiaData);
+
+    protected override async Task OnInitializedAsync()
+    {
+        wszystkie = (await _wiadomoscPracownikService.SelectPodsumowanie(AppID)).ToList();
+    }
+}

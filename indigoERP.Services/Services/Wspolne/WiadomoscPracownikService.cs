@@ -39,6 +39,15 @@ namespace indigoERP.Service.Services._Wspolne
             return result ?? Enumerable.Empty<WiadomoscZakresPracownikViewModel>();
         }
 
+        public async Task<IEnumerable<WiadomoscWzorzecEnumerator>> SelectWzorce(int appID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+            var result = await httpClient.GetFromJsonAsync<IEnumerable<WiadomoscWzorzecEnumerator>>(
+                $"WiadomoscWzorzec/SelectLookup?msgAplikacjaID={appID}&msgStatus=2");
+
+            return result ?? Enumerable.Empty<WiadomoscWzorzecEnumerator>();
+        }
+
         public async Task<(ResponseMessage Response, WiadomoscWysylkaZakresWynikModel? Wynik)> InsertWysylka(
             WiadomoscWysylkaZakresModel model, IReadOnlyList<WiadomoscPlikWysylki> pliki)
         {
@@ -96,6 +105,11 @@ namespace indigoERP.Service.Services._Wspolne
                     { new StringContent(model.wiaTemat), nameof(model.wiaTemat) },
                     { new StringContent(model.wiaTresc), nameof(model.wiaTresc) }
                 };
+
+                if (model.wiaWzorzecID is { } wzorzecID)
+                {
+                    content.Add(new StringContent(wzorzecID.ToString()), nameof(model.wiaWzorzecID));
+                }
 
                 DodajPliki(content, pliki);
 
@@ -170,6 +184,13 @@ namespace indigoERP.Service.Services._Wspolne
             }
         }
 
+        public async Task<IEnumerable<WiadomoscPodsumowanieDto>> SelectPodsumowanie(int appID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+            var result = await httpClient.GetFromJsonAsync<IEnumerable<WiadomoscPodsumowanieDto>>($"WiadomoscPracownik/SelectPodsumowanie?appID={appID}");
+
+            return result ?? Enumerable.Empty<WiadomoscPodsumowanieDto>();
+        }
         public async Task<IEnumerable<WiadomoscPracownikViewModel>> SelectWyslane(int appID)
         {
             var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);

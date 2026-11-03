@@ -1,0 +1,296 @@
+﻿@using System.Linq
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@inject IOProgramieNowosci NowosciZrodlo
+
+<style>
+    .op-news {
+        background: #fff;
+        border: 1px solid #dbe3ef;
+        border-radius: 1rem;
+        margin: 0 auto 1.5rem;
+        max-width: 1280px;
+        padding: clamp(1.1rem, 2.5vw, 2rem);
+    }
+    .op-news h2 {
+        color: #132b4c;
+        font-size: 1.35rem;
+        font-weight: 750;
+        margin: 0 0 .25rem;
+    }
+    .op-news-sub {
+        color: #5b6a7e;
+        margin: 0 0 1.1rem;
+    }
+    .op-table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    .op-table th {
+        border-bottom: 2px solid #dbe3ef;
+        color: #7a889c;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        padding: .6rem .75rem;
+        text-align: left;
+        text-transform: uppercase;
+    }
+    .op-table td {
+        border-bottom: 1px solid #eef2f8;
+        padding: .7rem .75rem;
+        vertical-align: middle;
+    }
+    .op-table tbody tr:hover {
+        background: #f7f9fc;
+    }
+    .op-nowrap {
+        white-space: nowrap;
+    }
+    .op-icon {
+        color: #d26d18;
+        display: inline-block;
+        min-width: 1.4rem;
+        text-align: center;
+    }
+    .op-link {
+        background: none;
+        border: 0;
+        color: #1b5aa6;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 650;
+        padding: 0;
+        text-align: left;
+        text-decoration: underline;
+        text-decoration-color: rgba(27, 90, 166, .35);
+        text-underline-offset: .2em;
+    }
+    .op-link:hover, .op-link:focus-visible {
+        color: #c26110;
+        text-decoration-color: currentColor;
+    }
+    .op-empty {
+        background: #f7f9fc;
+        border: 1px dashed #c5d0e0;
+        border-radius: .75rem;
+        color: #5b6a7e;
+        padding: 1.25rem;
+        text-align: center;
+    }
+    .op-warn {
+        background: #fff7ed;
+        border: 1px solid #f6cfa6;
+        border-radius: .75rem;
+        color: #8a4b0f;
+        padding: 1rem 1.25rem;
+    }
+    .op-modal-tlo {
+        align-items: center;
+        background: rgba(15, 28, 48, .55);
+        display: flex;
+        inset: 0;
+        justify-content: center;
+        padding: 1rem;
+        position: fixed;
+        z-index: 2000;
+    }
+    .op-modal {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 2rem 4rem rgba(0, 0, 0, .35);
+        display: flex;
+        flex-direction: column;
+        max-height: 88vh;
+        max-width: 860px;
+        width: 100%;
+    }
+    .op-modal-naglowek {
+        align-items: flex-start;
+        border-bottom: 1px solid #e3e9f3;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        padding: 1.1rem 1.4rem;
+    }
+    .op-modal-naglowek h2 {
+        color: #132b4c;
+        font-size: 1.3rem;
+        font-weight: 750;
+        margin: 0;
+    }
+    .op-modal-meta {
+        color: #7a889c;
+        font-size: .85rem;
+        margin-top: .3rem;
+    }
+    .op-modal-x {
+        background: none;
+        border: 0;
+        color: #5b6a7e;
+        cursor: pointer;
+        font-size: 1.7rem;
+        line-height: 1;
+        padding: 0 .25rem;
+    }
+    .op-modal-x:hover {
+        color: #c26110;
+    }
+    .op-modal-tresc {
+        color: #26364d;
+        line-height: 1.7;
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+    }
+    .op-modal-tresc img {
+        height: auto;
+        max-width: 100%;
+    }
+    .op-modal-stopka {
+        align-items: center;
+        border-top: 1px solid #e3e9f3;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        padding: .9rem 1.4rem;
+    }
+    .op-btn {
+        background: #ef7d00;
+        border: 0;
+        border-radius: .6rem;
+        color: #fff;
+        cursor: pointer;
+        font-weight: 700;
+        padding: .55rem 1.4rem;
+    }
+    .op-btn:hover {
+        background: #d26d18;
+    }
+    @@media (max-width: 576px) {
+        .op-table th.op-hide-sm, .op-table td.op-hide-sm {
+            display: none;
+        }
+    }
+</style>
+
+<section class="op-news" aria-labelledby="op-nowosci-tytul">
+    <h2 id="op-nowosci-tytul">Nowości w programie</h2>
+    <p class="op-news-sub">Najnowsze zmiany na górze. Kliknij tytuł, aby zobaczyć pełny opis.</p>
+
+    @if (ladowanie)
+    {
+        <div class="op-empty">Trwa pobieranie nowości…</div>
+    }
+    else if (!string.IsNullOrEmpty(blad))
+    {
+        <div class="op-warn" role="alert">@blad</div>
+    }
+    else if (nowosci.Count == 0)
+    {
+        <div class="op-empty">Brak opublikowanych nowości dla tej aplikacji.</div>
+    }
+    else
+    {
+        <table class="op-table">
+            <thead>
+                <tr>
+                    <th class="op-nowrap">Data</th>
+                    <th>Typ</th>
+                    <th class="op-hide-sm">Wersja</th>
+                    <th>Tytuł</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var n in nowosci)
+                {
+                    <tr>
+                        <td class="op-nowrap">@(n.nowData?.ToString("yyyy-MM-dd") ?? "")</td>
+                        <td class="op-nowrap"><span class="op-icon">@IkonaNowosci(n)</span> @n.tnoOpis</td>
+                        <td class="op-hide-sm op-nowrap">@n.nowWersja</td>
+                        <td><button type="button" class="op-link" @onclick="() => Otworz(n)">@Tytul(n)</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>
+
+@if (wybrana is not null)
+{
+    <div class="op-modal-tlo" @onclick="Zamknij">
+        <div class="op-modal" role="dialog" aria-modal="true" aria-labelledby="op-modal-tytul" @onclick:stopPropagation="true">
+            <div class="op-modal-naglowek">
+                <div>
+                    <h2 id="op-modal-tytul">@wybrana.nowTytul</h2>
+                    <div class="op-modal-meta">
+                        @(wybrana.nowData?.ToString("yyyy-MM-dd"))
+                        @if (!string.IsNullOrWhiteSpace(wybrana.nowWersja)) { <span> · wersja @wybrana.nowWersja</span> }
+                        @if (!string.IsNullOrWhiteSpace(wybrana.tnoOpis)) { <span> · @wybrana.tnoOpis</span> }
+                    </div>
+                </div>
+                <button type="button" class="op-modal-x" aria-label="Zamknij" @onclick="Zamknij">×</button>
+            </div>
+            <div class="op-modal-tresc">@((MarkupString)OProgramieHtml.Sanitize(wybrana.nowOpis))</div>
+            <div class="op-modal-stopka">
+                <span>
+                    @if (!string.IsNullOrWhiteSpace(wybrana.nowURL))
+                    {
+                        <a href="@wybrana.nowURL" target="_blank" rel="noopener noreferrer">Więcej informacji</a>
+                    }
+                </span>
+                <button type="button" class="op-btn" @onclick="Zamknij">Zamknij</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<OProgramieNowosc> nowosci = new();
+    private OProgramieNowosc? wybrana;
+    private bool ladowanie = true;
+    private string? blad;
+
+    private int? AppId => int.TryParse(Configuration["appSettings:AppID"], out var id) ? id : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppId is not { } appId)
+        {
+            ladowanie = false;
+            blad = "Nowości są niedostępne: brak numeru aplikacji (appSettings:AppID) w konfiguracji.";
+
+            return;
+        }
+
+        try
+        {
+            nowosci = (await NowosciZrodlo.GetAsync(appId)).ToList();
+        }
+        catch (HttpRequestException ex)
+        {
+            blad = $"Nie udało się pobrać nowości z API indigoERP. {ex.Message}";
+        }
+        finally
+        {
+            ladowanie = false;
+        }
+    }
+
+    private void Otworz(OProgramieNowosc nowosc) => wybrana = nowosc;
+
+    private void Zamknij() => wybrana = null;
+
+    private static string Tytul(OProgramieNowosc nowosc) => string.IsNullOrWhiteSpace(nowosc.nowTytul) ? "(bez tytułu)" : nowosc.nowTytul;
+
+    private static MarkupString IkonaNowosci(OProgramieNowosc nowosc)
+    {
+        var ikona = nowosc.tnoIkona?.Trim();
+
+        if (string.IsNullOrEmpty(ikona))
+        {
+            return new MarkupString("&#8226;");
+        }
+
+        return new MarkupString(ikona.StartsWith('<') ? OProgramieHtml.Sanitize(ikona) : $"<i class=\"{System.Net.WebUtility.HtmlEncode(ikona)}\"></i>");
+    }}
