@@ -1,4 +1,6 @@
-﻿using EntityFrameworkCore.UseRowNumberForPaging;
+﻿using indigoERP.Domain.Logging;
+using indigoERP.Api.Middleware;
+using EntityFrameworkCore.UseRowNumberForPaging;
 using indigoERP.Api.Data;
 using indigoERP.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,6 +10,14 @@ using Microsoft.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Logi do plikow dziennych (jak w namibPMS); katalog z Logging:FilePath (produkcja: C:\inetpub\logs\indigoERP.Api).
+string logPath = DailyFileLoggerExtensions.ResolveLogDirectory(builder.Configuration["Logging:FilePath"], builder.Environment.ContentRootPath);
+builder.Logging.AddDailyFile(logPath, "indigoERP.Api");
+// Blad startu (np. brak konfiguracji) konczy proces, zanim ruszy logowanie hosta - zapisujemy go do tego samego pliku.
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+    new DailyFileLoggerProvider(logPath, "indigoERP.Api", LogLevel.Error).CreateLogger("Startup")
+        .LogCritical(e.ExceptionObject as Exception, "Nieobsluzony blad - aplikacja zatrzymana.");
 
 builder.AddServiceDefaults();
 
@@ -148,6 +158,7 @@ services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+app.UseApiErrorHandling();
 
 // Diagnostyka konfiguracji — wrażliwe wartości mogą pochodzić z appsettings.json (dev) albo ze zmiennych
 // środowiskowych indigoERP_MonitoringSqlLogin / indigoERP_MonitoringSqlPassword / indigoERP_JwtKey /

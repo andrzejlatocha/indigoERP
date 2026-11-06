@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+
 using indigoERP.Domain.Common;
 #nullable disable
 
@@ -19,6 +19,8 @@ namespace indigoERP.Domain.Entities._Slownik
         public int tpkID { get; set; }
         public int tpkAplikacjaID { get; set; }
         public string tpkNazwa { get; set; }
+        public int? tpkTypPlikGrupaID { get; set; }
+        public bool tpkObowiazkowy { get; set; }
         public string tpkStatus { get; set; }
     }
 }

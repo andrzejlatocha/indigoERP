@@ -4,6 +4,7 @@ using Bunit;
 using indigoERP.Domain.Entities;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Radzen;
 
@@ -14,6 +15,9 @@ public sealed class StaticPageTests : BunitContext
     public StaticPageTests()
     {
         Services.AddLogging();
+        Services.AddSingleton<IConfiguration>(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["appSettings:BaseUrl"] = "https://test.hcz.com.pl/" })
+            .Build());
         Services.AddScoped<DialogService>();
         Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider(
         [
@@ -45,6 +49,16 @@ public sealed class StaticPageTests : BunitContext
         Assert.Contains("Huta Częstochowa", cut.Markup);
         Assert.Contains("+48 34 323 8000", cut.Markup);
         Assert.Contains("itsupport@huta-czestochowa.pl", cut.Markup);
+    }
+
+    [Fact]
+    public void Footer_links_to_configured_base_url()
+    {
+        Services.AddSingleton<indigoERP.Service.Interfaces._Administrator.ISerwerService>(new SerwerServiceStub());
+        var cut = Render<Shared.Footer>();
+
+        Assert.Contains("href=\"https://test.hcz.com.pl/\"", cut.Markup);
+        Assert.DoesNotContain("app.hcz.com.pl", cut.Markup);
     }
 
     [Fact]

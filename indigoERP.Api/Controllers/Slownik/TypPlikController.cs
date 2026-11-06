@@ -70,6 +70,24 @@ namespace indigoERP.Api.Controllers._Slownik
             return await _context.TypPlikEnumerator.Where(w => (w.tpkAplikacjaID == tpkAplikacjaID || w.tpkAplikacjaID == 0) && (w.tpkStatus == tpkStatus || tpkStatus == "*")).ToListAsync();
         }
 
+        // GET: api/TypPlik/SelectLookupByGrupa/{aplikacja}/{grupa}
+        [AllowAnonymous]
+        [HttpGet("{tpkAplikacjaID}/{tpkTypPlikGrupaID}")]
+        public async Task<ActionResult<IEnumerable<TypPlikEnumerator>>> SelectLookupByGrupa(int tpkAplikacjaID, int tpkTypPlikGrupaID, string tpkStatus)
+        {
+            if (_context.TypPlikEnumerator == null)
+            {
+                return NotFound();
+            }
+
+            // Zwraca typy przypisane do aplikacji lub bez aplikacji (0) oraz do grupy lub bez grupy (0).
+            return await _context.TypPlikEnumerator
+                .Where(w => (w.tpkAplikacjaID == tpkAplikacjaID || w.tpkAplikacjaID == 0)
+                    && (w.tpkTypPlikGrupaID == tpkTypPlikGrupaID || w.tpkTypPlikGrupaID == 0)
+                    && (w.tpkStatus == tpkStatus || tpkStatus == "*"))
+                .ToListAsync();
+        }
+
         // GET: api/TypPlik/5
         [AllowAnonymous]
         [HttpGet("{tpkID}")]

@@ -379,3 +379,9 @@ indigoERP.Api/appsettings.Development.json
 # Katalogi pomijane w repozytorium
 _Backup/
 _Work Programs/
+
+# Build, katalogi tymczasowe i robocze, logi (zasady globalne)
+.idea/
+tmp/
+temp/
+.codex-build/

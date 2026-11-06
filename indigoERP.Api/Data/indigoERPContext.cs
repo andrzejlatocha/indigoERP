@@ -90,6 +90,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<SerwerTyp> SerwerTyp { get; set; }
         public virtual DbSet<TypKontakt> TypKontakt { get; set; }
         public virtual DbSet<TypPlik> TypPlik { get; set; }
+        public virtual DbSet<TypPlikGrupa> TypPlikGrupa { get; set; }
         public virtual DbSet<UrzadSkarbowy> UrzadSkarbowy { get; set; }
         public virtual DbSet<UrzadSkarbowyAdres> UrzadSkarbowyAdres { get; set; }
         public virtual DbSet<UrzadSkarbowyKontakt> UrzadSkarbowyKontakt { get; set; }

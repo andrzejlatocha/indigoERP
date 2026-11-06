@@ -1,4 +1,6 @@
-﻿using indigoERP.Blazor.Utils;
+﻿using indigoERP.Domain.Logging;
+using indigoERP.Blazor.Services;
+using indigoERP.Blazor.Utils;
 using indigoERP.Service.Interfaces;
 using indigoERP.Service.Interfaces._Administrator;
 using indigoERP.Service.Interfaces._Autoryzacja;
@@ -22,6 +24,17 @@ using System.Globalization;
 using indigoERP.Blazor.OProgramie;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Logi do plikow dziennych (jak w namibPMS); katalog z Logging:FilePath (produkcja: C:\inetpub\logs\indigoERP).
+string logPath = DailyFileLoggerExtensions.ResolveLogDirectory(builder.Configuration["Logging:FilePath"], builder.Environment.ContentRootPath);
+builder.Logging.AddDailyFile(logPath, "indigoERP.Blazor");
+// Blad startu (np. brak konfiguracji) konczy proces, zanim ruszy logowanie hosta - zapisujemy go do tego samego pliku.
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+    new DailyFileLoggerProvider(logPath, "indigoERP.Blazor", LogLevel.Error).CreateLogger("Startup")
+        .LogCritical(e.ExceptionObject as Exception, "Nieobsluzony blad - aplikacja zatrzymana.");
+// Logowanie odpowiedzi API z bledem dla kazdego HttpClient z fabryki.
+builder.Services.AddTransient<ApiErrorHandler>();
+builder.Services.ConfigureHttpClientDefaults(b => b.AddHttpMessageHandler<ApiErrorHandler>());
 builder.Services.AddOProgramie(builder.Configuration, builder.Environment);
 
 // Zmienna środowiskowa InternalSso nadpisuje InternalSso:Key z appsettings.json — jedna, wspólna

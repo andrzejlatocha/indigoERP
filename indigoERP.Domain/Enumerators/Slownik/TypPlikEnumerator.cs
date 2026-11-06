@@ -15,6 +15,9 @@ namespace indigoERP.Domain.Enumerators._Slownik
         public int tpkID { get; set; }
         public int tpkAplikacjaID { get; set; }
         public string tpkOpis { get; set; }
+        public int? tpkTypPlikGrupaID { get; set; }
+        public bool? tpkDomyslny { get; set; }
+        public bool tpkObowiazkowy { get; set; }
         public string tpkStatus { get; set; }
     }
 }

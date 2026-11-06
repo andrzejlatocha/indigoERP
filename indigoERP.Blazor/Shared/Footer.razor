@@ -2,13 +2,14 @@
 @using indigoERP.Service.Interfaces._Administrator
 
 @inject ISerwerService _serwerService
+@inject IConfiguration _configuration
 
 <footer class="footer text-muted mt-auto">
     <div class="container-fluid w-100">
         <div class="row">
             <div class="col-12 text-light">
                 <div class="d-inline-block">
-                    Copyright&copy; <a href="https://app.hcz.com.pl" class="text-light" aria-label="Przejdź do indigoERP">Huta Częstochowa
+                    Copyright&copy; <a href="@BaseUrl" class="text-light" aria-label="Przejdź do indigoERP">Huta Częstochowa
                     <img src="images/logo/Logo16.png" /></a> 1993 - @DateTime.Now.Year All Rights Reserved
                 </div>
                 <div class="d-inline-block ms-5">
@@ -34,6 +35,8 @@
 
 @code {
     private SerwerInfoViewModel? serwer;
+
+    private string BaseUrl => _configuration["appSettings:BaseUrl"] ?? "./";
 
     protected override async Task OnInitializedAsync()
     {

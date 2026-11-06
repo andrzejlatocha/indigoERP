@@ -16,6 +16,7 @@ public sealed class WiadomoscKolejkaService
     private readonly WiadomoscWorkerContextFactory _contextFactory;
     private readonly IMicrosoftGraphMailService _mailService;
     private readonly IWiadomoscMailSender _sender;
+    private readonly IKanalNadawcy _kanal;
     private readonly IConfiguration _configuration;
     private readonly IOptions<WorkerOptions> _options;
     private readonly ILogger<WiadomoscKolejkaService> _logger;
@@ -24,6 +25,7 @@ public sealed class WiadomoscKolejkaService
         WiadomoscWorkerContextFactory contextFactory,
         IMicrosoftGraphMailService mailService,
         IWiadomoscMailSender sender,
+        IKanalNadawcy kanal,
         IConfiguration configuration,
         IOptions<WorkerOptions> options,
         ILogger<WiadomoscKolejkaService> logger)
@@ -31,6 +33,7 @@ public sealed class WiadomoscKolejkaService
         _contextFactory = contextFactory;
         _mailService = mailService;
         _sender = sender;
+        _kanal = kanal;
         _configuration = configuration;
         _options = options;
         _logger = logger;
@@ -81,8 +84,8 @@ public sealed class WiadomoscKolejkaService
                 && item.wiaData != null && item.wiaData >= od && (item.Usuniety == null || item.Usuniety == false))
             .ToListAsync(cancellationToken);
 
-        // Nadawcy SMTP nie mają skrzynki w M365, więc NDR czytamy tylko dla nadawców Graph.
-        wyslane = wyslane.Where(item => !RoutingWiadomoscMailSender.UzywaSmtp(item.wiaEmail)).ToList();
+        // Odpowiedź o niedostarczeniu wraca do skrzynki nadawcy tylko przy wysyłce z jego konta (Graph); przy SMTP trafia gdzie indziej.
+        wyslane = wyslane.Where(item => _kanal.UzywaGraph(item.wiaEmail)).ToList();
 
         if (wyslane.Count == 0)
         {

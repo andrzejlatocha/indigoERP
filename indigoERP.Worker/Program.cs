@@ -4,7 +4,10 @@ using indigoERP.Worker.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-var logDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+var configuredLogPath = builder.Configuration["Logging:FilePath"];
+var logDirectory = string.IsNullOrWhiteSpace(configuredLogPath)
+    ? Path.Combine(AppContext.BaseDirectory, "logs")
+    : Path.GetFullPath(configuredLogPath, builder.Environment.ContentRootPath);
 var retentionDays = Math.Max(1, builder.Configuration.GetValue<int?>("FileLogging:RetentionDays") ?? 30);
 var fileLogLevel = Enum.TryParse<LogLevel>(builder.Configuration["FileLogging:LogLevel"], true, out var configuredLogLevel)
     ? configuredLogLevel
@@ -28,8 +31,15 @@ builder.Services.Configure<WorkerOptions>(builder.Configuration.GetSection(Worke
 builder.Services.AddSingleton<WiadomoscWorkerContextFactory>();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IMicrosoftGraphMailService, MicrosoftGraphMailService>();
-builder.Services.AddSingleton<IWiadomoscMailSender>(_ =>
-    new RoutingWiadomoscMailSender(new SmtpWiadomoscMailSender(builder.Configuration)));
+// Wybór kanału po nadawcy (Mail:Graph): domyślnie wyłączony, wtedy cała wysyłka idzie przez SMTP jak dotychczas.
+var mailRouting = builder.Configuration.GetSection("Mail:Graph").Get<MailRoutingOptions>() ?? new MailRoutingOptions();
+builder.Services.AddSingleton(mailRouting);
+builder.Services.AddSingleton(serviceProvider => new RoutingWiadomoscMailSender(
+    new SmtpWiadomoscMailSender(builder.Configuration),
+    new GraphWiadomoscMailSender(serviceProvider.GetRequiredService<IMicrosoftGraphMailService>()),
+    mailRouting));
+builder.Services.AddSingleton<IWiadomoscMailSender>(serviceProvider => serviceProvider.GetRequiredService<RoutingWiadomoscMailSender>());
+builder.Services.AddSingleton<IKanalNadawcy>(serviceProvider => serviceProvider.GetRequiredService<RoutingWiadomoscMailSender>());
 builder.Services.AddSingleton<WiadomoscKolejkaService>();
 builder.Services.AddHostedService<WiadomoscWorker>();
 

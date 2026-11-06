@@ -33,38 +33,98 @@ public class WiadomoscMailSenderTests
         Assert.Equal("a@huta-czestochowa.pl", Assert.Single(wyslana.Odbiorcy));
     }
 
-    [Fact]
-    public async Task Routing_SendsInternalSenderDomainThroughSmtp()
+    private static GraphMailMessage Wiadomosc(string? nadawca) => new(nadawca ?? string.Empty, ["a@huta-czestochowa.pl"], "T", "B", []);
+
+    private static (RoutingWiadomoscMailSender Routing, FakeSender Smtp, FakeSender Graph) Routing(
+        MailRoutingOptions? opcje = null, bool graphConfigured = true, bool smtpConfigured = true)
     {
-        var smtp = new FakeSender();
-        var sender = new RoutingWiadomoscMailSender(smtp);
+        var smtp = new FakeSender(smtpConfigured);
+        var graph = new FakeSender(graphConfigured);
 
-        await sender.SendAsync(new GraphMailMessage("informacje@hutaczestochowa.com.pl", ["a@huta-czestochowa.pl"], "T", "B", []), CancellationToken.None);
-
-        Assert.Single(smtp.Wyslane);
-    }
-
-    [Fact]
-    public async Task Routing_SendsEverySenderThroughSmtp()
-    {
-        var smtp = new FakeSender();
-        var sender = new RoutingWiadomoscMailSender(smtp);
-
-        await sender.SendAsync(new GraphMailMessage("itsupport@huta-czestochowa.pl", ["a@huta-czestochowa.pl"], "T", "B", []), CancellationToken.None);
-
-        Assert.Single(smtp.Wyslane);
+        return (new RoutingWiadomoscMailSender(smtp, graph, opcje ?? new MailRoutingOptions { Wlaczony = true }), smtp, graph);
     }
 
     [Theory]
-    [InlineData("informacje@hutaczestochowa.com.pl", true)]
-    [InlineData("itsupport@huta-czestochowa.pl", false)]
-    [InlineData("", false)]
-    [InlineData(null, false)]
-    public void UzywaSmtp_ChoosesSmtpOnlyForInternalSmtpDomain(string? nadawca, bool oczekiwany)
+    [InlineData("informacje@hutaczestochowa.com.pl")]
+    [InlineData("epicaHR@huta-czestochowa.pl")]
+    [InlineData("k.jocz@interbalt.pl")]
+    [InlineData("")]
+    public async Task Routing_Disabled_KeepsEverySenderOnSmtp(string nadawca)
     {
-        Assert.Equal(oczekiwany, RoutingWiadomoscMailSender.UzywaSmtp(nadawca));
+        var (routing, smtp, graph) = Routing(new MailRoutingOptions());
+
+        await routing.SendAsync(Wiadomosc(nadawca), CancellationToken.None);
+
+        Assert.Single(smtp.Wyslane);
+        Assert.Empty(graph.Wyslane);
+        Assert.False(routing.UzywaGraph(nadawca));
     }
 
+    [Fact]
+    public async Task Routing_Enabled_SendsM365DomainThroughGraph()
+    {
+        var (routing, smtp, graph) = Routing();
+
+        await routing.SendAsync(Wiadomosc("epicaHR@huta-czestochowa.pl"), CancellationToken.None);
+
+        Assert.Single(graph.Wyslane);
+        Assert.Empty(smtp.Wyslane);
+    }
+
+    [Theory]
+    [InlineData("informacje@hutaczestochowa.com.pl")]
+    [InlineData("k.jocz@interbalt.pl")]
+    [InlineData("odpady@tkmrp.pl")]
+    [InlineData("a@sub.huta-czestochowa.pl")]
+    [InlineData("a@xhuta-czestochowa.pl")]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task Routing_Enabled_KeepsOtherSendersOnSmtp(string? nadawca)
+    {
+        var (routing, smtp, graph) = Routing();
+
+        await routing.SendAsync(Wiadomosc(nadawca), CancellationToken.None);
+
+        Assert.Single(smtp.Wyslane);
+        Assert.Empty(graph.Wyslane);
+        Assert.False(routing.UzywaGraph(nadawca));
+    }
+
+    [Fact]
+    public async Task Routing_Enabled_FallsBackToSmtpWhenGraphIsNotConfigured()
+    {
+        var (routing, smtp, graph) = Routing(graphConfigured: false);
+
+        await routing.SendAsync(Wiadomosc("epicaHR@huta-czestochowa.pl"), CancellationToken.None);
+
+        Assert.Single(smtp.Wyslane);
+        Assert.Empty(graph.Wyslane);
+    }
+
+    [Fact]
+    public async Task Routing_SenderList_LimitsGraphToListedSenders()
+    {
+        var (routing, smtp, graph) = Routing(new MailRoutingOptions { Wlaczony = true, Nadawcy = ["epicaHR@huta-czestochowa.pl"] });
+
+        await routing.SendAsync(Wiadomosc("EPICAHR@huta-czestochowa.pl"), CancellationToken.None);
+        await routing.SendAsync(Wiadomosc("itsupport@huta-czestochowa.pl"), CancellationToken.None);
+
+        Assert.Single(graph.Wyslane);
+        Assert.Single(smtp.Wyslane);
+        Assert.Equal("itsupport@huta-czestochowa.pl", smtp.Wyslane[0].Nadawca);
+    }
+
+    [Theory]
+    [InlineData(true, false, false, true)]
+    [InlineData(false, true, false, false)]
+    [InlineData(false, true, true, true)]
+    [InlineData(false, false, true, false)]
+    public void Routing_IsConfigured_WhenSmtpOrEnabledGraphIsConfigured(bool smtpConfigured, bool graphConfigured, bool graphEnabled, bool oczekiwany)
+    {
+        var (routing, _, _) = Routing(new MailRoutingOptions { Wlaczony = graphEnabled }, graphConfigured, smtpConfigured);
+
+        Assert.Equal(oczekiwany, routing.IsConfigured);
+    }
     private sealed class FakeSender(bool configured = true) : IWiadomoscMailSender
     {
         public List<GraphMailMessage> Wyslane { get; } = [];

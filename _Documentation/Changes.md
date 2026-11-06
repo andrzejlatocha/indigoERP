@@ -1,5 +1,29 @@
 ﻿# Codex Changes
 
+## 2026-11-04 - Worker wiadomości: wybór kanału (Graph/SMTP) po domenie nadawcy
+
+- **Zgłoszenie:** epicaHR ma wysyłać e-mail z `epicaHR@huta-czestochowa.pl` przez Microsoft Graph, a dotychczasowa wysyłka z `@hutaczestochowa.com.pl` zostaje na SMTP.
+- **Diagnoza:** `RoutingWiadomoscMailSender` kierował całą wysyłkę na SMTP (komentarz: powrót do Graph odłożony), a odczyt odpowiedzi o niedostarczeniu przez Graph próbował czytać skrzynki wszystkich nadawców spoza `@hutaczestochowa.com.pl`, także zewnętrznych (np. `@interbalt.pl`, `@tkmrp.pl`), które nie istnieją w naszym M365.
+- **Zmiana:** `indigoERP.Worker/Services/IWiadomoscMailSender.cs` — `RoutingWiadomoscMailSender(smtp, graph, MailRoutingOptions)`: nadawca z domeny `Mail:Graph:Domena` (domyślnie `huta-czestochowa.pl`) wysyła przez Graph, wszystko inne (nasza domena SMTP, domeny zewnętrzne, brak nadawcy, subdomeny) przez SMTP; opcjonalna lista `Mail:Graph:Nadawcy` zawęża Graph do wymienionych nadawców. Gdy Graph nie jest skonfigurowany (`MicrosoftGraph_*`), wysyłka wraca na SMTP. Nowy interfejs `IKanalNadawcy.UzywaGraph`; `WiadomoscKolejkaService` czyta zwrotki (NDR) tylko dla nadawców wysyłających przez Graph. `Program.cs` rejestruje routing; `appsettings.json` ma sekcję `Mail:Graph` z `Wlaczony: false`.
+- **Decyzja techniczna:** wyłącznik `Mail:Graph:Wlaczony` jest domyślnie `false`, więc samo wdrożenie Workera niczego nie zmienia. Po włączeniu przez Graph pójdą WSZYSCY nadawcy z domeny `huta-czestochowa.pl`, także ci, którzy dziś wysyłają przez SMTP (w ostatnich 180 dniach m.in. `andrzej.latocha@`, `itsupport@`, `indigoERP@huta-czestochowa.pl`) — aplikacja Azure musi mieć `Mail.Send` dla tych skrzynek albo trzeba zawęzić `Mail:Graph:Nadawcy`. Zalecane ograniczenie aplikacji Azure politykami Exchange do wybranych skrzynek.
+- **Status wdrożenia:** tylko kod, niewdrożone.
+- **Weryfikacja:** `indigoERP.Worker.Tests` 46/46 (w tym nowe scenariusze routingu: wyłączony, nadawca M365, domena SMTP, domeny zewnętrzne, subdomena, brak nadawcy, brak konfiguracji Graph, lista nadawców, `IsConfigured`). Przebudowa bez błędów.
+## 2026-11-04 - Słownik dic.TypPlik: lookup po aplikacji i grupie
+
+- **Zgłoszenie:** tabela `dic.TypPlik` ma nową strukturę z polem `tpkTypPlikGrupaID` (FK do `dic.TypPlikGrupa`); potrzebny lookup filtrowany po aplikacji i grupie.
+- **Zmiana:** `Domain\Entities\Slownik\TypPlik.cs` — pole `int? tpkTypPlikGrupaID`. `Api\Controllers\Slownik\TypPlikController.cs` — nowa akcja `SelectLookupByGrupa/{tpkAplikacjaID}/{tpkTypPlikGrupaID}?tpkStatus=` zwraca wiersze z `tpkAplikacjaID = par lub 0` i `tpkTypPlikGrupaID = par lub 0`; istniejąca `SelectLookupByAplikacja` bez zmian.
+- **Zmiana (2):** `Domain\Enumerators\Slownik\TypPlikEnumerator.cs` — pola `tpkTypPlikGrupaID` i `tpkDomyslny`, zgodnie z widokiem `enum.TypPlik` (`tpkNazwa AS tpkOpis`). Akcja czyta `enum.TypPlik` przez `TypPlikEnumerator`.
+- **Zmiana (3):** pole `bool tpkObowiazkowy` (`BIT NOT NULL`) w `TypPlik` (encja) i w `TypPlikEnumerator` (widok `enum.TypPlik`); tabela i widok już je zawierają.
+- **Decyzja techniczna:** wiersze z `NULL` w `tpkTypPlikGrupaID` nie są zwracane (ani dla grupy, ani dla aplikacji, `NULL` ≠ 0). Parametr `tpkStatus` zgodnie z konwencją (`xxxStatus` ostatni, `*` = wszystkie), jak w pozostałych akcjach.
+- **Status wdrożenia:** zmiana w kodzie, niewdrożona.
+- **Weryfikacja:** build Api.Tests bez błędów; testy Api 59/59 (w tym nowe `TypPlikControllerTests`: dopasowanie aplikacji/grupy z wartością 0 i filtr statusu).
+
+## 2026-11-04 - Logowanie do plikow dziennych i obsluga bledow
+
+- **Zgloszenie:** ujednolicenie logow aplikacji do plikow `{aplikacja}-{rrrr-MM-dd}.log` w `C:\inetpub\logs\{aplikacja}.Api` / `C:\inetpub\logs\{aplikacja}` / `...\{aplikacja}.Worker` (wzorzec namibPMS).
+- **Zmiana:** projekty: Api, Blazor, Worker (Logging:FilePath zamiast katalogu logs w aplikacji). `DailyFileLogger` (Domain\Logging lub lokalnie w projekcie bez Domain), `AddDailyFile` i zapis bledu startu (`UnhandledException`) w `Program.cs`, `Logging:FilePath` w `appsettings.json` (produkcja) i `Logs` w `appsettings.Development.json`, `Microsoft.EntityFrameworkCore` i `System.Net.Http.HttpClient` na `Warning`; w API `UseApiErrorHandling` (ProblemDetails z `traceId`), w Blazorze `ApiErrorHandler` dla kazdego `HttpClient` (`ConfigureHttpClientDefaults`); `Logs/` w `.gitignore`.
+- **Weryfikacja:** przebudowa projektow (0 bledow); uruchomienie i sprawdzenie pliku logu NIE wykonane (luka - do sprawdzenia po wdrozeniu).
+
 ## 2026-11-03 - Głos Hutnika: wysyłka SMTP, DocumentPath, okno wysyłki i nagłówek
 
 - **Zgłoszenie:** wysyłka numeru GH nie mogła ruszyć (załącznik 1098 niewidoczny dla workera, Graph zamiast serwera pocztowego), okno wysyłki nie zamykało się po zapisie i pokazywało pustą stronę podczas ładowania, nagłówek Blazora odbiegał od wzorca.
@@ -1923,3 +1947,31 @@ Brak.
 
 - `DailyFileLoggerProviderTests` potwierdza utworzenie i zawartość dziennego pliku w katalogu tymczasowym.
 - `dotnet test indigoERP.sln --no-restore`: 43/43 testów pomyślnie.
+## 2026-11-06 - Analiza wdrożonej synchronizacji kont epicaHR
+
+- Potwierdzono na JAPET widoki epicaHR.sha i indigoERP.rdb/mvw oraz procedurę `dbo.aspSynchronizujKontaEpicaHR`.
+  Wykonano tylko podgląd `@Wykonaj=0`: 65 DODAJ, 11 BLOKUJ, 2 ODBLOKUJ, 5 POMIN_KOLIZJA i 2 POMIN_ODBLOKOWANIE.
+  Kolizje: 2 istniejące konta bez ID pracownika, 3 już powiązane; 5/5 zgodnych imion i nazwisk po normalizacji,
+  co nie potwierdza tożsamości. Pominięte odblokowania: data zmiany konta
+  w dniu angażu lub po nim. Dane osobowe ani konta nie były zmieniane; tryb zapisu nie był testowany.
+- Widoczny stary job `ujbIndigoErpMergeUzytkownik` jest wyłączony; nowego joba nie odnaleziono. Trigger INSERT
+  użytkownika jest aktywny i dodaje grupę 0, jedyną aktywną oznaczoną jako wszyscy. Ryzyko: brak informacji
+  o przyczynie blokady, 2 kandydatów do odblokowania wymaga indywidualnego sprawdzenia.
+- Widok epicaHR jest zgodny ze skryptem. Definicja procedury różni się od pliku formatowaniem i blokami BEGIN/END;
+  istotne warunki i operacje przejrzano, ale pełna równoważność nie została formalnie dowiedziona.
+
+## 2026-11-05 - Projekt synchronizacji kont pracowników z epicaHR
+
+- Przygotowano `_SQL Queries/indigoERP.Api20261105110100.sql` dla JAPET.indigoERP: warstwa rdb/mvw i szkic procedury
+  `dbo.aspSynchronizujKontaEpicaHR`; najpierw wymagany skrypt epicaHR `_SQL Queries/epicaHR.Api20261105110000.sql`.
+  Skrypty nie są wdrożone. Domyślny tryb to podgląd; zapis wymaga jawnego `@Wykonaj=1` i nie był testowany.
+- Szkic nie korzysta z huta ani inout, nie zmienia `aspMergeUzytkownik`, danych, zadań ani harmonogramu.
+  Nowe konta są blokowane do weryfikacji i nie dostają nazwy AD ani hasła. Użytkownik potwierdził ręczne uzupełnianie
+  AD i automatyczne odblokowanie po ponownym zatrudnieniu. Reguła wymaga starszej modyfikacji konta, statusu 1,
+  blokady i gotowych danych logowania; brak informacji o przyczynie blokady ogranicza jej pewność. E-mail pozostaje.
+- Weryfikacja tylko do odczytu: statusy 2/5/9 i definicja aktywnego widoku; PARSEONLY obu skryptów, TOP 0
+  sześć przypadków klasyfikacji i sześć przypadków kolizji/idempotencji. W podglądzie 65 kandydatów do dodania,
+  5 kolizji i 11 kont do blokady; liczby są chwilowe i nie stanowią wykonania. Build: 0 błędów i 662 ostrzeżenia.
+  Osobno 2 kandydatów do odblokowania, 7/7 scenariuszy reguły odblokowania w SELECT. Ponowny przyrostowy build:
+  0 błędów i 0 ostrzeżeń; brak testu utworzenia obiektów i uruchomienia procedury.
+

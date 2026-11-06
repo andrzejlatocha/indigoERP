@@ -19,21 +19,53 @@ public sealed class GraphWiadomoscMailSender(IMicrosoftGraphMailService graph) :
         graph.SendAsync(message, cancellationToken);
 }
 
-// Kanał wysyłki: na razie wszystko przez nasz serwer SMTP (decyzja o powrocie do Graph odłożona).
-public sealed class RoutingWiadomoscMailSender(IWiadomoscMailSender smtp) : IWiadomoscMailSender
+// Ustawienia wyboru kanału (sekcja Mail:Graph). Wlaczony = false (domyślnie) zostawia całą wysyłkę na SMTP, tak jak dotychczas.
+public sealed class MailRoutingOptions
 {
-    private const string DomenaSmtp = "@hutaczestochowa.com.pl";
+    /// <summary>Włącza wysyłkę przez Graph dla nadawców z domeny <see cref="Domena"/>.</summary>
+    public bool Wlaczony { get; init; }
 
-    public bool IsConfigured => smtp.IsConfigured;
+    /// <summary>Domena skrzynek M365; nadawcy z tej domeny wysyłają przez Graph.</summary>
+    public string Domena { get; init; } = "huta-czestochowa.pl";
 
-    // Nadawcy z domeny SMTP nie mają skrzynki w M365, więc nie czytamy dla nich odpowiedzi NDR przez Graph.
-    public static bool UzywaSmtp(string? nadawca) =>
-        nadawca?.EndsWith(DomenaSmtp, StringComparison.OrdinalIgnoreCase) == true;
-
-    public Task SendAsync(GraphMailMessage message, CancellationToken cancellationToken) =>
-        smtp.SendAsync(message, cancellationToken);
+    /// <summary>Opcjonalne zawężenie: gdy lista nie jest pusta, przez Graph wysyłają tylko wymienieni nadawcy z domeny.</summary>
+    public string[] Nadawcy { get; init; } = [];
 }
 
+// Który kanał obsługuje danego nadawcę (potrzebne też do odczytu odpowiedzi o niedostarczeniu, która wraca do skrzynki nadawcy w M365).
+public interface IKanalNadawcy
+{
+    bool UzywaGraph(string? nadawca);
+}
+
+// Kanał wysyłki wybierany po nadawcy: domena M365 (domyślnie huta-czestochowa.pl) -> Graph, wszystko inne (nasza domena SMTP
+// hutaczestochowa.com.pl, domeny zewnętrzne, brak nadawcy) -> SMTP. Graph tylko po włączeniu w Mail:Graph:Wlaczony i przy pełnej konfiguracji.
+public sealed class RoutingWiadomoscMailSender(IWiadomoscMailSender smtp, IWiadomoscMailSender graph, MailRoutingOptions opcje)
+    : IWiadomoscMailSender, IKanalNadawcy
+{
+    public bool IsConfigured => smtp.IsConfigured || (opcje.Wlaczony && graph.IsConfigured);
+
+    public bool UzywaGraph(string? nadawca)
+    {
+        if (!opcje.Wlaczony || !graph.IsConfigured || string.IsNullOrWhiteSpace(nadawca))
+        {
+            return false;
+        }
+
+        var adres = nadawca.Trim();
+        var domena = "@" + opcje.Domena.Trim().TrimStart('@');
+
+        if (!adres.EndsWith(domena, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return opcje.Nadawcy.Length == 0 || opcje.Nadawcy.Contains(adres, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public Task SendAsync(GraphMailMessage message, CancellationToken cancellationToken) =>
+        UzywaGraph(message.Nadawca) ? graph.SendAsync(message, cancellationToken) : smtp.SendAsync(message, cancellationToken);
+}
 public sealed class SmtpWiadomoscMailSender(IConfiguration configuration) : IWiadomoscMailSender
 {
     // Hasło konta nadawcy to zmienna systemowa, nie wpis w appsettings.

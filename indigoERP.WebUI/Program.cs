@@ -1,3 +1,5 @@
+﻿using indigoERP.Domain.Logging;
+using indigoERP.WebUI.Services;
 using indigoERP.Service.Interfaces._Autoryzacja;
 using indigoERP.Service.Services._Autoryzacja;
 using Microsoft.AspNetCore.Authentication.Negotiate;
@@ -7,6 +9,17 @@ using indigoERP.Service.Interfaces;
 using indigoERP.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Logi do plikow dziennych (jak w namibPMS); katalog z Logging:FilePath (produkcja: C:\inetpub\logs\indigoERP.WebUI).
+string logPath = DailyFileLoggerExtensions.ResolveLogDirectory(builder.Configuration["Logging:FilePath"], builder.Environment.ContentRootPath);
+builder.Logging.AddDailyFile(logPath, "indigoERP.WebUI");
+// Blad startu (np. brak konfiguracji) konczy proces, zanim ruszy logowanie hosta - zapisujemy go do tego samego pliku.
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+    new DailyFileLoggerProvider(logPath, "indigoERP.WebUI", LogLevel.Error).CreateLogger("Startup")
+        .LogCritical(e.ExceptionObject as Exception, "Nieobsluzony blad - aplikacja zatrzymana.");
+// Logowanie odpowiedzi API z bledem dla kazdego HttpClient z fabryki.
+builder.Services.AddTransient<ApiErrorHandler>();
+builder.Services.ConfigureHttpClientDefaults(b => b.AddHttpMessageHandler<ApiErrorHandler>());
 var configuration = builder.Configuration;
 var services = builder.Services;
 var connectionString = builder.Configuration.GetConnectionString("indigoERPConnection");
