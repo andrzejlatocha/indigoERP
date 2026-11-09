@@ -60,7 +60,7 @@ public sealed class WiadomoscPublicznaPageTests : BunitContext
     {
         var cut = Render<Pages.WiadomoscPubliczna.GlosZarzadzanie>();
 
-        cut.WaitForAssertion(() => Assert.Contains("Nowy numer", cut.Markup));
+        cut.WaitForAssertion(() => Assert.Contains("Nowa wiadomość", cut.Markup));
     }
 
     private sealed class WiadomoscPracownikStub : IWiadomoscPracownikService

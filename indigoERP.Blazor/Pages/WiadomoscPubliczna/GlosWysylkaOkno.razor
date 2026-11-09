@@ -15,13 +15,15 @@
                         AllowFiltering="true" Placeholder="Wybierz wzorzec" Style="width:100%" />
         <RadzenTextBox @bind-Value="@temat" Placeholder="Temat wiadomości" Style="width:100%" Class="mt-2" />
 
+        <RadzenButton Text="Importuj z Worda" Icon="file_open" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary"
+                      Variant="Variant.Outlined" Click="@ImportujWord" Class="mt-2" />
         <div class="mt-2">
             <RadzenHtmlEditor @bind-Value="@tresc" Style="height:220px" />
         </div>
 
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="mt-2">
-            <InputFile OnChange="@WczytajPliki" multiple accept=".pdf" class="form-control form-control-sm" style="width:320px" />
-            <span class="text-muted">PDF, najwyżej @MaxPlikow plików, do 30 MB każdy (łącznie 60 MB)</span>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.NoWrap" Class="mt-2">
+            <InputFile OnChange="@WczytajPliki" multiple accept=".pdf" class="form-control form-control-sm" style="width:600px; flex:0 0 auto" />
+            <span class="text-nowrap" style="font-size:0.75rem; color:#4a4a4a;">PDF, najwyżej @MaxPlikow plików, do 30 MB każdy (łącznie 60 MB)</span>
         </RadzenStack>
         @if (pliki.Count > 0)
         {
@@ -240,6 +242,17 @@
 
     private static string Rozmiar(WiadomoscPlikWysylki plik) => $"{plik.Dane.LongLength / 1024.0 / 1024.0:0.0} MB";
 
+    private async Task ImportujWord()
+    {
+        var wynik = await _dialogService.OpenAsync<ImportWordOkno>("Import z pliku Word", new Dictionary<string, object?>(),
+            new DialogOptions { Width = "520px", Resizable = false, Draggable = true });
+
+        if (wynik is string html && !string.IsNullOrWhiteSpace(html))
+        {
+            tresc = html;
+        }
+    }
+
     private async Task ZapiszRobocza()
     {
         busy = true;
@@ -262,8 +275,8 @@
                 return;
             }
 
+            ZamknijOkno(true);
             Notify(NotificationSeverity.Success, "Zapisano", "Numer roboczy jest na liście „Robocze”. Wyślij go, gdy będzie gotowy.");
-            _dialogService.Close(true);
         }
         finally
         {
@@ -311,7 +324,7 @@
 
             // Najpierw zamykamy okno, potem komunikat; odświeżenie strony robi okno nadrzędne po chwili, żeby komunikat zdążył się pokazać.
             var szczegoly = wynik.komunikaty.Count > 0 ? " " + string.Join(" ", wynik.komunikaty.Take(3)) : string.Empty;
-            _dialogService.Close(true);
+            ZamknijOkno(true);
             Notify(wynik.pominieto > 0 ? NotificationSeverity.Warning : NotificationSeverity.Success, "Wysłano",
                 $"Odbiorców: {wynik.dodano}, pominięto: {wynik.pominieto}.{szczegoly}");
         }
@@ -319,6 +332,19 @@
         {
             busy = false;
             potwierdzenie = false;
+        }
+    }
+
+    // Zamknięcie okna bocznego. Wyjątek nie może zostać cicho połknięty: pokazujemy go w powiadomieniu.
+    private void ZamknijOkno(bool wynik)
+    {
+        try
+        {
+            _dialogService.Close(wynik);
+        }
+        catch (Exception ex)
+        {
+            Notify(NotificationSeverity.Error, "Nie udało się zamknąć okna", ex.Message);
         }
     }
 

@@ -22,15 +22,14 @@ namespace indigoERP.Api.Controllers._Slownik
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Plec>>> Select(string pleStatus)
         {
-            if (_context.PlecEnumerator == null)
+            if (_context.Plec == null)
             {
                 return NotFound();
             }
 
-            // Słownik czytany przez widok enum.Plec: tabela dic.Plec nie ma kolumn audytu, których oczekuje AuditableEntity.
-            var lista = await _context.PlecEnumerator.Where(w => w.pleStatus == pleStatus).ToListAsync();
+            var usrID = User.FindFirst("usrID")?.Value;
 
-            return lista.Select(w => new Plec { pleKOD = w.pleKOD, pleOpis = w.pleOpis, pleStatus = w.pleStatus }).ToList();
+            return await _context.Plec.Where(w => w.pleStatus == pleStatus).ToListAsync();
         }
 
         // GET: api/Plec

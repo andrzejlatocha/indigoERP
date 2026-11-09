@@ -33,7 +33,7 @@
 
 .home-shortcuts {
     display: grid;
-    grid-template-rows: repeat(6, minmax(0, 1fr)) minmax(0, 0.5fr);
+    grid-template-rows: repeat(8, minmax(0, 1fr));
     gap: 10px;
     height: 100%;
     padding: 10px;
@@ -127,6 +127,15 @@
 }
 
 .home-shortcut--glos .home-shortcut__icon i {
+    font-size: 2.6rem;
+    line-height: 1;
+}
+
+.home-shortcut--polecenia .home-shortcut__icon {
+    background: #1f5f8b;
+}
+
+.home-shortcut--polecenia .home-shortcut__icon i {
     font-size: 2.6rem;
     line-height: 1;
 }

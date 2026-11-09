@@ -1,0 +1,157 @@
+﻿@page "/polecenie-sluzbowe"
+@attribute [Authorize]
+@using indigoERP.Domain.ViewModels._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+@using Microsoft.AspNetCore.Authorization
+
+@inject IPolecenieSluzboweService _polecenieService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<PageTitle>Polecenia służbowe</PageTitle>
+
+<div class="ps-strona p-3">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" Class="mb-3">
+        <div class="me-2">
+            <h3 class="mb-0">Polecenia służbowe</h3>
+            <p class="text-muted mb-0 small">Obowiązujące polecenia służbowe</p>
+        </div>
+        <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="@rok" Style="width:110px" Change="@(_ => StateHasChanged())" />
+        <RadzenTextBox @bind-Value="@szukaj" Placeholder="Szukaj w tytule, numerze lub treści" Style="width:340px"
+                       Change="@(_ => SzukajAsync())" />
+        <RadzenButton Text="Szukaj" Icon="search" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@SzukajAsync" IsBusy="@ladowanie" />
+        <RadzenButton Text="Wyczyść" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@WyczyscAsync" />
+        <div class="ms-auto"></div>
+        <RadzenButton Icon="view_list" Size="ButtonSize.Small" Variant="@(tryb == Tryb.Lista ? Variant.Filled : Variant.Outlined)"
+                      ButtonStyle="ButtonStyle.Secondary" Click="@(() => tryb = Tryb.Lista)" title="Lista" />
+        <RadzenButton Icon="grid_view" Size="ButtonSize.Small" Variant="@(tryb == Tryb.Siatka ? Variant.Filled : Variant.Outlined)"
+                      ButtonStyle="ButtonStyle.Secondary" Click="@(() => tryb = Tryb.Siatka)" title="Siatka" />
+    </RadzenStack>
+
+    @if (ladowanie)
+    {
+        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="height:4px" />
+    }
+    else if (WidoczneWRoku.Count == 0)
+    {
+        <p class="text-muted">Brak poleceń spełniających kryteria.</p>
+    }
+    else if (tryb == Tryb.Siatka)
+    {
+        <div class="ps-scroll">
+            <div class="ps-siatka">
+                @foreach (var polecenie in WidoczneWRoku)
+                {
+                    <div class="ps-kafelek" title="@polecenie.plsTytul" role="button" @onclick="@(() => OtworzPdfAsync(polecenie))">
+                        <i class="fa-duotone fa-light fa-file-pdf ps-ikona"></i>
+                        <div class="ps-tytul">@polecenie.plsTytul</div>
+                        <div class="ps-numer">@polecenie.plsNumer</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <RadzenDataGrid Data="@WidoczneWRoku"TItem="PolecenieSluzboweViewModel" Density="Density.Compact"
+                        AllowSorting="true" AllowFiltering="false" Style="height:calc(100vh - 12rem)"
+                        RowClick="@(args => OtworzPdfAsync(args.Data))">
+            <Columns>
+                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsNumer" Title="Numer" Width="170px" />
+                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsTytul" Title="Tytuł" />
+                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsRodzajNazwa" Title="Rodzaj" Width="180px" />
+                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsDataObowiazuje" Title="Obowiązuje od" Width="140px"
+                                      FormatString="{0:dd.MM.yyyy}" />
+                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsDataDo" Title="Obowiązuje do" Width="140px"
+                                      FormatString="{0:dd.MM.yyyy}" />
+            </Columns>
+        </RadzenDataGrid>
+    }
+</div>
+
+@code {
+    private enum Tryb { Lista, Siatka }
+
+    private List<PolecenieSluzboweViewModel> polecenia = new();
+    private int rok = DateTime.Now.Year;
+
+    // Data wydania; gdy atacamaDMS jeszcze jej nie zwraca, zastępczo data obowiązywania.
+    private static DateTime DataRoku(PolecenieSluzboweViewModel p) => p.plsDataWydania ?? p.plsDataObowiazuje;
+
+    // Lata wydania poleceń oraz bieżący rok.
+    private List<int> Lata => polecenia
+        .Select(p => DataRoku(p).Year)
+        .Append(DateTime.Now.Year)
+        .Distinct()
+        .OrderByDescending(y => y)
+        .ToList();
+
+    private List<PolecenieSluzboweViewModel> WidoczneWRoku => polecenia
+        .Where(p => DataRoku(p).Year == rok)
+        .ToList();
+    private string? szukaj;
+    private bool ladowanie = true;
+    private Tryb tryb = Tryb.Siatka;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await PobierzAsync();
+    }
+
+    private async Task SzukajAsync()
+    {
+        await PobierzAsync();
+    }
+
+    private async Task WyczyscAsync()
+    {
+        szukaj = null;
+        await PobierzAsync();
+    }
+
+    private async Task PobierzAsync()
+    {
+        ladowanie = true;
+
+        try
+        {
+            polecenia = (await _polecenieService.SelectPubliczne(szukaj)).ToList();
+        }
+        catch (HttpRequestException)
+        {
+            polecenia = new List<PolecenieSluzboweViewModel>();
+            Powiadom(NotificationSeverity.Error, "Błąd", "Nie udało się pobrać poleceń służbowych.");
+        }
+        finally
+        {
+            ladowanie = false;
+        }
+    }
+
+    private async Task OtworzPdfAsync(PolecenieSluzboweViewModel polecenie)
+    {
+        try
+        {
+            var pdf = await _polecenieService.Pdf(polecenie.plsID);
+
+            if (pdf == null)
+            {
+                Powiadom(NotificationSeverity.Warning, "Brak dokumentu", "Nie znaleziono pliku PDF tego polecenia.");
+                return;
+            }
+
+            var zrodlo = "data:application/pdf;base64," + Convert.ToBase64String(pdf);
+
+            await _dialogService.OpenAsync<PolecenieSluzbowePdfOkno>(polecenie.plsTytul ?? "Polecenie służbowe",
+                new Dictionary<string, object?> { ["Zrodlo"] = zrodlo },
+                new DialogOptions { Width = "90vw", Height = "90vh", Resizable = true, Draggable = true });
+        }
+        catch (HttpRequestException)
+        {
+            Powiadom(NotificationSeverity.Error, "Błąd", "Nie udało się pobrać dokumentu PDF.");
+        }
+    }
+
+    private void Powiadom(NotificationSeverity waga, string tytul, string szczegoly) =>
+        _notificationService.Notify(new NotificationMessage { Severity = waga, Summary = tytul, Detail = szczegoly, Duration = 8000 });
+}

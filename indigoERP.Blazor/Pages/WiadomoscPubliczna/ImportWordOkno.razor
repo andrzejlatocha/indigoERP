@@ -1,0 +1,81 @@
+﻿@using System.IO
+@using DocumentFormat.OpenXml.Packaging
+@using indigoERP.Blazor.Utils
+
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="glos-okno">
+    <InputFile OnChange="@WybierzPlik" accept=".docx" class="form-control form-control-sm" />
+    <div class="text-muted small mt-2">Plik .docx do 20 MB. Obrazy osadzone w dokumencie zostaną wstawione do treści.</div>
+
+    @if (plik != null)
+    {
+        <div class="mt-2 small">Wybrano: @plik.Name</div>
+    }
+
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
+        <RadzenButton Text="Wczytaj" Icon="upload_file" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                      Click="@Wczytaj" IsBusy="@busy" Disabled="@(plik == null || busy)" />
+        <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
+                      Click="@(() => _dialogService.Close(null))" Disabled="@busy" />
+    </RadzenStack>
+</div>
+
+@code {
+    private const long MaxRozmiarPliku = 20L * 1024 * 1024;
+
+    private IBrowserFile? plik;
+    private bool busy;
+
+    private Task WybierzPlik(InputFileChangeEventArgs e)
+    {
+        plik = e.File;
+
+        return Task.CompletedTask;
+    }
+
+    private async Task Wczytaj()
+    {
+        if (plik == null)
+        {
+            return;
+        }
+
+        if (!plik.Name.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+        {
+            Powiadom(NotificationSeverity.Error, "Nieprawidłowy plik", "Można wczytać tylko plik .docx.");
+            return;
+        }
+
+        if (plik.Size > MaxRozmiarPliku)
+        {
+            Powiadom(NotificationSeverity.Error, "Za duży plik", "Plik przekracza 20 MB.");
+            return;
+        }
+
+        busy = true;
+
+        try
+        {
+            using var strumien = plik.OpenReadStream(MaxRozmiarPliku);
+            using var bufor = new MemoryStream();
+            await strumien.CopyToAsync(bufor);
+            bufor.Position = 0;
+
+            var html = WordHtmlConverter.KonwertujNaHtml(bufor);
+            _dialogService.Close(html);
+        }
+        catch (Exception ex) when (ex is InvalidDataException or OpenXmlPackageException)
+        {
+            Powiadom(NotificationSeverity.Error, "Błąd odczytu", "Nie udało się odczytać pliku Word.");
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void Powiadom(NotificationSeverity waga, string tytul, string szczegoly) =>
+        _notificationService.Notify(new NotificationMessage { Severity = waga, Summary = tytul, Detail = szczegoly, Duration = 8000 });
+}

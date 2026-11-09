@@ -1,0 +1,49 @@
+.ps-scroll {
+    max-height: calc(100vh - 12rem);
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.ps-siatka {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.ps-kafelek {
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    padding: 12px 8px;
+    background: #fff;
+    text-align: center;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.ps-kafelek:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ps-ikona {
+    font-size: 2.5rem;
+    color: #EF7D00;
+}
+
+.ps-tytul {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ps-numer {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+@media (max-width: 991px) {
+    .ps-siatka {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}

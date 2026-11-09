@@ -94,6 +94,9 @@ services.AddHttpClient();
 services.AddSingleton<IMicrosoftGraphUserService, MicrosoftGraphUserService>();
 services.AddSingleton<IEpicaHrServiceTokenProvider, EpicaHrServiceTokenProvider>();
 services.AddScoped<IEpicaHrPracownikEmailClient, EpicaHrPracownikEmailClient>();
+services.AddSingleton<IAtacamaServiceTokenProvider, AtacamaServiceTokenProvider>();
+services.AddHttpClient("atacamaDMSPolecenia", client => client.Timeout = TimeSpan.FromSeconds(60));
+services.AddScoped<IAtacamaPolecenieClient, AtacamaPolecenieClient>();
 services.AddScoped<IWiadomoscZakresPracownikSource, WiadomoscZakresPracownikSource>();
 services.AddSingleton<IWiadomoscMiniaturaService, WiadomoscMiniaturaService>();
 services.AddScoped<IWiadomoscZalacznikStorage>(sp =>

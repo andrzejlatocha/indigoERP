@@ -147,6 +147,34 @@
             DBContext dla klas aplikacji
             </summary>
         </member>
+        <member name="M:indigoERP.Api.Middleware.ApiErrorHandlingExtensions.UseApiErrorHandling(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            Nieobsłużony wyjątek → log błędu z TraceId i odpowiedź 500 (ProblemDetails); odpowiedzi 4xx/5xx bez treści → ostrzeżenie w logu
+            i ProblemDetails. Szczegóły wyjątku zwracamy tylko w Development.
+            </summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.IAtacamaPolecenieClient">
+            <summary>
+            Wywołania atacamaDMS.Api dla polecenia służbowego. Token serwisowy z rolą HCZ-atacamaDMS-Integracja-indigoERP.
+            Adres bazowy z konfiguracji AtacamaDms:BaseUrl (np. https://app.hcz.com.pl:9210/api/).
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.IAtacamaPolecenieClient.SelectPubliczneAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Lista poleceń obowiązujących; null, gdy brak tokenu serwisowego.</summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.IAtacamaPolecenieClient.PobierzPdfAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>Plik PDF polecenia; null, gdy polecenie nie istnieje, nie jest obowiązujące albo brak tokenu.</summary>
+        </member>
+        <member name="T:indigoERP.Api.Services.IAtacamaServiceTokenProvider">
+            <summary>
+            Token service-to-service (authorizationSRV, Service/GetToken) dla wywołań indigoERP -> atacamaDMS.Api.
+            Sekret klienta "indigoERP" czytany jest z zmiennej systemowej ServiceClient_indigoERP (ta sama wartość,
+            co w authorizationSRV). Token jest cache'owany do chwili wygaśnięcia.
+            </summary>
+        </member>
+        <member name="M:indigoERP.Api.Services.IAtacamaServiceTokenProvider.GetTokenAsync(System.Threading.CancellationToken)">
+            <summary>Zwraca token albo null, gdy nie da się go pobrać (brak sekretu, bramka odrzuciła żądanie).</summary>
+        </member>
         <member name="T:indigoERP.Api.Services.IEpicaHrPracownikEmailClient">
             <summary>
             Wywołuje epicaHR.Api (PracownikEmail/UstawEmailSluzbowy) tokenem service-to-service (klient indigoERP).

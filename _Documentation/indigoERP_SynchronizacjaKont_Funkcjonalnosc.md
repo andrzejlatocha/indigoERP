@@ -4,7 +4,7 @@
 
 Aktualizacja 2026-11-06: widoki i procedura zostały wdrożone na JAPET, co sprawdzono w metadanych.
 Wywołanie `@Wykonaj=0` wykonało podgląd bez zapisu kont. Tryb zapisu wymaga jawnego `@Wykonaj=1`;
-nie został wywołany ani sprawdzony podczas analizy.
+9.11.2026 przetestowano go wyłącznie na kopii w tymczasowych tabelach sesji SQL; na produkcyjnej tabeli nie został wywołany.
 
 ## Zakres i źródło
 
@@ -12,6 +12,29 @@ nie został wywołany ani sprawdzony podczas analizy.
 `indigoERP.rdb.vPracownikKontoSynchronizacja` i `indigoERP.mvw.vPracownikKontoSynchronizacja` służy lokalnej
 procedurze `dbo.aspSynchronizujKontaEpicaHR`. Dotyczy osób o typie umowy P; nie wywołuje procedur baz huta ani
 inout oraz nie modyfikuje istniejącej procedury `dbo.aspMergeUzytkownik` ani zadań SQL Agent.
+
+Aktualizacja 2026-11-09: przygotowano rozszerzenie źródła o rodzaj T (pracownicy tymczasowi APT) w skrypcie
+`epicaHR/_SQL Queries/epicaHR.Api20261109120000.sql`. Jest niewdrożone; do czasu jego wykonania produkcyjna
+procedura obejmuje P. Reguły kont, blokowania i odblokowania pozostają takie same.
+
+Nowsza decyzja: zamiast skryptu 120000 przygotowano sekwencję `epicaHR.Api20261109130000.sql` w epicaHR,
+nastepnie `indigoERP.Api20261109130100.sql` w indigoERP. Obie zmiany nie są wdrożone. Rozszerzają źródło o T
+oraz rodzaj osoby, a procedurę o priorytet P dla kolizji nowych nazw. Dwie osoby P o tej samej nazwie lub dwie T
+są pomijane. Jeśli kolidujące konto już istnieje, jest zachowane, a nowa osoba pomijana niezależnie od typu.
+Dodanie i odblokowanie wymaga obecnego angażu statusu 2; zwolnienie nadal podlega osobnej regule blokady statusu 5.
+Skrypty należy uruchomić kolejno bez wywoływania synchronizacji pomiędzy nimi, po czym sprawdzić podgląd @Wykonaj=0.
+
+Podgląd projektowanego źródła na 9.11.2026: 195 nowych kont T, 14 kolizji T oraz 5 wcześniejszych kolizji P;
+brak blokad i odblokowań. Próba bieżącej procedury na tymczasowej kopii danych i projektowanym źródle:
+195 nowych kont w stanie zablokowanym, drugi przebieg bez zmian. Trigger produkcyjny i SSO nie były uruchamiane.
+Test priorytetu P: 10/10 syntetycznych przypadków SELECT; `_Documentation/TestSynchronizacjaKontPriorytet_temp.sql`
+uruchomił projektowaną procedurę z projektowanym źródłem na tymczasowej kopii: 195 dodanych, 19 kolizji,
+drugi przebieg bez zmian, kontrola podstawowych danych produkcyjnych bez zmian. Testy nie tworzyły kont produkcyjnych.
+
+Zależność do wyjaśnienia przed uznaniem obsługi SSO za pełną: wdrożony `epicaHR.sha.vPracownikLista`, z którego
+korzysta `indigoERP.rdb.vPracownikLista` i `uspGetUzytkownikSso`, nie udostępnia T. Odczyt wykazał 209/209
+aktywnych T bez dopasowania w tym widoku, co może powodować `usrPracownikID=0` w tokenie mimo istniejącego konta.
+Nie zmieniano szeroko używanego widoku ani procedury logowania w ramach tej zmiany; wymagają osobnej analizy zależności.
 
 - Aktywność: nieusunięty angaż o statusie 2, rozpoczęty i bez minionej daty zakończenia.
 - Zwolnienie: istnieje nieusunięty angaż o statusie 5 i dacie zakończenia przed bieżącym dniem; nie istnieje
@@ -48,3 +71,30 @@ aktywną grupą oznaczoną jako „wszyscy”. Pełne uprawnienia nowych użytko
 `ujbIndigoErpMergeUzytkownik` ma `enabled=0`; nie znaleziono widocznego joba dla nowej procedury.
 Ręczne lub równoległe uruchomienie starej procedury może nadpisać decyzje nowej. Przed odblokowaniem sprawdzić
 przyczynę blokady: DataModyfikacja nie jest dowodem, że konto zablokowano tylko w związku ze zwolnieniem.
+
+## Test izolowany 2026-11-09
+
+`TestSynchronizacjaKont_temp.sql` kopiuje dane do tabel tymczasowych sesji, pobiera definicję aktualnej procedury
+i podstawia wyłącznie tabele źródła i celu oraz nazwę blokady aplikacyjnej. Nie tworzy kont produkcyjnych.
+Podgląd i pierwszy zapis w kopii: 65 DODAJ, 11 BLOKUJ, 2 ODBLOKUJ, 5 POMIN_KOLIZJA, 2 POMIN_ODBLOKOWANIE.
+Sprawdzono 65 nowych zablokowanych kont bez AD/hasła, 11 faktycznych blokad i 2 odblokowania. Drugi zapis:
+0 zmienionych kont, 5 kolizji i 7 pominiętych odblokowań; 5 dodatkowych pozycji to nowo utworzone konta osób
+ponownie zatrudnionych, które celowo są zablokowane i nie mają danych logowania. Kontrola liczby kont, sumy
+kontrolnej wybranych pól, liczby członkostw w grupach i bieżącego IDENTITY nie wykazała zmian w produkcji.
+
+Test nie uruchamiał produkcyjnego triggera na tabeli tymczasowej ani nie potwierdza faktycznej autoryzacji SSO,
+uprawnień konta serwisowego, pełnego stanu wszystkich pól czy działania wykonania na produkcyjnym celu.
+Trigger `utrAiUzytkownik` sprawdzono przez odczyt definicji i stanu. Skrypt wyświetla identyfikatory i nazwy kont;
+jego wynik należy traktować jako dane osobowe. Nie zapisano wyniku szczegółowego do pliku.
+
+## Wykonanie produkcyjne 2026-11-09
+
+Na wyraźne polecenie użytkownika wykonano `dbo.aspSynchronizujKontaEpicaHR @Wykonaj=1` na JAPET.indigoERP.
+W zewnętrznej transakcji przed zatwierdzeniem sprawdzono zgodność kopii statusów i wyniku z podglądem:
+65 nowych zablokowanych kont bez nazwy AD i hasła, 11 blokad, 2 odblokowania, 65 członkostw w grupie 0.
+Nie zmieniono pozostałych statusów. Transakcja została zatwierdzona. Następny podgląd: 5 POMIN_KOLIZJA
+i 7 POMIN_ODBLOKOWANIE; brak pozycji DODAJ, BLOKUJ i ODBLOKUJ. Łączna liczba kont wzrosła z 1530 do 1595.
+
+W `_Documentation/SynchronizacjaKont/` zachowano kopię poprzednich statusów i listę 65 kont do uzupełnienia AD.
+Lista zawiera dane osobowe i służy administratorowi; nie jest plikiem do zatwierdzania w repozytorium.
+Nie weryfikowano przypisania nazw AD ani logowania SSO. Stary job pozostał wyłączony.

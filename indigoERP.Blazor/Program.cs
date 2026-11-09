@@ -118,6 +118,7 @@ services.AddScoped<IWiadomoscWzorzecService, WiadomoscWzorzecService>();
 services.AddScoped<IWiadomoscDokumentService, WiadomoscDokumentService>();
 services.AddScoped<IWiadomoscWysylkaService, WiadomoscWysylkaService>();
 services.AddScoped<IWiadomoscPracownikService, WiadomoscPracownikService>();
+services.AddScoped<IPolecenieSluzboweService, PolecenieSluzboweService>();
 
 //Aplikacja
 

@@ -1,5 +1,22 @@
 ﻿# Codex Changes
 
+## 2026-11-06 - Polecenia służbowe: strona w indigoERP przez atacamaDMS.Api (proxy w indigoERP.Api)
+
+- **Zgłoszenie:** strona „Polecenia służbowe” dla wszystkich użytkowników indigoERP: lista lub siatka (kafelki po 6 w wierszu, tytuł skrócony, pełny tytuł w tooltipie), PDF otwierany w oknie, wyszukiwanie po tytule, numerze i treści; kafelek na stronie głównej i pozycja w menu po Głosie Hutnika.
+- **Zmiana:** `indigoERP.Api`: `Controllers\PolecenieSluzboweController.cs` (`SelectPubliczne`, `Pdf`), `Services\AtacamaServiceTokenProvider.cs` (token serwisowy indigoERP -> atacamaDMS z sekretem `ServiceClient_indigoERP`), `Services\AtacamaPolecenieClient.cs` (wywołania `atacamaDMS.Api`), `appsettings.json` sekcja `AtacamaDms:BaseUrl` = `https://app.hcz.com.pl:9210/api/`, rejestracja w `Program.cs`. `indigoERP.Services`: `IPolecenieSluzboweService` / `PolecenieSluzboweService`. `indigoERP.Domain`: `PolecenieSluzboweViewModel`. `indigoERP.Blazor`: `Pages\PolecenieSluzbowe\Index.razor` (+ `.css`), `PolecenieSluzbowePdfOkno.razor`, kafelek i styl w `Home.razor(.css)` (siatka skrótów: 8 równych wierszy), pozycja w `MainHeader.razor`.
+- **Decyzja techniczna:** Blazor woła tylko swoje API; token serwisowy z rolą `HCZ-atacamaDMS-Integracja` (rola i uprawnienie indigoERP 900 -> atacamaDMS 210 dodane w bazie indigoERP, skrypt `_SQL Queries\20261106_atacama_integracja\01_rola_integracja.sql`) jest tylko po stronie API. PDF przekazywany jako data URI do iframe (iframe nie wysyła tokenu, więc nie może pobrać pliku sam).
+- **Status wdrożenia:** zmiana w kodzie, niewdrożona. Do wdrożenia: `AtacamaDms:BaseUrl` w appsettings API na DEIMOS i CERES; sekret `ServiceClient_indigoERP` musi być ustawiony na serwerze.
+- **Weryfikacja:** build Api i Blazor bez błędów; testy Api 64/64 (w tym `PolecenieSluzboweControllerTests`: lista, brak tokenu 503, błąd atacamaDMS 502, PDF, brak PDF 404); testy Blazor 29/29. Nie sprawdzono w przeglądarce ani na żywym atacamaDMS.
+- **Luki:** miniatury to ikony PDF, nie podgląd strony. Gdy brak tokenu serwisowego, `Pdf` zwraca 404 zamiast 503 (klient zwraca `null` w obu przypadkach).
+
+## 2026-11-06 - Głos Hutnika: import treści z pliku Word, przycisk „Nowa wiadomość”, szerokość wyboru PDF
+
+- **Zgłoszenie:** wstawianie treści z plików Word do edytora nowej wiadomości (w tym obrazów osadzonych); przycisk „Nowy numer” na „Nowa wiadomość”; wybór PDF w jednej linii z większym polem.
+- **Zmiana:** `Utils\WordHtmlConverter.cs` (konwersja .docx → HTML: akapity, nagłówki, pogrubienie, kursywa, podkreślenie, listy, tabele, obrazy jako data URI); okno `Pages\WiadomoscPubliczna\ImportWordOkno.razor` (Wczytaj/Anuluj, limit 20 MB, tylko .docx); przycisk „Importuj z Worda” nad edytorem w `GlosWysylkaOkno.razor`; `GlosZarzadzanie.razor` (tekst przycisku); pakiet `DocumentFormat.OpenXml` 3.5.1 w `indigoERP.Blazor.csproj`.
+- **Decyzja techniczna:** konwersja po stronie serwera (OpenXML), bez skryptów z CDN. Przycisk nad edytorem, bo edytor Radzen nie daje prostego dodania własnego przycisku do paska narzędzi. Okno importu otwierane jako zwykłe okno (nie slide), żeby nie zagnieżdżać dwóch okien bocznych. Hiperłącza zostają jako tekst; obrazy EMF/WMF pomijane (przeglądarki ich nie pokazują).
+- **Status wdrożenia:** zmiana w kodzie, niewdrożona.
+- **Weryfikacja:** testy Blazor 29/29 (w tym nowe `WordHtmlConverterTests`: pogrubienie i znaki specjalne, nagłówek, tabela, obraz osadzony). Plik „Komunikat spotkanie kobiet GK webinar 2026 11 12 Błońska Marta_Spółki GK.docx” przekonwertowany na HTML (`…GK.html` w tym samym katalogu, UTF-8 BOM). Nie sprawdzono w przeglądarce.
+
 ## 2026-11-04 - Worker wiadomości: wybór kanału (Graph/SMTP) po domenie nadawcy
 
 - **Zgłoszenie:** epicaHR ma wysyłać e-mail z `epicaHR@huta-czestochowa.pl` przez Microsoft Graph, a dotychczasowa wysyłka z `@hutaczestochowa.com.pl` zostaje na SMTP.
@@ -1947,6 +1964,56 @@ Brak.
 
 - `DailyFileLoggerProviderTests` potwierdza utworzenie i zawartość dziennego pliku w katalogu tymczasowym.
 - `dotnet test indigoERP.sln --no-restore`: 43/43 testów pomyślnie.
+## 2026-11-09 - Pierwszeństwo pracowników Huty w synchronizacji kont
+
+- Zgłoszenie: aktywny angaż status 2 oraz pracownicy APT T; kolizje pomijać, P ma pierwszeństwo.
+  `_SQL Queries/indigoERP.Api20261109130100.sql` dla JAPET.indigoERP rozszerza widoki i procedurę,
+  po uprzednim wdrożeniu `epicaHR.Api20261109130000.sql` w JAPET.epicaHR. Skrypty niewdrożone, uruchamia użytkownik.
+- Przy zderzeniu proponowanych nazw P/T wygrywa P, a T jest pomijany. Identyczne nazwy osób tego samego rodzaju
+  lub istniejące konto są nadal pomijane; nie przepinamy kont. Zachowano blokowanie po zwolnieniu.
+- Weryfikacja: 10/10 syntetycznych przypadków priorytetu w SELECT, test projektowanej procedury na tabelach
+  tymczasowych `_Documentation/TestSynchronizacjaKontPriorytet_temp.sql`: 195 dodanych zablokowanych kont,
+  19 kolizji, zero zmian przy drugim uruchomieniu, kontrola kont/grup/IDENTITY produkcji bez zmian.
+  PARSEONLY obu definicji poprawny; build indigoERP: 0 błędów i 0 ostrzeżeń, epicaHR: 0 błędów i 1 ostrzeżenie
+  ASPIRE010. Brak wdrożenia, testu triggera, SSO i faktycznych uprawnień konta usługi.
+
+## 2026-11-09 - Przygotowanie pracowników T w synchronizacji kont
+
+- Na prośbę użytkownika przygotowano w epicaHR skrypt `_SQL Queries/epicaHR.Api20261109120000.sql` dla JAPET.epicaHR,
+  który rozszerza istniejący widok o pracowników tymczasowych T; skrypt niewdrożony, uruchamia użytkownik.
+  Procedura indigoERP nie wymaga zmiany. Stare joby i dane produkcyjne nie zostały zmienione.
+- Test `_Documentation/TestSynchronizacjaKontTypT_temp.sql`: projektowana definicja widoku i bieżąca procedura
+  z podstawionymi tabelami tymczasowymi, 195 dodanych zablokowanych kont, 19 kolizji, 0 blokad/odblokowań,
+  0 zmian przy drugim przebiegu, kontrola produkcji bez zmian. 19 kolizji obejmuje 14 T i 5 wcześniejszych P.
+  Build indigoERP: 0 błędów, 821 ostrzeżeń; build epicaHR: 0 błędów, 760 ostrzeżeń.
+- Sprawdzono 209 aktywnych T: obecny widok epicaHR wykorzystywany przez SSO nie zwraca żadnego z nich;
+  `uspGetUzytkownikSso` może więc zwrócić `usrPracownikID=0`. To ograniczenie wymaga osobnej analizy przed
+  potwierdzeniem pełnego logowania. Bez testu triggera lub SSO na produkcji.
+
+## 2026-11-09 - Uruchomienie synchronizacji kont epicaHR
+
+- Zgłoszenie: uruchomić synchronizację, administrator uzupełni konta AD. JAPET.indigoERP: wykonano istniejącą
+  `dbo.aspSynchronizujKontaEpicaHR @Wykonaj=1` w zewnętrznej transakcji z walidacją wyniku, po podglądzie
+  i wykonaniu kopii statusów. Nie zmieniano procedur, schematu, bazy źródłowej ani zadań SQL Agent.
+- Zatwierdzono: 65 nowych zablokowanych kont bez hasła/AD, 11 blokad, 2 odblokowania, 65 wpisów do grupy 0.
+  Powtórny podgląd: 5 kolizji i 7 pominiętych odblokowań, zero kolejnych dodawań/blokad/odblokowań.
+  Liczba kont 1530 → 1595; stary job pozostał wyłączony. Dostępu SSO nie testowano.
+- Materiały operacyjne: `_Documentation/SynchronizacjaKont/WykonanieSynchronizacji_20261109.sql`, kopia statusów
+  `KopiaStatusow_20261109_przed.csv` i lista `NoweKontaDoUzupelnieniaAD_20261109.csv`; lista zawiera dane osobowe
+  i nie powinna być zatwierdzana w repozytorium. Brak nowego skryptu migracji: nie zmieniano obiektów SQL.
+
+## 2026-11-09 - Izolowany test synchronizacji kont epicaHR
+
+- Zgłoszenie: przetestować wdrożoną synchronizację. `_Documentation/TestSynchronizacjaKont_temp.sql` uruchamia
+  aktualną definicję procedury z podmianą źródła/celu na lokalne tabele tymczasowe oraz osobnym zasobem applock.
+  Nie zmieniano obiektów bazy ani produkcyjnych kont; unika to również zużycia produkcyjnych wartości IDENTITY.
+- Wynik: podgląd i zapis w kopii 65 DODAJ, 11 BLOKUJ, 2 ODBLOKUJ, 5 POMIN_KOLIZJA, 2 POMIN_ODBLOKOWANIE;
+  65 nowych jest zablokowanych bez AD/hasła, zweryfikowano 11 blokad i 2 odblokowania. Powtórny zapis 0 zmian;
+  pominięte odblokowania wzrosły do 7 przez 5 nowo dodanych kont osób ponownie zatrudnionych.
+- Kontrola przed/po: liczba kont, suma kontrolna wybranych pól, liczba członkostw i IDENTITY bez zmian.
+  Trigger INSERT i SSO nie zostały wykonane w teście; trigger zbadano tylko przez definicję i stan włączenia.
+  Nie zbadano wszystkich pól ani wykonania z rzeczywistym kontem usługi. Brak zmian SQL do wdrożenia.
+
 ## 2026-11-06 - Analiza wdrożonej synchronizacji kont epicaHR
 
 - Potwierdzono na JAPET widoki epicaHR.sha i indigoERP.rdb/mvw oraz procedurę `dbo.aspSynchronizujKontaEpicaHR`.
