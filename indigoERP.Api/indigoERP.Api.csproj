@@ -19,31 +19,31 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EntityFrameworkCore.UseRowNumberForPaging" Version="0.7.0" />
-    <PackageReference Include="Mapster" Version="10.0.13" />
-    <PackageReference Include="Mapster.DependencyInjection" Version="10.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13">
+    <PackageReference Include="Mapster" Version="10.0.14" />
+    <PackageReference Include="Mapster.DependencyInjection" Version="10.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.13">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.13">
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
     <PackageReference Include="NuGet.Protocol" Version="7.9.0" />
     <PackageReference Include="PDFtoImage" Version="5.4.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.1" />
   </ItemGroup>
   <ItemGroup>
     <!-- Przypięcie wersji zależności przejściowych z lukami w zabezpieczeniach (NU1902/NU1903/NU1904) -->
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
 </Project>

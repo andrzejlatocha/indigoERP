@@ -1,5 +1,22 @@
 ﻿# Codex Changes
 
+## 2026-11-10 - Trasy Przepisy wewnętrzne w indigoERP (PrzepisyWewnetrzne/...)
+
+- **Zgłoszenie:** trasy `PolecenieSluzbowe/SelectPubliczne` i `PolecenieSluzbowe/Pdf` mają nazywać się `PrzepisyWewnetrzne/...`.
+- **Zmiana:** `indigoERP.Services\...\PolecenieSluzboweService.cs` (ścieżki wołane z Blazora do indigoERP.Api); kontroler `indigoERP.Api\Controllers\PolecenieSluzboweController.cs` przemianowany na `PrzepisyWewnetrzneController.cs` (klasa, plik i test `PrzepisyWewnetrzneControllerTests.cs`), dzięki czemu trasa `api/PrzepisyWewnetrzne/...` wynika z konwencji `api/[controller]/[action]`.
+- **Decyzja:** zmiana nazwy klasy zamiast wpisanej na sztywno trasy, bo `AllControllersContractTests` wymusza konwencję tras.
+- **Status wdrożenia:** niewdrożone.
+- **Weryfikacja:** `indigoERP.Api.Tests` 67 z 67; build `indigoERP.Services` 0 błędów.
+
+## 2026-11-10 - Przepisy wewnętrzne zamiast Polecenia służbowe (biblioteka 13)
+
+- **Zgłoszenie:** w menu pozycja „Polecenia służbowe” ma nazywać się „Przepisy wewnętrzne”, a strona `/polecenie-sluzbowe` ma pobierać pliki z biblioteki 13 (Przepisy wewnętrzne) w atacamaDMS.
+- **Zmiana:** `Shared\MainHeader.razor` (etykieta menu); `Pages\PolecenieSluzbowe\Index.razor` (tytuł, kolumny, kafelki, dane z przepisów); `indigoERP.Domain\ViewModels\_Wspolne\PrzepisWewnetrznyViewModel.cs` zamiast `PolecenieSluzboweViewModel` (usunięty); `indigoERP.Api\Services\AtacamaPolecenieClient.cs` i `Controllers\PolecenieSluzboweController.cs` (ścieżki `PrzepisyWewnetrzne/SelectPubliczne` i `Pdf/{pliID}` w atacamaDMS.Api); `indigoERP.Services\...\PolecenieSluzboweService.cs`; test `PolecenieSluzboweControllerTests.cs` przepisany na nowy model.
+- **Decyzja:** adres `/polecenie-sluzbowe` i nazwy klas proxy zostają bez zmian. Kafelek na stronie głównej (`Pages\Home.razor`) ma tytuł „Przepisy wewnętrzne”.
+- **Decyzja:** lista obejmuje aktywne pliki PDF biblioteki 13 (bez usuniętych i wyrejestrowanych) i nie sprawdza uprawnień do biblioteki, tak jak wcześniej dla poleceń służbowych.
+- **Status wdrożenia:** niewdrożone. Najpierw publikacja atacamaDMS.Api (endpoint `PrzepisyWewnetrzne`), potem indigoERP.
+- **Weryfikacja:** `indigoERP.Api.Tests` 67 z 67 zaliczonych. Build `indigoERP.Blazor` 0 błędów, bez ostrzeżeń w zmienionych plikach.
+
 ## 2026-11-10 - Plec/Select czyta z widoku enum.Plec (500 w formularzach pracownika)
 
 - **Zgłoszenie:** formularz dodawania pracownika (epicaHR, pp.hcz.com.pl/epicaHR/kadry/pracownik/insert) zwraca 500 przy ładowaniu listy plci.
@@ -2051,3 +2068,12 @@ Brak.
   Osobno 2 kandydatów do odblokowania, 7/7 scenariuszy reguły odblokowania w SELECT. Ponowny przyrostowy build:
   0 błędów i 0 ostrzeżeń; brak testu utworzenia obiektów i uruchomienia procedury.
 
+
+
+## 2026-11-10 — synchronizacja statusów P i T oraz dane APT
+
+- Przygotowano `_SQL Queries/indigoERP.Api20261110113000.sql` dla JAPET.indigoERP: aktywny angaż ustawia `usrBlokada=0`, `usrStatus=2`, brak aktywnego `usrBlokada=1`, `usrStatus=1`; dotyczy typów P i T. Nowe konta aktywne bez AD, kolizje pomijane z priorytetem P. Aktywność również znosi ręczne blokady.
+- Przygotowano `_SQL Queries/indigoERP.Api20261110113200.sql` dla JAPET.indigoERP, po wdrożeniu skryptu epicaHR: `rdb.vPracownikLista` obejmuje bieżący angaż T; prezentuje rzeczywisty wydział i nazwę stanowiska z dopiskiem ` (APT)`, również dla SSO. Identyfikatory pozostają rzeczywiste.
+- Status wdrożenia: oba skrypty przygotowane, niewdrożone; synchronizacji nie uruchomiono. Weryfikacja na tymczasowej kopii danych: podgląd bez zapisu, statusy P/T, nowe konta, powtórzenie bez zmian i brak zmian tabeli produkcyjnej. W źródle 195/195 aktywnych kont APT miało wydział i stanowisko.
+
+- Build rozwiązań: indigoERP 0 błędów, 821 ostrzeżeń; epicaHR 0 błędów, 1115 ostrzeżeń. Zapytanie odczytowe potwierdziło sufiks stanowiska dla 209/209 bieżących angaży T. Pełnego zestawu testów aplikacji ani rzeczywistego przepływu SSO nie uruchomiono.

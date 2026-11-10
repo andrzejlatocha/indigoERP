@@ -20,16 +20,15 @@ namespace indigoERP.Api.Controllers._Slownik
 
         // GET: api/Plec
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Plec>>> Select(string pleStatus)
+        public async Task<ActionResult<IEnumerable<PlecEnumerator>>> Select(string pleStatus)
         {
-            if (_context.Plec == null)
+            // Odczyt z widoku enum.Plec: encja Plec dziedziczy po AuditableEntity, a tabela dic.Plec nie ma kolumn audytowych (500).
+            if (_context.PlecEnumerator == null)
             {
                 return NotFound();
             }
 
-            var usrID = User.FindFirst("usrID")?.Value;
-
-            return await _context.Plec.Where(w => w.pleStatus == pleStatus).ToListAsync();
+            return await _context.PlecEnumerator.Where(w => w.pleStatus == pleStatus).ToListAsync();
         }
 
         // GET: api/Plec

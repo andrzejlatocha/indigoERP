@@ -155,15 +155,15 @@
         </member>
         <member name="T:indigoERP.Api.Services.IAtacamaPolecenieClient">
             <summary>
-            Wywołania atacamaDMS.Api dla polecenia służbowego. Token serwisowy z rolą HCZ-atacamaDMS-Integracja-indigoERP.
+            Wywołania atacamaDMS.Api dla przepisów wewnętrznych (biblioteka 13). Token serwisowy z rolą HCZ-atacamaDMS-Integracja-indigoERP.
             Adres bazowy z konfiguracji AtacamaDms:BaseUrl (np. https://app.hcz.com.pl:9210/api/).
             </summary>
         </member>
         <member name="M:indigoERP.Api.Services.IAtacamaPolecenieClient.SelectPubliczneAsync(System.String,System.Threading.CancellationToken)">
-            <summary>Lista poleceń obowiązujących; null, gdy brak tokenu serwisowego.</summary>
+            <summary>Lista przepisów (pliki PDF biblioteki 13); null, gdy brak tokenu serwisowego.</summary>
         </member>
         <member name="M:indigoERP.Api.Services.IAtacamaPolecenieClient.PobierzPdfAsync(System.Int32,System.Threading.CancellationToken)">
-            <summary>Plik PDF polecenia; null, gdy polecenie nie istnieje, nie jest obowiązujące albo brak tokenu.</summary>
+            <summary>Plik PDF przepisu; null, gdy plik nie istnieje w bibliotece 13 albo brak tokenu.</summary>
         </member>
         <member name="T:indigoERP.Api.Services.IAtacamaServiceTokenProvider">
             <summary>

@@ -98,3 +98,12 @@ i 7 POMIN_ODBLOKOWANIE; brak pozycji DODAJ, BLOKUJ i ODBLOKUJ. Łączna liczba k
 W `_Documentation/SynchronizacjaKont/` zachowano kopię poprzednich statusów i listę 65 kont do uzupełnienia AD.
 Lista zawiera dane osobowe i służy administratorowi; nie jest plikiem do zatwierdzania w repozytorium.
 Nie weryfikowano przypisania nazw AD ani logowania SSO. Stary job pozostał wyłączony.
+
+
+## Zmiana przygotowana 2026-11-10 — P i APT (niewdrożona)
+
+> Poniższe zasady zastępują wcześniejsze opisy blokowania dopiero po zwolnieniu i warunkowego odblokowania po wdrożeniu skryptów z tej daty.
+
+Dla pracowników własnych P i tymczasowych T aktywny, obowiązujący dziś angaż o statusie `2` oznacza `usrBlokada=0` i `usrStatus=2`. Przy braku takiego angażu konto jest blokowane i otrzymuje `usrStatus=1`. Nowe konta aktywne nie otrzymują nazwy AD ani hasła; administrator uzupełnia nazwę AD. Synchronizacja odblokowuje też konta zablokowane ręcznie. Konta niepowiązane oraz usunięte nie są aktualizowane; kolizje nazw są pomijane z pierwszeństwem pracowników P.
+
+Na liście użytkowników i w SSO pracownicy APT mają wydział i stanowisko z aktualnego angażu; do nazwy stanowiska dopisuje się ` (APT)`. Źródłem jest `epicaHR.sha.vPracownikListaAPT`, udostępniane przez `indigoERP.rdb.vPracownikLista`. Skrypty są przygotowane, nie zostały wdrożone ani uruchomione.
