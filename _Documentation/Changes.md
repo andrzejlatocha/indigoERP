@@ -1,5 +1,14 @@
 ﻿# Codex Changes
 
+## 2026-11-10 - Plec/Select czyta z widoku enum.Plec (500 w formularzach pracownika)
+
+- **Zgłoszenie:** formularz dodawania pracownika (epicaHR, pp.hcz.com.pl/epicaHR/kadry/pracownik/insert) zwraca 500 przy ładowaniu listy plci.
+- **Diagnoza:** PlecController.Select czyta encję Plec (dic.Plec), która dziedziczy po AuditableEntity, a tabela dic.Plec nie ma kolumn DataUtworzenie, UtworzenieID, DataModyfikacja, ModyfikacjaID, Usuniety - zapytanie SQL kończy się błędem. Ten sam błąd na CERES (/api/Plec/Select?pleStatus=2 → 500).
+- **Zmiana:** Controllers\Slownik\PlecController.cs - Select czyta z PlecEnumerator (widok enum.Plec: pleKOD, pleOpis, pleStatus), zwraca IEnumerable<PlecEnumerator>. Kształt JSON zgodny z epicaHR.Domain.Entities.Wspolne.Plec.
+- **Decyzja:** zmiana kontrolera zamiast DDL (dodanie kolumn audytowych do dic.Plec) - bez zmiany bazy; alternatywa DDL pozostaje otwarta.
+- **Weryfikacja:** nowe testy PlecControllerTests (2) - filtrowanie po statusie, pusta lista; indigoERP.Api.Tests 67 z 67 zaliczonych; build indigoERP.Api 0 błędów.
+- **Status wdrożenia:** opublikowane na CERES 2026-11-10 z czystej kopii master (3.26.1110.11418, tryb offline do 08:33, robocopy z zachowaniem ppsettings.json i web.config). Plec/Select na https://test.hcz.com.pl:9900 zwraca 200 z danymi. Na DEIMOS niewdrożone (czeka na zgodę). Uwaga: ppsettings.json na CERES ma wersję 3.26.1110.11422 (nie nadpisana) - do wyjaśnienia.
+
 ## 2026-11-06 - Polecenia służbowe: strona w indigoERP przez atacamaDMS.Api (proxy w indigoERP.Api)
 
 - **Zgłoszenie:** strona „Polecenia służbowe” dla wszystkich użytkowników indigoERP: lista lub siatka (kafelki po 6 w wierszu, tytuł skrócony, pełny tytuł w tooltipie), PDF otwierany w oknie, wyszukiwanie po tytule, numerze i treści; kafelek na stronie głównej i pozycja w menu po Głosie Hutnika.

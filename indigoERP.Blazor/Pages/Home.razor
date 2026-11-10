@@ -4,6 +4,7 @@
 @inject IJSRuntime JSRuntime
 @inject IHomeService _homeService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
 
 @using Microsoft.JSInterop;
 @using indigoERP.Domain.ViewModels;
@@ -86,6 +87,15 @@
         </nav>
     </aside>
     <main class="home-content">
+        @if (JestSerwerTestowy)
+        {
+            <section class="home-alerts">
+                <RadzenAlert ShowIcon="true" AlertStyle="AlertStyle.Warning" AllowClose="false" Shade="Shade.Light" Size="AlertSize.Small"
+                             Variant="Variant.Filled" Visible="true" class="w-100">
+                    SERWER TESTOWY: pracujesz na test.hcz.com.pl. Dane i zmiany tutaj nie dotyczą środowiska produkcyjnego.
+                </RadzenAlert>
+            </section>
+        }
         @if (browserWarrningVisible)
         {
             <section class="home-alerts">
@@ -121,6 +131,8 @@
                 }
             }
         </section>
+        @if (!JestSerwerTestowy)
+        {
         <section class="legacy-apps" aria-label="Stare aplikacje">
             <div class="legacy-apps__title">Stare aplikacje (Intranet)</div>
             <div class="legacy-grid">
@@ -133,12 +145,16 @@
                 }
             </div>
         </section>
+        }
     </main>
 </div>
 
 @code{
     IEnumerable<AplikacjaViewModel>? data;
     bool browserWarrningVisible;
+
+    // Serwer testowy (test.hcz.com.pl): ostrzeżenie nad panelami aplikacji, żeby nie pomylić z produkcją.
+    private bool JestSerwerTestowy => _navigationManager.BaseUri.Contains("test.hcz.com.pl", StringComparison.OrdinalIgnoreCase);
 
     // Skróty do aplikacji starego Intranetu (5 kolumn x 2 rzędy); adresy jak w Default.aspx starego Intranetu.
     private static readonly LegacyApp[] legacyApps =
