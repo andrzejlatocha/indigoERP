@@ -6,16 +6,16 @@ using indigoERP.Domain.ViewModels._Wspolne;
 namespace indigoERP.Api.Services;
 
 /// <summary>
-/// Wywołania atacamaDMS.Api dla polecenia służbowego. Token serwisowy z rolą HCZ-atacamaDMS-Integracja-indigoERP.
+/// Wywołania atacamaDMS.Api dla przepisów wewnętrznych (biblioteka 13). Token serwisowy z rolą HCZ-atacamaDMS-Integracja-indigoERP.
 /// Adres bazowy z konfiguracji AtacamaDms:BaseUrl (np. https://app.hcz.com.pl:9210/api/).
 /// </summary>
 public interface IAtacamaPolecenieClient
 {
-    /// <summary>Lista poleceń obowiązujących; null, gdy brak tokenu serwisowego.</summary>
-    Task<IReadOnlyList<PolecenieSluzboweViewModel>?> SelectPubliczneAsync(string? szukaj, CancellationToken cancellationToken);
+    /// <summary>Lista przepisów (pliki PDF biblioteki 13); null, gdy brak tokenu serwisowego.</summary>
+    Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, CancellationToken cancellationToken);
 
-    /// <summary>Plik PDF polecenia; null, gdy polecenie nie istnieje, nie jest obowiązujące albo brak tokenu.</summary>
-    Task<byte[]?> PobierzPdfAsync(int plsID, CancellationToken cancellationToken);
+    /// <summary>Plik PDF przepisu; null, gdy plik nie istnieje w bibliotece 13 albo brak tokenu.</summary>
+    Task<byte[]?> PobierzPdfAsync(int pliID, CancellationToken cancellationToken);
 }
 
 public sealed class AtacamaPolecenieClient(
@@ -26,9 +26,9 @@ public sealed class AtacamaPolecenieClient(
 {
     private const string NazwaKlienta = "atacamaDMSPolecenia";
 
-    public async Task<IReadOnlyList<PolecenieSluzboweViewModel>?> SelectPubliczneAsync(string? szukaj, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, CancellationToken cancellationToken)
     {
-        var sciezka = "PoleceniSluzbowe/SelectPubliczne";
+        var sciezka = "PrzepisyWewnetrzne/SelectPubliczne";
 
         if (!string.IsNullOrWhiteSpace(szukaj))
         {
@@ -42,14 +42,14 @@ public sealed class AtacamaPolecenieClient(
             return null;
         }
 
-        var lista = await odpowiedz.Content.ReadFromJsonAsync<List<PolecenieSluzboweViewModel>>(cancellationToken);
+        var lista = await odpowiedz.Content.ReadFromJsonAsync<List<PrzepisWewnetrznyViewModel>>(cancellationToken);
 
         return lista ?? [];
     }
 
-    public async Task<byte[]?> PobierzPdfAsync(int plsID, CancellationToken cancellationToken)
+    public async Task<byte[]?> PobierzPdfAsync(int pliID, CancellationToken cancellationToken)
     {
-        using var odpowiedz = await WyslijAsync($"PoleceniSluzbowe/Pdf/{plsID}", cancellationToken);
+        using var odpowiedz = await WyslijAsync($"PrzepisyWewnetrzne/Pdf/{pliID}", cancellationToken);
 
         if (odpowiedz == null || odpowiedz.StatusCode == HttpStatusCode.NotFound)
         {

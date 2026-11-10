@@ -8,16 +8,16 @@
 @inject DialogService _dialogService
 @inject NotificationService _notificationService
 
-<PageTitle>Polecenia służbowe</PageTitle>
+<PageTitle>Przepisy wewnętrzne</PageTitle>
 
 <div class="ps-strona p-3">
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap" Class="mb-3">
         <div class="me-2">
-            <h3 class="mb-0">Polecenia służbowe</h3>
-            <p class="text-muted mb-0 small">Obowiązujące polecenia służbowe</p>
+            <h3 class="mb-0">Przepisy wewnętrzne</h3>
+            <p class="text-muted mb-0 small">Obowiązujące przepisy wewnętrzne</p>
         </div>
         <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="@rok" Style="width:110px" Change="@(_ => StateHasChanged())" />
-        <RadzenTextBox @bind-Value="@szukaj" Placeholder="Szukaj w tytule, numerze lub treści" Style="width:340px"
+        <RadzenTextBox @bind-Value="@szukaj" Placeholder="Szukaj w nazwie lub opisie" Style="width:340px"
                        Change="@(_ => SzukajAsync())" />
         <RadzenButton Text="Szukaj" Icon="search" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@SzukajAsync" IsBusy="@ladowanie" />
         <RadzenButton Text="Wyczyść" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@WyczyscAsync" />
@@ -34,18 +34,18 @@
     }
     else if (WidoczneWRoku.Count == 0)
     {
-        <p class="text-muted">Brak poleceń spełniających kryteria.</p>
+        <p class="text-muted">Brak przepisów spełniających kryteria.</p>
     }
     else if (tryb == Tryb.Siatka)
     {
         <div class="ps-scroll">
             <div class="ps-siatka">
-                @foreach (var polecenie in WidoczneWRoku)
+                @foreach (var przepis in WidoczneWRoku)
                 {
-                    <div class="ps-kafelek" title="@polecenie.plsTytul" role="button" @onclick="@(() => OtworzPdfAsync(polecenie))">
+                    <div class="ps-kafelek" title="@Tytul(przepis)" role="button" @onclick="@(() => OtworzPdfAsync(przepis))">
                         <i class="fa-duotone fa-light fa-file-pdf ps-ikona"></i>
-                        <div class="ps-tytul">@polecenie.plsTytul</div>
-                        <div class="ps-numer">@polecenie.plsNumer</div>
+                        <div class="ps-tytul">@Tytul(przepis)</div>
+                        <div class="ps-numer">@(przepis.pliData?.ToString("dd.MM.yyyy"))</div>
                     </div>
                 }
             </div>
@@ -53,16 +53,13 @@
     }
     else
     {
-        <RadzenDataGrid Data="@WidoczneWRoku"TItem="PolecenieSluzboweViewModel" Density="Density.Compact"
+        <RadzenDataGrid Data="@WidoczneWRoku" TItem="PrzepisWewnetrznyViewModel" Density="Density.Compact"
                         AllowSorting="true" AllowFiltering="false" Style="height:calc(100vh - 12rem)"
-                        RowClick="@(args => OtworzPdfAsync(args.Data))">
+                        RowClick="@(args => OtworzPdfAsync(args.Data!))">
             <Columns>
-                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsNumer" Title="Numer" Width="170px" />
-                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsTytul" Title="Tytuł" />
-                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsRodzajNazwa" Title="Rodzaj" Width="180px" />
-                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsDataObowiazuje" Title="Obowiązuje od" Width="140px"
-                                      FormatString="{0:dd.MM.yyyy}" />
-                <RadzenDataGridColumn TItem="PolecenieSluzboweViewModel" Property="plsDataDo" Title="Obowiązuje do" Width="140px"
+                <RadzenDataGridColumn TItem="PrzepisWewnetrznyViewModel" Property="pliOpis" Title="Tytuł" />
+                <RadzenDataGridColumn TItem="PrzepisWewnetrznyViewModel" Property="pliNazwa" Title="Nazwa pliku" Width="260px" />
+                <RadzenDataGridColumn TItem="PrzepisWewnetrznyViewModel" Property="pliData" Title="Data" Width="140px"
                                       FormatString="{0:dd.MM.yyyy}" />
             </Columns>
         </RadzenDataGrid>
@@ -72,26 +69,28 @@
 @code {
     private enum Tryb { Lista, Siatka }
 
-    private List<PolecenieSluzboweViewModel> polecenia = new();
+    private List<PrzepisWewnetrznyViewModel> przepisy = new();
     private int rok = DateTime.Now.Year;
+    private string? szukaj;
+    private bool ladowanie = true;
+    private Tryb tryb = Tryb.Siatka;
 
-    // Data wydania; gdy atacamaDMS jeszcze jej nie zwraca, zastępczo data obowiązywania.
-    private static DateTime DataRoku(PolecenieSluzboweViewModel p) => p.plsDataWydania ?? p.plsDataObowiazuje;
+    // Tytuł: opis pliku, a gdy go nie ma, nazwa pliku.
+    private static string Tytul(PrzepisWewnetrznyViewModel p) => string.IsNullOrWhiteSpace(p.pliOpis) ? p.pliNazwa : p.pliOpis;
 
-    // Lata wydania poleceń oraz bieżący rok.
-    private List<int> Lata => polecenia
-        .Select(p => DataRoku(p).Year)
+    // Lata z dat przepisów oraz bieżący rok.
+    private List<int> Lata => przepisy
+        .Where(p => p.pliData.HasValue)
+        .Select(p => p.pliData!.Value.Year)
         .Append(DateTime.Now.Year)
         .Distinct()
         .OrderByDescending(y => y)
         .ToList();
 
-    private List<PolecenieSluzboweViewModel> WidoczneWRoku => polecenia
-        .Where(p => DataRoku(p).Year == rok)
+    // Przepisy bez daty są widoczne zawsze; z datą - tylko w wybranym roku.
+    private List<PrzepisWewnetrznyViewModel> WidoczneWRoku => przepisy
+        .Where(p => !p.pliData.HasValue || p.pliData.Value.Year == rok)
         .ToList();
-    private string? szukaj;
-    private bool ladowanie = true;
-    private Tryb tryb = Tryb.Siatka;
 
     protected override async Task OnInitializedAsync()
     {
@@ -115,12 +114,12 @@
 
         try
         {
-            polecenia = (await _polecenieService.SelectPubliczne(szukaj)).ToList();
+            przepisy = (await _polecenieService.SelectPubliczne(szukaj)).ToList();
         }
         catch (HttpRequestException)
         {
-            polecenia = new List<PolecenieSluzboweViewModel>();
-            Powiadom(NotificationSeverity.Error, "Błąd", "Nie udało się pobrać poleceń służbowych.");
+            przepisy = new List<PrzepisWewnetrznyViewModel>();
+            Powiadom(NotificationSeverity.Error, "Błąd", "Nie udało się pobrać przepisów wewnętrznych.");
         }
         finally
         {
@@ -128,21 +127,21 @@
         }
     }
 
-    private async Task OtworzPdfAsync(PolecenieSluzboweViewModel polecenie)
+    private async Task OtworzPdfAsync(PrzepisWewnetrznyViewModel przepis)
     {
         try
         {
-            var pdf = await _polecenieService.Pdf(polecenie.plsID);
+            var pdf = await _polecenieService.Pdf(przepis.pliID);
 
             if (pdf == null)
             {
-                Powiadom(NotificationSeverity.Warning, "Brak dokumentu", "Nie znaleziono pliku PDF tego polecenia.");
+                Powiadom(NotificationSeverity.Warning, "Brak dokumentu", "Nie znaleziono pliku PDF tego przepisu.");
                 return;
             }
 
             var zrodlo = "data:application/pdf;base64," + Convert.ToBase64String(pdf);
 
-            await _dialogService.OpenAsync<PolecenieSluzbowePdfOkno>(polecenie.plsTytul ?? "Polecenie służbowe",
+            await _dialogService.OpenAsync<PolecenieSluzbowePdfOkno>(Tytul(przepis),
                 new Dictionary<string, object?> { ["Zrodlo"] = zrodlo },
                 new DialogOptions { Width = "90vw", Height = "90vh", Resizable = true, Draggable = true });
         }

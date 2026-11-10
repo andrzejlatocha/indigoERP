@@ -18,25 +18,25 @@ namespace indigoERP.Service.Services._Wspolne
             _authenticationStateProvider = authenticationStateProvider;
         }
 
-        public async Task<IEnumerable<PolecenieSluzboweViewModel>> SelectPubliczne(string? szukaj)
+        public async Task<IEnumerable<PrzepisWewnetrznyViewModel>> SelectPubliczne(string? szukaj)
         {
             var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
-            var sciezka = "PolecenieSluzbowe/SelectPubliczne";
+            var sciezka = "PrzepisyWewnetrzne/SelectPubliczne";
 
             if (!string.IsNullOrWhiteSpace(szukaj))
             {
                 sciezka += "?szukaj=" + Uri.EscapeDataString(szukaj.Trim());
             }
 
-            var result = await httpClient.GetFromJsonAsync<List<PolecenieSluzboweViewModel>>(sciezka);
+            var result = await httpClient.GetFromJsonAsync<List<PrzepisWewnetrznyViewModel>>(sciezka);
 
-            return result ?? new List<PolecenieSluzboweViewModel>();
+            return result ?? new List<PrzepisWewnetrznyViewModel>();
         }
 
-        public async Task<byte[]?> Pdf(int plsID)
+        public async Task<byte[]?> Pdf(int pliID)
         {
             var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
-            using var odpowiedz = await httpClient.GetAsync($"PolecenieSluzbowe/Pdf/{plsID}");
+            using var odpowiedz = await httpClient.GetAsync($"PrzepisyWewnetrzne/Pdf/{pliID}");
 
             if (odpowiedz.StatusCode == HttpStatusCode.NotFound)
             {

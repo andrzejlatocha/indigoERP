@@ -5,16 +5,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace indigoERP.Api.Controllers
 {
-    // Polecenia służbowe dla wszystkich zalogowanych użytkowników indigoERP. Dane i PDF pochodzą z atacamaDMS.Api
-    // (token serwisowy); indigoERP.Api tylko przekazuje wynik do Blazora.
+    // Przepisy wewnętrzne (biblioteka 13 w atacamaDMS) dla wszystkich zalogowanych użytkowników indigoERP.
+    // Dane i PDF pochodzą z atacamaDMS.Api (token serwisowy); indigoERP.Api tylko przekazuje wynik do Blazora.
+    // Trasa /api/PrzepisyWewnetrzne/... wynika z nazwy kontrolera (konwencja api/[controller]/[action]).
     [Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class PolecenieSluzboweController(IAtacamaPolecenieClient atacama) : ControllerBase
+    public class PrzepisyWewnetrzneController(IAtacamaPolecenieClient atacama) : ControllerBase
     {
-        // GET: api/PolecenieSluzbowe/SelectPubliczne?szukaj=
+        // GET: api/PrzepisyWewnetrzne/SelectPubliczne?szukaj=
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PolecenieSluzboweViewModel>>> SelectPubliczne(string? szukaj = null, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<PrzepisWewnetrznyViewModel>>> SelectPubliczne(string? szukaj = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -29,24 +30,24 @@ namespace indigoERP.Api.Controllers
             }
             catch (HttpRequestException)
             {
-                return StatusCode(StatusCodes.Status502BadGateway, "Nie udało się pobrać poleceń z atacamaDMS.Api.");
+                return StatusCode(StatusCodes.Status502BadGateway, "Nie udało się pobrać przepisów z atacamaDMS.Api.");
             }
         }
 
         // GET: api/PolecenieSluzbowe/Pdf/5
-        [HttpGet("{plsID}")]
-        public async Task<IActionResult> Pdf(int plsID, CancellationToken cancellationToken = default)
+        [HttpGet("{pliID}")]
+        public async Task<IActionResult> Pdf(int pliID, CancellationToken cancellationToken = default)
         {
             try
             {
-                var pdf = await atacama.PobierzPdfAsync(plsID, cancellationToken);
+                var pdf = await atacama.PobierzPdfAsync(pliID, cancellationToken);
 
                 if (pdf == null)
                 {
                     return NotFound();
                 }
 
-                return File(pdf, "application/pdf", $"polecenie_{plsID}.pdf");
+                return File(pdf, "application/pdf", $"przepis_{pliID}.pdf");
             }
             catch (HttpRequestException)
             {
