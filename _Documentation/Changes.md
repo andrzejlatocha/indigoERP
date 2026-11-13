@@ -1,4 +1,13 @@
-﻿## 2026-11-13 - Publikacja API na DEIMOS i CERES (wersja 3.26.1113.11426)
+﻿## 2026-11-13 - Tytuł strony Główna, ikony aplikacji kendoCMMS i formCREATOR
+
+- **Zgłoszenie:** tytuł strony głównej „Home” ma być „Główna”; po publikacji zniknęła ikona kendoCMMS (robocopy /MIR usunął pliki spoza publikacji); ikona formCREATOR ma pokazywać okno / formularz.
+- **Diagnoza:** kendoCMMS.png nie był w repo Blazor (leżał tylko na DEIMOS i został usunięty przez /MIR), a jest w indigoERP.WebUI. Ikony aplikacji idą ze ścieżki z bazy (images/aplikacja/{nazwa}.png); formCREATOR.png nie istniał.
+- **Zmiana:** Pages/Home.razor (PageTitle „Główna”); wwwroot/images/aplikacja/kendoCMMS.png (skopiowany z indigoERP.WebUI); wwwroot/images/aplikacja/formCREATOR.png (nowy, 50x50, okno z paskiem #EF7D00 i polami formularza).
+- **Do ustalenia:** atestyHCZ.png i kendoHD.png też były tylko na DEIMOS i zostały usunięte; nie ma ich w repo ani na CERES.
+- **Status wdrożenia:** tylko w kodzie, bez publikacji.
+- **Weryfikacja:** dotnet build indigoERP.Blazor: 0 błędów; obraz formCREATOR.png sprawdzony wizualnie.
+
+## 2026-11-13 - Publikacja API na DEIMOS i CERES (wersja 3.26.1113.11426)
 
 - **Zmiana:** eksport master (commit 2228eea). Testy indigoERP.Api.Tests: 73/73 zaliczone. Publish Release, robocopy /MIR z wykluczeniami na Y:inetpubwwwrootindigoERP.Api (DEIMOS) i V:inetpubwwwrootindigoERP.Api (CERES). Backup konfiguracji: appsettings.json.prod-backup. Version 3.26.1110.11423 (DEIMOS) i 3.26.1113.11427 (CERES) -> 3.26.1113.11426, zgodnie z Blazorem.
 - **Zawartość:** poprawka akceptacji tokenów podpisanych GatewayKey (JwtSigningKeys), endpoint RolaController/SelectLookupByAplikacja (anonimowy, lista ról aplikacji do combo).
