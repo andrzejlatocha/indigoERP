@@ -8,7 +8,7 @@
 
 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
     <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="rok" Style="width: 110px;" />
-    <GlosZarzadzanie OnZmieniono="@OdswiezAsync" />
+    <GlosZarzadzanie />
 </RadzenStack>
 
 @if (ladowanie)

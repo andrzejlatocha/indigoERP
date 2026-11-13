@@ -178,9 +178,30 @@
     white-space: nowrap;
 }
 
-/* Logo na podstronach jak na stronie głównej (44 px) i odstęp między logo a tytułem. */
+/* Logo na podstronach jak na stronie głównej (44 px) i odstęp między logo a tytułem (gap na navbar-brand). */
+.header-navbar .navbar-brand {
+    gap: 1rem;
+}
+
 .navbar-brand > img.app-header-logo {
     height: 44px;
     max-height: 44px;
     margin-right: 1rem;
+}
+
+/* Stopka przy krótkiej treści: site.css ustawia .footer jako absolutną względem widoku (poza ekranem albo na treści).
+   Układ strony w kolumnie: treść rośnie, stopka stoi na dole. */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.glos-page {
+    flex: 1 0 auto;
+}
+
+.footer {
+    position: static;
+    flex: 0 0 auto;
 }

@@ -1,4 +1,24 @@
-﻿## 2026-11-13 - Wygląd podstron: O systemie, Głos Hutnika, Wiadomości
+﻿## 2026-11-13 - Głos Hutnika: zamykanie okna wysyłki, komunikat po zapisie, stopka i nagłówek
+
+- **Zgłoszenie:** na /wiadomosc okno wysyłki (GlosWysylkaOkno) nie zamykało się po zapisie/wysyłce, pojawiał się tylko toast. Po sukcesie strona nie odświeżała danych. Stopka nie była widoczna, a nazwa strony stała tuż przy logo.
+- **Diagnoza:** GlosWysylkaOkno zamykało okno przez DialogService.Close (zwykły dialog), a okno boczne (OpenSideAsync) wymaga CloseSide. Stopka: site.css ustawia .footer jako position:absolute względem widoku.
+- **Zmiana:** GlosWysylkaOkno.razor: wszystkie zamknięcia przez CloseSide; sukces zamyka okno z wynikiem GlosWynik (nowy plik GlosWynik.cs); błąd zostaje w oknie z toastem. GlosZarzadzanie.razor: po sukcesie przeładowanie strony z komunikatem w adresie (glosSeverity/glosTytul/glosTresc), komunikat pokazywany po renderowaniu i usuwany z adresu (wwwroot/js/glos-hutnika.js). WiadomosciPanel.razor: usunięty parametr OnZmieniono. glos-hutnika.css: stopka static, body w kolumnie, odstęp gap 1rem między logo a tytułem.
+- **Decyzja techniczna:** po sukcesie strona przeładowuje się (lista Razor po stronie serwera odświeża się tylko tak); komunikat przechodzi przez adres, bo przeładowanie kasuje toasty.
+- **Status wdrożenia:** zmiany niezacommitowane, bez publikacji.
+- **Weryfikacja:** dotnet build indigoERP.Blazor: 0 błędów. Strona wymaga SSO, więc nie sprawdzono w przeglądarce.
+
+## 2026-11-13 - Akceptacja tokenów podpisanych GatewayKey (401 z atacamaDMS)
+
+- **Zgłoszenie:** atacamaDMS (licznik powiadomień `WiadomoscUzytkownik/SelectCountByUzytkownik`) dostaje 401 „Wymagane jest uwierzytelnienie” przy tokenie użytkownika z authorizationSRV.
+- **Diagnoza:** authorizationSRV podpisuje tokeny użytkowników kluczem `Jwt:Key` mapowanym ze zmiennej systemowej `GatewayKey` (wspólny sekret). indigoERP.Api sprawdzał podpis tylko kluczem `Jwt:Key` (`indigoERP_JwtKey`), więc każdy token użytkownika był odrzucany. atacamaDMS.Api akceptuje oba klucze, dlatego działa.
+- **Zmiana:** `indigoERP.Api\Services\JwtSigningKeys.cs` (nowy) buduje listę kluczy walidacji: zawsze `Jwt:Key`, dodatkowo `GatewayKey`, gdy jest ustawiony. `indigoERP.Api\Program.cs`: odczyt opcjonalnej zmiennej `GatewayKey` (proces, potem Machine) i `IssuerSigningKeys = JwtSigningKeys.Create(...)` zamiast pojedynczego `IssuerSigningKey`.
+- **Decyzja techniczna:** `GatewayKey` opcjonalny (jak w Development w atacamaDMS.Api), żeby brak zmiennej nie zatrzymywał startu. `indigoERP_JwtKey` nie zmieniony, bo indigoERP może nim podpisywać własne tokeny.
+- **Baza danych / Zmiana:** brak zmian w bazie.
+- **Testy:** nowe `indigoERP.Api.Tests\JwtSigningKeysTests.cs` (5 testów: token z GatewayKey przechodzi; token z Jwt:Key nadal przechodzi; token z GatewayKey bez skonfigurowanego GatewayKey odrzucany; obcy klucz odrzucany; brak Jwt:Key zgłasza błąd konfiguracji). Cały `indigoERP.Api.Tests`: 73/73 zaliczone.
+- **Status wdrożenia:** opublikowane na CERES (`V:\inetpub\wwwroot\indigoERP.Api`) jako `3.26.1113.11427` (`Version` w `appsettings.json` repo i serwera). Tryb offline od 10:46 (planowane przywrócenie 11:46), robocopy `/MIR` kod 3 (OK), kopia `appsettings.json.prod-backup`, zmieniony tylko `Version`. Zmienna `GatewayKey` na CERES istnieje (skrót sha256 `58599D3ED4CB`, zgodny z authorizationSRV). Pula `indigoERP.Api` do restartu przez użytkownika (`GatewayKey` czytany przy starcie procesu).
+- **Weryfikacja po wdrożeniu:** `WiadomoscUzytkownik/SelectCountByUzytkownik/210/{usrID}` z tokenem użytkownika zwraca 200 zamiast 401.
+
+## 2026-11-13 - Wygląd podstron: O systemie, Głos Hutnika, Wiadomości
 
 - **Zgłoszenie:** na `/about` tytuły dolnych kart mają być w linii z ikonami (strona się mieści); na `/gloshutnika` i innych podstronach logo jest mniejsze niż na stronie głównej, brakuje odstępu między logo a tytułem i stopki.
 - **Zmiana:** `OProgramie/OProgramieStrona.razor` (karta `op-feature`: ikona i tytuł w jednym wierszu); `wwwroot/css/glos-hutnika.css` (logo 44 px jak na stronie głównej, `margin-right: 1rem`); `Pages/GlosHutnika.cshtml` i `Pages/WiadomoscPubliczna.cshtml` (statyczna stopka z `.footer` z `site.css`, bez panelu serwera).

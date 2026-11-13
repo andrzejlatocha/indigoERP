@@ -1,7 +1,12 @@
 ﻿@using indigoERP.Domain.Dtos._Wspolne
 @using indigoERP.Service.Interfaces._Wspolne
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Primitives
 
 @inject DialogService _dialogService
+@inject NotificationService _notificationService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _js
 @inject IWiadomoscPracownikService _wiadomoscPracownikService
 @inject IConfiguration _configuration
 
@@ -33,14 +38,50 @@ else if (robocze is { Count: > 0 })
     private List<WiadomoscDto>? robocze;
     private bool ladowanie = true;
 
-    /// <summary>Wywoływane po zapisie lub wysyłce, żeby rodzic odświeżył swoją listę.</summary>
-    [Parameter] public EventCallback OnZmieniono { get; set; }
-
     private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
 
     protected override async Task OnInitializedAsync()
     {
         await OdswiezRobocze();
+    }
+
+    // Po przeładowaniu strony (patrz PrzeladujZKomunikatem) pokazujemy komunikat z adresu i usuwamy go z adresu, żeby nie wracał przy F5.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var query = QueryHelpers.ParseQuery(new Uri(_navigationManager.Uri).Query);
+
+        if (!query.TryGetValue(GlosWynik.ParametrTytul, out var tytul) || StringValues.IsNullOrEmpty(tytul))
+        {
+            return;
+        }
+
+        query.TryGetValue(GlosWynik.ParametrTresc, out var tresc);
+        var severity = query.TryGetValue(GlosWynik.ParametrSeverity, out var kodSeverity)
+            && int.TryParse(kodSeverity, out var wartosc) && Enum.IsDefined(typeof(NotificationSeverity), wartosc)
+                ? (NotificationSeverity)wartosc
+                : NotificationSeverity.Success;
+
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = severity,
+            Summary = tytul.ToString(),
+            Detail = tresc.ToString(),
+            Duration = 8000
+        });
+
+        try
+        {
+            await _js.InvokeVoidAsync("glosHutnika.usunKomunikat");
+        }
+        catch (JSException)
+        {
+            // Brak JS: komunikat może wrócić po odświeżeniu, nie blokuje to pracy z listą.
+        }
     }
 
     private async Task OdswiezRobocze()
@@ -57,34 +98,42 @@ else if (robocze is { Count: > 0 })
 
     private async Task OtworzNowy()
     {
-        var zmieniono = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+        var wynik = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
             "Nowa wiadomość",
             new Dictionary<string, object?>(),
             GetSideOptions());
 
-        await OdswiezJesliZmieniono(zmieniono);
+        PrzeladujZKomunikatem(wynik);
     }
 
     private async Task OtworzWysylke(WiadomoscDto wiadomosc)
     {
-        var wyslano = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+        var wynik = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
             $"Wysyłka: {wiadomosc.wiaTemat}",
             new Dictionary<string, object?> { ["WiadomoscID"] = wiadomosc.wiaID, ["Tytul"] = wiadomosc.wiaTemat },
             GetSideOptions());
 
-        await OdswiezJesliZmieniono(wyslano);
+        PrzeladujZKomunikatem(wynik);
     }
 
-    private async Task OdswiezJesliZmieniono(dynamic? wynik)
+    // Sukces zamyka okno boczne i przeładowuje stronę, żeby odświeżyć listy po stronie serwera.
+    // Komunikat jedzie w adresie i pokazuje się po ponownym renderowaniu (OnAfterRenderAsync).
+    private void PrzeladujZKomunikatem(object? wynik)
     {
-        if (wynik is not true)
+        if (wynik is not GlosWynik glos)
         {
             return;
         }
 
-        // Bez przeładowania strony: komunikat zostaje na ekranie, a listy odświeżają się same.
-        await OdswiezRobocze();
-        await OnZmieniono.InvokeAsync();
+        var bazowy = new Uri(_navigationManager.Uri).GetLeftPart(UriPartial.Path);
+        var adres = QueryHelpers.AddQueryString(bazowy, new Dictionary<string, string?>
+        {
+            [GlosWynik.ParametrSeverity] = ((int)glos.Severity).ToString(),
+            [GlosWynik.ParametrTytul] = glos.Tytul,
+            [GlosWynik.ParametrTresc] = glos.Tresc
+        });
+
+        _navigationManager.NavigateTo(adres, forceLoad: true);
     }
 
     // Okno boczne z prawej, szerokość 1000px; zawartość przewija się w całości, nic nie jest ucinane.

@@ -37,7 +37,7 @@
         }
 
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
-            <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.Close(false))" />
+            <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => ZamknijOkno(null))" />
             <RadzenButton Text="Zapisz jako roboczy" Icon="save" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                           Click="@ZapiszRobocza" Disabled="@(!MoznaZapisacRobocza || busy)" />
         </RadzenStack>
@@ -104,7 +104,7 @@
             }
             else
             {
-                <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.Close(false))" Disabled="@busy" />
+                <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => ZamknijOkno(null))" Disabled="@busy" />
                 <RadzenButton Text="@($"Wyślij ({selected.Count})")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                               Click="@PoprosOPotwierdzenie" Disabled="@(!MoznaWyslac || busy)" />
             }
@@ -275,8 +275,7 @@
                 return;
             }
 
-            ZamknijOkno(true);
-            Notify(NotificationSeverity.Success, "Zapisano", "Numer roboczy jest na liście „Robocze”. Wyślij go, gdy będzie gotowy.");
+            ZamknijOkno(new GlosWynik(NotificationSeverity.Success, "Zapisano", "Numer roboczy jest na liście „Robocze”. Wyślij go, gdy będzie gotowy."));
         }
         finally
         {
@@ -322,11 +321,10 @@
                 return;
             }
 
-            // Najpierw zamykamy okno, potem komunikat; odświeżenie strony robi okno nadrzędne po chwili, żeby komunikat zdążył się pokazać.
+            // Sukces: okno zamyka się z wynikiem; komunikat i odświeżenie strony robi okno nadrzędne (GlosZarzadzanie).
             var szczegoly = wynik.komunikaty.Count > 0 ? " " + string.Join(" ", wynik.komunikaty.Take(3)) : string.Empty;
-            ZamknijOkno(true);
-            Notify(wynik.pominieto > 0 ? NotificationSeverity.Warning : NotificationSeverity.Success, "Wysłano",
-                $"Odbiorców: {wynik.dodano}, pominięto: {wynik.pominieto}.{szczegoly}");
+            var severity = wynik.pominieto > 0 ? NotificationSeverity.Warning : NotificationSeverity.Success;
+            ZamknijOkno(new GlosWynik(severity, "Wysłano", $"Odbiorców: {wynik.dodano}, pominięto: {wynik.pominieto}.{szczegoly}"));
         }
         finally
         {
@@ -335,12 +333,13 @@
         }
     }
 
-    // Zamknięcie okna bocznego. Wyjątek nie może zostać cicho połknięty: pokazujemy go w powiadomieniu.
-    private void ZamknijOkno(bool wynik)
+    // Zamknięcie okna bocznego (CloseSide; zwykłe Close nie zamyka okna wysuwanego z prawej).
+    // Wyjątek nie może zostać cicho połknięty: pokazujemy go w powiadomieniu.
+    private void ZamknijOkno(GlosWynik? wynik)
     {
         try
         {
-            _dialogService.Close(wynik);
+            _dialogService.CloseSide(wynik);
         }
         catch (Exception ex)
         {
