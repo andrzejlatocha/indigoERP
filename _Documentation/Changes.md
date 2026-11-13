@@ -1,4 +1,11 @@
-﻿## 2026-11-13 - Publikacja Blazor na DEIMOS (wersja 3.26.1113.11426)
+﻿## 2026-11-13 - Publikacja Blazor na CERES (wersja 3.26.1113.11426)
+
+- **Zmiana:** ten sam build co na DEIMOS (kod z ac59352). Publish Release, robocopy /MIR na V:inetpubwwwrootindigoERP z wykluczeniami. Backup konfiguracji: appsettings.json.prod-backup. Version 3.26.1110.11424 -> 3.26.1113.11426. Adresy testowe (test.hcz.com.pl) zostawione bez zmian.
+- **Diagnoza przy pierwszej próbie:** robocopy kod 11, błąd 32 na indigoERP.Blazor.dll (plik zablokowany przez działający proces jeszcze po app_offline). Ponowiona kopia po zwolnieniu pliku, kod 3.
+- **Status wdrożenia:** wdrożone na CERES 2026-11-13 (Claude, na polecenie Andrzeja). API nie publikowane.
+- **Weryfikacja:** https://test.hcz.com.pl/indigoERP/ -> 200, https://test.hcz.com.pl/ -> 200, w logu brak Unhandled exception.
+
+## 2026-11-13 - Publikacja Blazor na DEIMOS (wersja 3.26.1113.11426)
 
 - **Zgłoszenie:** publikacja poprawek Głosu Hutnika (okno wysyłki, stopka, nagłówek) na DEIMOS.
 - **Zmiana:** eksport z master (commit ac59352), testy indigoERP.Blazor.Tests: 29/29 zaliczone. Publish Release, robocopy /MIR na Y:inetpubwwwrootindigoERP z wykluczeniami (appsettings*.json, web.config, app_offline.htm, _app_offline.htm, *.prod-backup, Logs). Na serwerze appsettings.json: backup w appsettings.json.prod-backup, Version 3.26.1110.11423 -> 3.26.1113.11426.
