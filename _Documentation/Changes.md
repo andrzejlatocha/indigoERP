@@ -1,4 +1,11 @@
-﻿## 2026-11-13 - Publikacja Blazor na DEIMOS (wersja 3.26.1113.11428)
+﻿## 2026-11-13 - Publikacja aktualnych wersji API i Blazor na DEIMOS i CERES (wersja 3.26.1113.11428)
+
+- **Zmiana:** eksport master (commit 953c3e0). Testy: indigoERP.Api.Tests 73/73, indigoERP.Blazor.Tests 29/29. Publish Release; robocopy /MIR z wykluczeniami (w tym DataProtectionKeys dla Blazora) na wszystkie cele. Version 3.26.1113.11426 (API DEIMOS, API i Blazor CERES) -> 3.26.1113.11428.
+- **Cele:** DEIMOS API (Y:inetpubwwwrootindigoERP.Api); CERES Blazor (V:inetpubwwwrootindigoERP) i CERES API (V:inetpubwwwrootindigoERP.Api). DEIMOS Blazor już był w 11428 z tym samym kodem, nie publikowany ponownie.
+- **Status wdrożenia:** wdrożone 2026-11-13 (Claude, na polecenie Andrzeja).
+- **Weryfikacja:** wersje w appsettings.json wszystkich celów 11428; API /Api/ -> 404 (proces działa) na DEIMOS i CERES; CERES Blazor /indigoERP/ -> 200; brak "failed to start" w logach; ikony i klucze Data Protection na CERES obecne.
+
+## 2026-11-13 - Publikacja Blazor na DEIMOS (wersja 3.26.1113.11428)
 
 - **Zmiana:** eksport master (commit 2683824); testy indigoERP.Blazor.Tests: 29/29. Publish Release, robocopy /MIR z wykluczeniami (w tym DataProtectionKeys) na Y:inetpubwwwrootindigoERP. Version 3.26.1113.11427 -> 3.26.1113.11428.
 - **Zawartość:** tytuł strony Główna, ikony kendoCMMS (przywrócona) i formCREATOR (nowa), trwałe klucze Data Protection, wskaźniki ładowania na stronach administracyjnych.
