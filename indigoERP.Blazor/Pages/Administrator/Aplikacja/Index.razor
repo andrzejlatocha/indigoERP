@@ -40,6 +40,10 @@
         }
         else
         {
+            @if (ladowanie)
+            {
+                <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="height:4px" />
+            }
             <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
                             AllowSorting="true" PageSize="17" AllowPaging="true" TItem="AplikacjaViewModel" Density="Density.Compact"
                             Class="administrator-grid"
@@ -110,6 +114,7 @@
     private RadzenDataGridApp<AplikacjaViewModel>? grid;
     private IList<AplikacjaViewModel> selectedItems = new List<AplikacjaViewModel>();
     private List<AplikacjaViewModel>? data;
+    private bool ladowanie;
     private int valStatus;
     private readonly List<string> statusValues = new() { "2", "1", "*" };
     private readonly List<StatusOption> statusOptions = new()
@@ -128,8 +133,25 @@
 
     private async Task LoadData()
     {
-        var status = statusValues[valStatus];
-        data = (await _aplikacjaService.Select(status)).ToList();
+        ladowanie = true;
+
+        try
+        {
+            var status = statusValues[valStatus];
+            data = (await _aplikacjaService.Select(status)).ToList();
+        }
+        catch (Exception ex)
+        {
+            data ??= new List<AplikacjaViewModel>();
+            _notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = $"Nie udało się pobrać danych: {ex.Message}", Duration = 8000
+            });
+        }
+        finally
+        {
+            ladowanie = false;
+        }
     }
 
     private async Task OnStatusChange()

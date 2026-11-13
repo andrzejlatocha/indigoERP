@@ -15,6 +15,7 @@ using indigoERP.Service.Services._Slownik;
 using indigoERP.Service.Services._Wspolne;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,12 @@ AppDomain.CurrentDomain.UnhandledException += (_, e) =>
 builder.Services.AddTransient<ApiErrorHandler>();
 builder.Services.ConfigureHttpClientDefaults(b => b.AddHttpMessageHandler<ApiErrorHandler>());
 builder.Services.AddOProgramie(builder.Configuration, builder.Environment);
+
+// Klucze Data Protection (cookies logowania i antyfalsyfikacja Blazora) zapisane na dysku: po restarcie procesu nie gina sesje.
+// Katalog DataProtectionKeys lezy w katalogu aplikacji; publikacja (robocopy /MIR) musi go wykluczac (/XD DataProtectionKeys).
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtectionKeys")))
+    .SetApplicationName("indigoERP.Blazor");
 
 // Zmienna środowiskowa InternalSso nadpisuje InternalSso:Key z appsettings.json — jedna, wspólna
 // zmienna systemowa dla wszystkich aplikacji na tym serwerze (nie per-appka), patrz też indigoERP.Api\Program.cs.

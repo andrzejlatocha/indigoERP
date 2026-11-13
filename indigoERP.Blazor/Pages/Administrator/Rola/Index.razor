@@ -44,6 +44,10 @@
         }
         else
         {
+            @if (ladowanie)
+            {
+                <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="height:4px" />
+            }
             <RadzenDataGridApp @ref="grid" Data="@data" AllowAlternatingRows="false" AllowFiltering="true" FilterMode="FilterMode.Simple"
                             AllowSorting="true" PageSize="7" AllowPaging="true" TItem="RolaViewModel" Density="Density.Compact"
                             Class="administrator-grid" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@selectedItems"
@@ -116,6 +120,7 @@
     private RadzenDataGridApp<RolaViewModel>? grid;
     private IList<RolaViewModel> selectedItems = new List<RolaViewModel>();
     private List<RolaViewModel>? data;
+    private bool ladowanie;
     private List<AplikacjaEnumerator> applicationLookup = new();
     private int valStatus;
     private readonly List<string> statusValues = new() { "2", "1", "*" };
@@ -136,8 +141,25 @@
 
     private async Task LoadData()
     {
-        var status = statusValues[valStatus];
-        data = (await _rolaService.Select(status)).ToList();
+        ladowanie = true;
+
+        try
+        {
+            var status = statusValues[valStatus];
+            data = (await _rolaService.Select(status)).ToList();
+        }
+        catch (Exception ex)
+        {
+            data ??= new List<RolaViewModel>();
+            _notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = $"Nie udało się pobrać danych: {ex.Message}", Duration = 8000
+            });
+        }
+        finally
+        {
+            ladowanie = false;
+        }
     }
 
     private async Task OnStatusChange()
