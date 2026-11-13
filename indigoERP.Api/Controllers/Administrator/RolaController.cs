@@ -34,6 +34,16 @@ namespace indigoERP.Api.Controllers._Administrator
                 .ToListAsync();
         }
 
+        // Role przypisane do aplikacji (lista do combo w formularzach: wartość srlID, tekst srlNazwa).
+        [HttpGet("{appID}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<RolaAplikacjaViewModel>>> SelectLookupByAplikacja(int appID, string srlStatus)
+        {
+            return await _context.RolaAplikacjaViewModel
+                .Where(w => w.appID == appID && (w.srlStatus == srlStatus || srlStatus == "*"))
+                .ToListAsync();
+        }
+
         [HttpGet("{appID}/{srlID}")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<RolaAplikacjaViewModel>>> SelectAplikacjaByRola(int appID, int srlID, string appStatus)

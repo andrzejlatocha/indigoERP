@@ -71,6 +71,11 @@ if (monitoringEnvOverrides.Count > 0)
     builder.Configuration.AddInMemoryCollection(monitoringEnvOverrides);
 }
 
+// GatewayKey: wspólny sekret authorizationSRV (zmienna systemowa bez prefiksu, jak w atacamaDMS.Api).
+// Opcjonalny: bez niego indigoERP akceptuje tylko Jwt:Key (zachowanie sprzed zmiany).
+string? gatewayJwtKey = Environment.GetEnvironmentVariable("GatewayKey")
+    ?? Environment.GetEnvironmentVariable("GatewayKey", EnvironmentVariableTarget.Machine);
+
 var configuration = builder.Configuration;
 var services = builder.Services;
 var connectionString = builder.Configuration.GetConnectionString("indigoERPConnection");
@@ -120,7 +125,8 @@ services.AddAuthentication(options =>
             ValidateAudience = false,
             ValidAudience = configuration.GetSection("Jwt").GetValue<string>("Audience"),
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("Jwt").GetValue<string>(key: "Key")))
+            // Tokeny użytkowników z authorizationSRV są podpisane GatewayKey; tokeny usług - Jwt:Key. Akceptujemy oba.
+            IssuerSigningKeys = JwtSigningKeys.Create(configuration.GetSection("Jwt").GetValue<string>(key: "Key"), gatewayJwtKey)
         };
     });
 
