@@ -1,4 +1,11 @@
-﻿## 2026-11-13 - Tytuł strony Główna, ikony aplikacji kendoCMMS i formCREATOR
+﻿## 2026-11-13 - Publikacja Blazor na DEIMOS (wersja 3.26.1113.11428)
+
+- **Zmiana:** eksport master (commit 2683824); testy indigoERP.Blazor.Tests: 29/29. Publish Release, robocopy /MIR z wykluczeniami (w tym DataProtectionKeys) na Y:inetpubwwwrootindigoERP. Version 3.26.1113.11427 -> 3.26.1113.11428.
+- **Zawartość:** tytuł strony Główna, ikony kendoCMMS (przywrócona) i formCREATOR (nowa), trwałe klucze Data Protection, wskaźniki ładowania na stronach administracyjnych.
+- **Status wdrożenia:** wdrożone na DEIMOS 2026-11-13 (Claude, na polecenie Andrzeja). API na DEIMOS nadal 3.26.1113.11426 (nie publikowane).
+- **Weryfikacja:** http://10.0.40.103/indigoERP/ -> 307; pliki ikon i DataProtectionKeys obecne na serwerze.
+
+## 2026-11-13 - Tytuł strony Główna, ikony aplikacji kendoCMMS i formCREATOR
 
 - **Zgłoszenie:** tytuł strony głównej „Home” ma być „Główna”; po publikacji zniknęła ikona kendoCMMS (robocopy /MIR usunął pliki spoza publikacji); ikona formCREATOR ma pokazywać okno / formularz.
 - **Diagnoza:** kendoCMMS.png nie był w repo Blazor (leżał tylko na DEIMOS i został usunięty przez /MIR), a jest w indigoERP.WebUI. Ikony aplikacji idą ze ścieżki z bazy (images/aplikacja/{nazwa}.png); formCREATOR.png nie istniał.
