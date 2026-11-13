@@ -8,7 +8,7 @@ namespace indigoERP.Api.Tests;
 
 public sealed class EpicaHrServiceTokenProviderTests : IDisposable
 {
-    private const string Zmienna = "ServiceClient_indigoERP";
+    private const string Zmienna = "indigoERP_ServiceClient";
     private readonly string? _poprzedniaWartosc = Environment.GetEnvironmentVariable(Zmienna);
 
     public void Dispose()

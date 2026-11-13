@@ -1,4 +1,4 @@
-using indigoERP.Domain.Models._Autoryzacja;
+ï»¿using indigoERP.Domain.Models._Autoryzacja;
 using indigoERP.Service.Interfaces._Autoryzacja;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -30,7 +30,7 @@ namespace epicaHR.Desktop.WebUI.Pages._Autoryzacja
 
             string? user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
 
-            if (!user.IsNullOrEmpty())
+            if (!string.IsNullOrEmpty(user))
             {
                 var uzytkownikModel = new UzytkownikLoginModel();
                 uzytkownikModel.usrNazwa = user;
@@ -63,7 +63,7 @@ namespace epicaHR.Desktop.WebUI.Pages._Autoryzacja
                 return Redirect(_returnUrl);
             }
 
-            return NotFound("B³êdne has³o lub nazwa u¿ytkownika.");
+            return NotFound("Bï¿½ï¿½dne hasï¿½o lub nazwa uï¿½ytkownika.");
         }
 
         public async Task<bool> GetUser(UzytkownikLoginModel uzytkownikModel)

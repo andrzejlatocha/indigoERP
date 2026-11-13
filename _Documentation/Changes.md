@@ -1,5 +1,30 @@
-﻿# Codex Changes
+﻿## 2026-11-13 - Wygląd podstron: O systemie, Głos Hutnika, Wiadomości
 
+- **Zgłoszenie:** na `/about` tytuły dolnych kart mają być w linii z ikonami (strona się mieści); na `/gloshutnika` i innych podstronach logo jest mniejsze niż na stronie głównej, brakuje odstępu między logo a tytułem i stopki.
+- **Zmiana:** `OProgramie/OProgramieStrona.razor` (karta `op-feature`: ikona i tytuł w jednym wierszu); `wwwroot/css/glos-hutnika.css` (logo 44 px jak na stronie głównej, `margin-right: 1rem`); `Pages/GlosHutnika.cshtml` i `Pages/WiadomoscPubliczna.cshtml` (statyczna stopka z `.footer` z `site.css`, bez panelu serwera).
+- **Decyzja:** podstrony `.cshtml` nie używają layoutu, więc stopkę dodano jako statyczny HTML, a nie komponent `Footer` (ten wymaga DI i trybu renderowania).
+- **Status wdrożenia:** niewdrożone.
+- **Weryfikacja:** build `indigoERP.Blazor` 0 błędów (15 ostrzeżeń istniejących, bez zmian w zmienionych plikach). Nie sprawdzono w przeglądarce (logowanie SSO).
+
+## 2026-11-11 - Pakiety NuGet do wersji 11 (net11.0)
+
+- **Zmiana:** `Microsoft.EntityFrameworkCore*` (Api, Domain, Services, Worker, WebUI) 10.0.15 → 11.0.0; `Microsoft.Extensions.Http.Resilience` i `Microsoft.Extensions.ServiceDiscovery` (ServiceDefaults) 10.11.0 → 11.0.0; `Microsoft.NET.Test.Sdk` 18.11.0 → 18.11.1 i `xunit.v3` 4.0.2 → 4.0.3 (testy Api, Services, Worker, Blazor); `bunit` 2.14.0 → 2.15.2 (Blazor.Tests).
+- **Dodatkowo:** `NuGet.Protocol` 7.9.0 → 8.0.0 (indigoERP.Api; zmiana wersji głównej, zaakceptowana przy aktualizacji pakietów).
+- **Weryfikacja:** build `indigoERP.sln` 0 błędów (997 ostrzeżeń, wcześniej 881: dodatkowe NU1608); testy Api, Services, Blazor, Worker — wszystkie zaliczone.
+- **Otwarte:** NU1608 — `Biwen.EFCore.UseRowNumberForPaging` 2.4.0 wymaga EF Core 10 (zainstalowano 11); sprawdzić stronicowanie na żywej bazie przed publikacją. Zmiany w `csproj` są niezacommitowane na `master` (w `developer` nadal net10 / stare wersje).
+
+## 2026-11-11 - Migracja WebUI i Test poza głównym rozwiązaniem
+
+- Projekty indigoERP.WebUI i indigoERP.Test przeniesiono z net7.0 na net11.0; zaktualizowano zależności WebUI, usunięto przestarzałą kompilację widoków Razor w czasie działania oraz zastąpiono usunięte rozszerzenie sprawdzania pustego tekstu standardową metodą string.
+- Build WebUI bez błędów, 25 ostrzeżeń; Test bez błędów i ostrzeżeń. WebUI korzysta z EF Core 10.0.15 wspólnego z pozostałymi projektami; podczas restore użyto tymczasowej konfiguracji źródeł NuGet. Nie sprawdzono logowania, UI ani rzeczywistych uprawnień; bez zmian bazy i publikacji.
+# Codex Changes
+
+## 2026-11-10 — rozpoczęta migracja .NET 11
+
+- **Zgłoszenie:** aktualizacja VisualStudioCore, bez publikacji.
+- **Zmiany:** 12 projektów rozwiązania indigoERP.sln przełączono na net11.0 i zaktualizowano pakiety, w tym ASP.NET Core 11, Aspire 13.6.5, Radzen 13 i xUnit v3. Dodatek starego stronicowania SQL zastąpiono Biwen.EFCore.UseRowNumberForPaging 2.4.0; EF Core pozostawiono na 10.0.15 z powodu braku wsparcia EF 11 przez ten dodatek. Projekty spoza rozwiązania `indigoERP.Test` i `indigoERP.WebUI` nadal wymagają analizy. Zachowano zastane zmiany, w tym zmiany staged.
+- **Baza i wdrożenie:** bez zmian bazy i bez publikacji. Nie zmieniano lokalnego pliku NuGet.config wskazującego nieistniejące źródło DevExpress 23.1; restore wykonano z tymczasową konfiguracją.
+- **Weryfikacja:** build SDK 11.0.100 bez błędów z 881 ostrzeżeniami pierwszej kompilacji; 153/153 testów przeszło, w tym test generowania ROW_NUMBER bez połączenia z bazą. Kontrola zależności nie wykazała pakietów deprecated ani znanych podatności. Migracja jest nieukończona: ostrzeżenia, kompatybilność SQL na serwerze, rzeczywisty interfejs, Worker, Agent i uprawnienia wymagają sprawdzenia.
 ## 2026-11-10 - Trasy Przepisy wewnętrzne w indigoERP (PrzepisyWewnetrzne/...)
 
 - **Zgłoszenie:** trasy `PolecenieSluzbowe/SelectPubliczne` i `PolecenieSluzbowe/Pdf` mają nazywać się `PrzepisyWewnetrzne/...`.

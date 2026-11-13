@@ -1,6 +1,6 @@
 ﻿using indigoERP.Domain.Logging;
 using indigoERP.Api.Middleware;
-using EntityFrameworkCore.UseRowNumberForPaging;
+using Biwen.EFCore.UseRowNumberForPaging;
 using indigoERP.Api.Data;
 using indigoERP.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

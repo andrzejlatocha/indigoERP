@@ -177,3 +177,10 @@
 .rz-notification-item * {
     white-space: nowrap;
 }
+
+/* Logo na podstronach jak na stronie głównej (44 px) i odstęp między logo a tytułem. */
+.navbar-brand > img.app-header-logo {
+    height: 44px;
+    max-height: 44px;
+    margin-right: 1rem;
+}

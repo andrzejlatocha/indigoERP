@@ -105,9 +105,13 @@
         max-width: 1280px;
     }
     .op-feature {
+        align-items: center;
         background: #fff;
         border: 1px solid #dbe3ef;
         border-radius: 1rem;
+        column-gap: .9rem;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
         padding: 1.6rem;
     }
     .op-feature-icon {
@@ -118,7 +122,7 @@
         display: inline-flex;
         height: 3rem;
         justify-content: center;
-        margin-bottom: 1.1rem;
+        margin-bottom: 0;
         width: 3rem;
     }
     .op-feature-icon svg {
@@ -129,12 +133,13 @@
         color: #1b365c;
         font-size: 1.1rem;
         font-weight: 700;
-        margin: 0 0 .55rem;
+        margin: 0;
     }
     .op-feature p {
         color: #5b6a7e;
+        grid-column: 1 / -1;
         line-height: 1.65;
-        margin: 0;
+        margin: .75rem 0 0;
     }
     .op-summary {
         align-items: center;

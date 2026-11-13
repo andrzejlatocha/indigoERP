@@ -4,7 +4,7 @@ namespace indigoERP.Api.Services;
 
 /// <summary>
 /// Token service-to-service (authorizationSRV, Service/GetToken) dla wywołań indigoERP -> epicaHR.
-/// Sekret klienta "indigoERP" czytany jest z zmiennej systemowej ServiceClient_indigoERP (ta sama wartość,
+/// Sekret klienta "indigoERP" czytany jest z zmiennej systemowej indigoERP_ServiceClient (ta sama wartość,
 /// co w authorizationSRV). Token jest cache'owany do chwili wygaśnięcia.
 /// </summary>
 public interface IEpicaHrServiceTokenProvider
@@ -35,10 +35,10 @@ public sealed class EpicaHrServiceTokenProvider(
         {
             if (_token is not null && DateTimeOffset.UtcNow < _wygasa) return _token;
 
-            var klucz = Environment.GetEnvironmentVariable("ServiceClient_indigoERP") ?? configuration["ServiceAuth:Key"];
+            var klucz = Environment.GetEnvironmentVariable("indigoERP_ServiceClient") ?? configuration["ServiceAuth:Key"];
             if (string.IsNullOrWhiteSpace(klucz))
             {
-                logger.LogError("Brak sekretu ServiceClient_indigoERP. Nie można pobrać tokenu dla {TargetApp}.", TargetApp);
+                logger.LogError("Brak sekretu indigoERP_ServiceClient. Nie można pobrać tokenu dla {TargetApp}.", TargetApp);
                 return null;
             }
 

@@ -28,7 +28,7 @@ public sealed class EpicaHrPracownikEmailClient(
 
         var token = await tokenProvider.GetTokenAsync(cancellationToken);
         if (string.IsNullOrWhiteSpace(token))
-            return "Brak tokenu service-to-service dla epicaHR (sprawdź ServiceClient_indigoERP i nadanie).";
+            return "Brak tokenu service-to-service dla epicaHR (sprawdź indigoERP_ServiceClient i nadanie).";
 
         var client = clients.CreateClient("epicaHR");
         client.BaseAddress = address;

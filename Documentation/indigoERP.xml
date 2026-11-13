@@ -168,7 +168,7 @@
         <member name="T:indigoERP.Api.Services.IAtacamaServiceTokenProvider">
             <summary>
             Token service-to-service (authorizationSRV, Service/GetToken) dla wywołań indigoERP -> atacamaDMS.Api.
-            Sekret klienta "indigoERP" czytany jest z zmiennej systemowej ServiceClient_indigoERP (ta sama wartość,
+            Sekret klienta "indigoERP" czytany jest z zmiennej systemowej indigoERP_ServiceClient (ta sama wartość,
             co w authorizationSRV). Token jest cache'owany do chwili wygaśnięcia.
             </summary>
         </member>
@@ -187,7 +187,7 @@
         <member name="T:indigoERP.Api.Services.IEpicaHrServiceTokenProvider">
             <summary>
             Token service-to-service (authorizationSRV, Service/GetToken) dla wywołań indigoERP -> epicaHR.
-            Sekret klienta "indigoERP" czytany jest z zmiennej systemowej ServiceClient_indigoERP (ta sama wartość,
+            Sekret klienta "indigoERP" czytany jest z zmiennej systemowej indigoERP_ServiceClient (ta sama wartość,
             co w authorizationSRV). Token jest cache'owany do chwili wygaśnięcia.
             </summary>
         </member>
@@ -280,12 +280,6 @@
             <summary>
             Generates a documentation comment ID for a property.
             Example: P:Namespace.ContainingType.PropertyName or for an indexer P:Namespace.ContainingType.Item(System.Int32)
-            </summary>
-        </member>
-        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type,System.String)">
-            <summary>
-            Generates a documentation comment ID for a property given its container type and property name.
-            Example: P:Namespace.ContainingType.PropertyName
             </summary>
         </member>
         <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.MethodInfo)">
