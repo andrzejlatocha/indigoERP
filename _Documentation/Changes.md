@@ -1,4 +1,11 @@
-﻿## 2026-11-13 - Publikacja Blazor na CERES (wersja 3.26.1113.11426)
+﻿## 2026-11-13 - Publikacja API na DEIMOS i CERES (wersja 3.26.1113.11426)
+
+- **Zmiana:** eksport master (commit 2228eea). Testy indigoERP.Api.Tests: 73/73 zaliczone. Publish Release, robocopy /MIR z wykluczeniami na Y:inetpubwwwrootindigoERP.Api (DEIMOS) i V:inetpubwwwrootindigoERP.Api (CERES). Backup konfiguracji: appsettings.json.prod-backup. Version 3.26.1110.11423 (DEIMOS) i 3.26.1113.11427 (CERES) -> 3.26.1113.11426, zgodnie z Blazorem.
+- **Zawartość:** poprawka akceptacji tokenów podpisanych GatewayKey (JwtSigningKeys), endpoint RolaController/SelectLookupByAplikacja (anonimowy, lista ról aplikacji do combo).
+- **Status wdrożenia:** wdrożone na DEIMOS i CERES 2026-11-13 (Claude, na polecenie Andrzeja).
+- **Weryfikacja:** /Api/ -> 404 (proces działa), /Api/Login/GetSso bez parametrów -> 400 na obu serwerach; w logach brak błędów startu.
+
+## 2026-11-13 - Publikacja Blazor na CERES (wersja 3.26.1113.11426)
 
 - **Zmiana:** ten sam build co na DEIMOS (kod z ac59352). Publish Release, robocopy /MIR na V:inetpubwwwrootindigoERP z wykluczeniami. Backup konfiguracji: appsettings.json.prod-backup. Version 3.26.1110.11424 -> 3.26.1113.11426. Adresy testowe (test.hcz.com.pl) zostawione bez zmian.
 - **Diagnoza przy pierwszej próbie:** robocopy kod 11, błąd 32 na indigoERP.Blazor.dll (plik zablokowany przez działający proces jeszcze po app_offline). Ponowiona kopia po zwolnieniu pliku, kod 3.
