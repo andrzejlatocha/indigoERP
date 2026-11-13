@@ -1,4 +1,12 @@
-﻿## 2026-11-13 - Głos Hutnika: zamykanie okna wysyłki, komunikat po zapisie, stopka i nagłówek
+﻿## 2026-11-13 - Publikacja Blazor na DEIMOS (wersja 3.26.1113.11426)
+
+- **Zgłoszenie:** publikacja poprawek Głosu Hutnika (okno wysyłki, stopka, nagłówek) na DEIMOS.
+- **Zmiana:** eksport z master (commit ac59352), testy indigoERP.Blazor.Tests: 29/29 zaliczone. Publish Release, robocopy /MIR na Y:inetpubwwwrootindigoERP z wykluczeniami (appsettings*.json, web.config, app_offline.htm, _app_offline.htm, *.prod-backup, Logs). Na serwerze appsettings.json: backup w appsettings.json.prod-backup, Version 3.26.1110.11423 -> 3.26.1113.11426.
+- **Skutki robocopy /MIR:** usunięto nadmiarowe pliki z wersji sprzed publikacji: runtimes (System.DirectoryServices.Protocols.dll dla linux/osx/win) oraz wwwroot_documents (katalog pusty po czyszczeniu; DocumentPath wskazuje c:_documents) i wwwrootimagesaplikacja (atestyHCZ.png, kendoCMMS.png, kendoHD.png).
+- **Status wdrożenia:** wdrożone na DEIMOS 2026-11-13 (Claude na polecenie Andrzeja). API (indigoERP.Api) NIE publikowane: na serwerze zostaje poprzednia wersja API, a wersja Blazor jest 3.26.1113.11426 (rozbieżność z zasadą wersji API/Blazor do decyzji).
+- **Weryfikacja:** http://10.0.40.103/indigoERP/ -> 307 (aplikacja działa); https://app.hcz.com.pl/ odpowiada; logi Blazor zapisują się po przełączeniu online (wpisy po 14:08). stdoutLogEnabled=false, więc nowy plik stdout nie powstaje.
+
+## 2026-11-13 - Głos Hutnika: zamykanie okna wysyłki, komunikat po zapisie, stopka i nagłówek
 
 - **Zgłoszenie:** na /wiadomosc okno wysyłki (GlosWysylkaOkno) nie zamykało się po zapisie/wysyłce, pojawiał się tylko toast. Po sukcesie strona nie odświeżała danych. Stopka nie była widoczna, a nazwa strony stała tuż przy logo.
 - **Diagnoza:** GlosWysylkaOkno zamykało okno przez DialogService.Close (zwykły dialog), a okno boczne (OpenSideAsync) wymaga CloseSide. Stopka: site.css ustawia .footer jako position:absolute względem widoku.
