@@ -1,4 +1,19 @@
-﻿## 2026-11-13 - Publikacja aktualnych wersji API i Blazor na DEIMOS i CERES (wersja 3.26.1113.11428)
+﻿## 2026-11-14 - Ikony kafelków na stronie głównej wypełniają cały obszar
+
+- **Zgłoszenie:** ikony hutaForms, Głos Hutnika, Przepisy wewnętrzne i Formularz zgłoszenia nie wypełniały kafelka jak pozostałe aplikacje.
+- **Diagnoza:** .application-card__icon img miał max-width/max-height 44px, więc obrazy z przezroczystym marginesem (glif na przezroczystym tle) były wyraźnie mniejsze niż pola kafelka 62 px.
+- **Zmiana:** Pages/Home.razor.css: img w .application-card__icon ma width/height 100% i object-fit: contain (zamiast max 44px). Dotyczy wszystkich kafelków, więc pozostałe też wypełniają pole.
+- **Status wdrożenia:** tylko w kodzie, bez publikacji.
+- **Weryfikacja:** dotnet build indigoERP.Blazor: 0 błędów. Nie sprawdzono w przeglądarce (strona wymaga SSO).
+
+## 2026-11-13 - Głos Hutnika: służbowy i prywatny adres odbiorcy
+
+- **Zgłoszenie:** wysyłać na unikalne adresy służbowe oraz prywatne po wyrażeniu zgody na Głos Hutnika.
+- **Zmiana:** zakres 7 zwraca wszystkie uprawnione adresy; API pokazuje je przy jednej osobie i zapisuje unikalne adresy wybranych osób. Inne zakresy zachowują wybór jednego adresu na osobę. Okno wysyłki opisuje kolumnę jako adresy e-mail.
+- **Baza:** `_SQL Queries/indigoERP20261113150000.sql`, cel JAPET / indigoERP; skrypt przygotowany, niewykonany. Wymaga uruchomienia przez użytkownika. Warunek zgody dotyczy każdego prywatnego adresu; aktywne zatrudnienie nadal wymagane.
+- **Weryfikacja:** build rozwiązania: 0 błędów, 943 ostrzeżenia; pełne testy: 160/160. Zapytanie odczytowe nowego widoku na danych bieżących wskazało dla pracownika 890 dwa adresy. Nie wykonano migracji, publikacji ani rzeczywistej wysyłki.
+
+## 2026-11-13 - Publikacja aktualnych wersji API i Blazor na DEIMOS i CERES (wersja 3.26.1113.11428)
 
 - **Zmiana:** eksport master (commit 953c3e0). Testy: indigoERP.Api.Tests 73/73, indigoERP.Blazor.Tests 29/29. Publish Release; robocopy /MIR z wykluczeniami (w tym DataProtectionKeys dla Blazora) na wszystkie cele. Version 3.26.1113.11426 (API DEIMOS, API i Blazor CERES) -> 3.26.1113.11428.
 - **Cele:** DEIMOS API (Y:inetpubwwwrootindigoERP.Api); CERES Blazor (V:inetpubwwwrootindigoERP) i CERES API (V:inetpubwwwrootindigoERP.Api). DEIMOS Blazor już był w 11428 z tym samym kodem, nie publikowany ponownie.
