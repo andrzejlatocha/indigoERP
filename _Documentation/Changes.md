@@ -1,4 +1,11 @@
-﻿## 2026-11-14 - Ikony kafelków na stronie głównej wypełniają cały obszar
+﻿## 2026-11-14 - Korekta: ikony skrótów na stronie głównej (wbudowane w program)
+
+- **Zgłoszenie:** ikony hutaForms, Głos Hutnika, Przepisy wewnętrzne i Formularz zgłoszenia nie wypełniają pola jak pozostałe skróty. Nie są to obrazy z images/aplikacja, tylko glify Font Awesome zaszyte w Pages/Home.razor (.home-shortcut).
+- **Zmiana:** Pages/Home.razor.css: glify czterech skrótów 2.9rem (wcześniej 2.6rem / 1.55rem / 1.15rem) i pole Formularza zgłoszenia 52 px (wcześniej 42 px), jak pozostałe skróty. Cofnięto zmianę .application-card__icon img z wpisu wcześniejszego (dotyczyła kafelków z bazy, bez związku z tym zgłoszeniem).
+- **Status wdrożenia:** tylko w kodzie, bez publikacji.
+- **Weryfikacja:** dotnet build indigoERP.Blazor: 0 błędów. Nie sprawdzono w przeglądarce (strona wymaga SSO).
+
+## 2026-11-14 - Ikony kafelków na stronie głównej wypełniają cały obszar
 
 - **Zgłoszenie:** ikony hutaForms, Głos Hutnika, Przepisy wewnętrzne i Formularz zgłoszenia nie wypełniały kafelka jak pozostałe aplikacje.
 - **Diagnoza:** .application-card__icon img miał max-width/max-height 44px, więc obrazy z przezroczystym marginesem (glif na przezroczystym tle) były wyraźnie mniejsze niż pola kafelka 62 px.
