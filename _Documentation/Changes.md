@@ -1,4 +1,11 @@
-﻿## 2026-11-14 - Korekta: ikony skrótów na stronie głównej (wbudowane w program)
+﻿## 2026-11-14 - Publikacja Blazor na CERES (wersja 3.26.1114.11429)
+
+- **Zmiana:** eksport master (commit 90e794e); testy indigoERP.Blazor.Tests 29/29. Publish Release; robocopy /MIR z wykluczeniami (w tym DataProtectionKeys) na V:inetpubwwwrootindigoERP. Version 3.26.1113.11428 -> 3.26.1114.11429.
+- **Zawartość:** tytuł Główna, ikony kendoCMMS i formCREATOR, skróty strony głównej (glify 2.9rem, formularz 52 px), trwałe klucze Data Protection, wskaźniki ładowania na stronach administracyjnych.
+- **Status wdrożenia:** wdrożone na CERES 2026-11-14 (Claude, na polecenie Andrzeja). API na CERES nadal 3.26.1113.11426.
+- **Weryfikacja:** https://test.hcz.com.pl/indigoERP/ -> 200; ikony i DataProtectionKeys obecne; brak "failed to start" w logu.
+
+## 2026-11-14 - Korekta: ikony skrótów na stronie głównej (wbudowane w program)
 
 - **Zgłoszenie:** ikony hutaForms, Głos Hutnika, Przepisy wewnętrzne i Formularz zgłoszenia nie wypełniają pola jak pozostałe skróty. Nie są to obrazy z images/aplikacja, tylko glify Font Awesome zaszyte w Pages/Home.razor (.home-shortcut).
 - **Zmiana:** Pages/Home.razor.css: glify czterech skrótów 2.9rem (wcześniej 2.6rem / 1.55rem / 1.15rem) i pole Formularza zgłoszenia 52 px (wcześniej 42 px), jak pozostałe skróty. Cofnięto zmianę .application-card__icon img z wpisu wcześniejszego (dotyczyła kafelków z bazy, bez związku z tym zgłoszeniem).
