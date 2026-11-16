@@ -15,11 +15,11 @@ namespace indigoERP.Api.Controllers
     {
         // GET: api/PrzepisyWewnetrzne/SelectPubliczne?szukaj=
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PrzepisWewnetrznyViewModel>>> SelectPubliczne(string? szukaj = null, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<PrzepisWewnetrznyViewModel>>> SelectPubliczne(string? szukaj = null, int? katalogID = null, CancellationToken cancellationToken = default)
         {
             try
             {
-                var lista = await atacama.SelectPubliczneAsync(szukaj, cancellationToken);
+                var lista = await atacama.SelectPubliczneAsync(szukaj, katalogID, cancellationToken);
 
                 if (lista == null)
                 {
@@ -31,6 +31,27 @@ namespace indigoERP.Api.Controllers
             catch (HttpRequestException)
             {
                 return StatusCode(StatusCodes.Status502BadGateway, "Nie udało się pobrać przepisów z atacamaDMS.Api.");
+            }
+        }
+
+        // GET: api/PrzepisyWewnetrzne/SelectKatalogi - foldery pierwszego poziomu HUTY (combo).
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<KatalogWyborViewModel>>> SelectKatalogi(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var lista = await atacama.SelectKatalogiAsync(cancellationToken);
+
+                if (lista == null)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, "Brak tokenu do atacamaDMS.Api.");
+                }
+
+                return Ok(lista);
+            }
+            catch (HttpRequestException)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, "Nie udało się pobrać folderów z atacamaDMS.Api.");
             }
         }
 

@@ -1,0 +1,127 @@
+﻿@using indigoERP.Domain.ViewModels._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+
+@inject IPodgladService _podgladService
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject IConfiguration _configuration
+
+@if (ladowanie)
+{
+    <Load />
+}
+else if (blad != null)
+{
+    <div class="alert alert-warning">@blad</div>
+}
+else
+{
+    <div class="table-responsive">
+        @switch (Typ)
+        {
+            case "zadania":
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Temat</th><th>Termin</th><th>Priorytet</th></tr></thead>
+                    <tbody>
+                        @foreach (var zadanie in zadania)
+                        {
+                            <tr><td>@zadanie.tskTemat</td><td>@zadanie.tskData?.ToString("dd.MM.yyyy")</td><td>@zadanie.tskPriorytetZadanie</td></tr>
+                        }
+                        @if (zadania.Count == 0)
+                        {
+                            <tr><td colspan="3" class="text-muted">Brak nieprzeczytanych zadań.</td></tr>
+                        }
+                    </tbody>
+                </table>
+                break;
+
+            case "zdarzenia":
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Temat</th><th>Data</th></tr></thead>
+                    <tbody>
+                        @foreach (var zdarzenie in zdarzenia)
+                        {
+                            <tr><td>@zdarzenie.zdaTemat</td><td>@zdarzenie.zdaData?.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                        }
+                        @if (zdarzenia.Count == 0)
+                        {
+                            <tr><td colspan="2" class="text-muted">Brak nieprzeczytanych zdarzeń.</td></tr>
+                        }
+                    </tbody>
+                </table>
+                break;
+
+            default:
+                <table class="table table-sm table-hover">
+                    <thead><tr><th>Temat</th><th>Od</th><th>Data</th></tr></thead>
+                    <tbody>
+                        @foreach (var wiadomosc in wiadomosci)
+                        {
+                            <tr><td>@wiadomosc.wiaTemat</td><td>@wiadomosc.wiaUzytkownikImieNazwisko</td><td>@wiadomosc.wiaData?.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                        }
+                        @if (wiadomosci.Count == 0)
+                        {
+                            <tr><td colspan="3" class="text-muted">Brak nieprzeczytanych wiadomości.</td></tr>
+                        }
+                    </tbody>
+                </table>
+                break;
+        }
+    </div>
+}
+
+@code {
+    /// <summary>wiadomosci | zadania | zdarzenia</summary>
+    [Parameter]
+    public string Typ { get; set; } = "wiadomosci";
+
+    private bool ladowanie = true;
+    private string? blad;
+    private List<WiadomoscUzytkownikViewModel> wiadomosci = new();
+    private List<ZadanieViewModel> zadania = new();
+    private List<ZdarzenieViewModel> zdarzenia = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ZaladujAsync();
+    }
+
+    private async Task ZaladujAsync()
+    {
+        ladowanie = true;
+        blad = null;
+
+        try
+        {
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var usrID = int.TryParse(authState.User.FindFirst("usrID")?.Value, out var parsedUsrID) ? parsedUsrID : 0;
+            var appID = _configuration.GetValue<int?>("appSettings:AppID") ?? 0;
+
+            if (usrID == 0 || appID == 0)
+            {
+                blad = "Brak danych użytkownika.";
+                return;
+            }
+
+            switch (Typ)
+            {
+                case "zadania":
+                    zadania = (await _podgladService.ZadaniaNieprzeczytane(appID, usrID)).ToList();
+                    break;
+                case "zdarzenia":
+                    zdarzenia = (await _podgladService.ZdarzeniaNieprzeczytane(appID, usrID)).ToList();
+                    break;
+                default:
+                    wiadomosci = (await _podgladService.WiadomosciNieprzeczytane(appID, usrID)).ToList();
+                    break;
+            }
+        }
+        catch (Exception)
+        {
+            blad = "Nie udało się pobrać danych. Spróbuj ponownie później.";
+        }
+        finally
+        {
+            ladowanie = false;
+        }
+    }
+}

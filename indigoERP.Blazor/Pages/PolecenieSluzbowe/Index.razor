@@ -16,6 +16,8 @@
             <h3 class="mb-0">Przepisy wewnętrzne</h3>
             <p class="text-muted mb-0 small">Obowiązujące przepisy wewnętrzne</p>
         </div>
+        <RadzenDropDown TValue="int?" Data="@WyborFolderow" TextProperty="Nazwa" ValueProperty="Id" @bind-Value="@katalogID"
+                        Change="@(_ => PobierzAsync())" Style="width:260px" />
         <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="@rok" Style="width:110px" Change="@(_ => StateHasChanged())" />
         <RadzenTextBox @bind-Value="@szukaj" Placeholder="Szukaj w nazwie lub opisie" Style="width:340px"
                        Change="@(_ => SzukajAsync())" />
@@ -70,6 +72,13 @@
     private enum Tryb { Lista, Siatka }
 
     private List<PrzepisWewnetrznyViewModel> przepisy = new();
+    private List<FolderOpcja> foldery = new();
+    private int? katalogID;
+
+    // Pierwsza pozycja combo to „Wszystkie” (cała HUTA); pozostałe to foldery pierwszego poziomu HUTY.
+    private sealed record FolderOpcja(int? Id, string Nazwa);
+
+    private List<FolderOpcja> WyborFolderow => [new FolderOpcja(null, "Wszystkie"), .. foldery];
     private int rok = DateTime.Now.Year;
     private string? szukaj;
     private bool ladowanie = true;
@@ -94,7 +103,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await PobierzFolderowAsync();
         await PobierzAsync();
+    }
+
+    private async Task PobierzFolderowAsync()
+    {
+        try
+        {
+            foldery = (await _polecenieService.SelectKatalogi()).Select(k => new FolderOpcja(k.dirID, k.dirNazwa)).ToList();
+        }
+        catch (HttpRequestException)
+        {
+            foldery = new List<FolderOpcja>();
+            Powiadom(NotificationSeverity.Warning, "Foldery", "Nie udało się pobrać listy folderów.");
+        }
     }
 
     private async Task SzukajAsync()
@@ -114,7 +137,7 @@
 
         try
         {
-            przepisy = (await _polecenieService.SelectPubliczne(szukaj)).ToList();
+            przepisy = (await _polecenieService.SelectPubliczne(szukaj, katalogID)).ToList();
         }
         catch (HttpRequestException)
         {

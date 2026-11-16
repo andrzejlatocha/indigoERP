@@ -1,4 +1,13 @@
-﻿## 2026-11-16 - Publikacja wersji 3.26.1116.11430 (harmonogram wysyłki)
+﻿## 2026-11-16 - Przepisy wewnętrzne: combo folderu HUTY, podgląd w nagłówku, liczniki
+
+- **Zgłoszenie:** combo z folderami HUTY (Wszystkie + foldery pierwszego poziomu) na Przepisach; przyciski w nagłówku (Wiadomości, Zadania, Zdarzenia) z podglądem listy; liczniki nieprzeczytanych z API.
+- **Zmiana:** AtacamaPolecenieClient/PrzepisyWewnetrzneController: katalogID i SelectKatalogi (proxy do atacamaDMS API 3.26.1116.10578). PolecenieSluzboweService i Index.razor: combo folderów. LoginDisplay: liczniki (LicznikNaglowkaService) i przyciski podglądu (PodgladLista w oknie bocznym). Strony osadzane /podglad/wiadomosc, /podglad/zadanie, /podglad/zdarzenie (PodgladLayout).
+- **Wersja:** 3.26.1116.11431 (Blazor i API).
+- **Status wdrożenia:** commit na developer; wdrożenie API i Blazor na DEIMOS i CERES 2026-11-16.
+- **Weryfikacja:** testy na eksporcie (wynik w logu wdrożenia).
+- **Luki:** dzwonek (powiadomienia) bez obsługi i bez endpointu; brak testu klienta HTTP dla katalogID.
+
+## 2026-11-16 - Publikacja wersji 3.26.1116.11430 (harmonogram wysyłki)
 
 - **Zmiana:** eksport master (commit 22778c4). Testy: indigoERP.Api.Tests 75/75, indigoERP.Worker.Tests 46/46, indigoERP.Blazor.Tests 29/29. Kolumny harmonogramu (skrypt indigoERP20261116_Wiadomosc_Harmonogram.sql) uruchomione wcześniej na CERES i JAPET. Version 3.26.1114.11429 -> 3.26.1116.11430 (Blazor i API).
 - **Wdrożenie:** API i Blazor na DEIMOS i CERES (robocopy /MIR z wykluczeniami, DataProtectionKeys dla Blazora; backup appsettings.json.prod-backup). Worker na JAPET: C:ServicesindigoERP.Worker (robocopy /MIR z wykluczeniem appsettings.json, Install-Worker.ps1, logs). Usługa indigoERP.Worker POZOSTAJE ZATRZYMANA (decyzja przy uruchomieniu).

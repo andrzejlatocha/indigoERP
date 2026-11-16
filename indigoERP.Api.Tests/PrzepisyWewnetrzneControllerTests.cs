@@ -81,15 +81,21 @@ public class PrzepisyWewnetrzneControllerTests
         public bool BezTokenu { get; set; }
         public bool Blad { get; set; }
         public string? OstatniSzukaj { get; private set; }
+        public int? OstatniKatalog { get; private set; }
+        public IReadOnlyList<KatalogWyborViewModel> Katalogi { get; set; } = [];
 
-        public Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, int? katalogID, CancellationToken cancellationToken)
         {
             if (Blad) throw new HttpRequestException("test");
             if (BezTokenu) return Task.FromResult<IReadOnlyList<PrzepisWewnetrznyViewModel>?>(null);
 
             OstatniSzukaj = szukaj;
+            OstatniKatalog = katalogID;
             return Task.FromResult<IReadOnlyList<PrzepisWewnetrznyViewModel>?>(Lista);
         }
+
+        public Task<IReadOnlyList<KatalogWyborViewModel>?> SelectKatalogiAsync(CancellationToken cancellationToken) =>
+            BezTokenu ? Task.FromResult<IReadOnlyList<KatalogWyborViewModel>?>(null) : Task.FromResult<IReadOnlyList<KatalogWyborViewModel>?>(Katalogi);
 
         public Task<byte[]?> PobierzPdfAsync(int pliID, CancellationToken cancellationToken) => Task.FromResult(Pdf);
     }

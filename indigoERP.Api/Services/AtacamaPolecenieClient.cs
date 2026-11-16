@@ -12,7 +12,10 @@ namespace indigoERP.Api.Services;
 public interface IAtacamaPolecenieClient
 {
     /// <summary>Lista przepisów (pliki PDF biblioteki 13); null, gdy brak tokenu serwisowego.</summary>
-    Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, CancellationToken cancellationToken);
+    Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, int? katalogID, CancellationToken cancellationToken);
+
+    /// <summary>Foldery pierwszego poziomu w korzeniu HUTY (combo); null, gdy brak tokenu serwisowego.</summary>
+    Task<IReadOnlyList<KatalogWyborViewModel>?> SelectKatalogiAsync(CancellationToken cancellationToken);
 
     /// <summary>Plik PDF przepisu; null, gdy plik nie istnieje w bibliotece 13 albo brak tokenu.</summary>
     Task<byte[]?> PobierzPdfAsync(int pliID, CancellationToken cancellationToken);
@@ -26,14 +29,21 @@ public sealed class AtacamaPolecenieClient(
 {
     private const string NazwaKlienta = "atacamaDMSPolecenia";
 
-    public async Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PrzepisWewnetrznyViewModel>?> SelectPubliczneAsync(string? szukaj, int? katalogID, CancellationToken cancellationToken)
     {
-        var sciezka = "PrzepisyWewnetrzne/SelectPubliczne";
+        var parametry = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(szukaj))
         {
-            sciezka += "?szukaj=" + Uri.EscapeDataString(szukaj.Trim());
+            parametry.Add("szukaj=" + Uri.EscapeDataString(szukaj.Trim()));
         }
+
+        if (katalogID is int wybrany)
+        {
+            parametry.Add("katalogID=" + wybrany);
+        }
+
+        var sciezka = "PrzepisyWewnetrzne/SelectPubliczne" + (parametry.Count > 0 ? "?" + string.Join("&", parametry) : string.Empty);
 
         using var odpowiedz = await WyslijAsync(sciezka, cancellationToken);
 
@@ -43,6 +53,20 @@ public sealed class AtacamaPolecenieClient(
         }
 
         var lista = await odpowiedz.Content.ReadFromJsonAsync<List<PrzepisWewnetrznyViewModel>>(cancellationToken);
+
+        return lista ?? [];
+    }
+
+    public async Task<IReadOnlyList<KatalogWyborViewModel>?> SelectKatalogiAsync(CancellationToken cancellationToken)
+    {
+        using var odpowiedz = await WyslijAsync("PrzepisyWewnetrzne/SelectKatalogi", cancellationToken);
+
+        if (odpowiedz == null)
+        {
+            return null;
+        }
+
+        var lista = await odpowiedz.Content.ReadFromJsonAsync<List<KatalogWyborViewModel>>(cancellationToken);
 
         return lista ?? [];
     }

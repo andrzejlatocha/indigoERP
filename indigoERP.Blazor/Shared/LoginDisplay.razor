@@ -1,5 +1,10 @@
-﻿@inject DialogService _dialogService
+﻿@using indigoERP.Service.Interfaces._Wspolne
+@using indigoERP.Blazor.Pages.Podglad
+@inject DialogService _dialogService
 @inject IJSRuntime _jsRuntime
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject ILicznikNaglowkaService _licznikNaglowkaService
+@inject IConfiguration _configuration
 
 <AuthorizeView>
     <Authorized Context="auth">
@@ -9,14 +14,54 @@
                        checked="@isDarkMode" @onchange="@OnThemeModeChanged" />
                 <label class="form-check-label text-light" for="themeModeSwitch">@(isDarkMode ? "Ciemny" : "Jasny")</label>
             </div>
-            <RadzenButton Text="@GetUserName(auth)" Icon="person" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Light"
-                          Class="login-display__user btn btn-outline-light btn-sm" Click="@WyswietlUzytkownik" />
+            <button type="button" class="btn btn-sm header-action header-action-notify" title="Powiadomienia">
+                <i class="fa-duotone fa-light fa-bell"></i>
+                @if (liczbaPowiadomien > 0)
+                {
+                    <span class="badge bg-danger ms-1">@liczbaPowiadomien</span>
+                }
+            </button>
+            <button type="button" class="btn btn-sm header-action header-action-message" title="Wiadomości" @onclick="@(() => OtworzPodglad("wiadomosci", "Wiadomości"))">
+                <i class="fa-duotone fa-light fa-list-check"></i> <span>@liczbaWiadomosci</span>
+            </button>
+            <button type="button" class="btn btn-sm header-action header-action-task" title="Zadania" @onclick="@(() => OtworzPodglad("zadania", "Zadania"))">
+                <i class="fa-duotone fa-light fa-message"></i> <span>@liczbaZadan</span>
+            </button>
+            <button type="button" class="btn btn-sm header-action header-action-event" title="Zdarzenia" @onclick="@(() => OtworzPodglad("zdarzenia", "Zdarzenia"))">
+                <i class="fa-duotone fa-light fa-calendar"></i> <span>@liczbaZdarzen</span>
+            </button>
+            <button type="button" class="btn btn-sm header-action header-action-user" title="Dane użytkownika" @onclick="WyswietlUzytkownik">
+                <i class="fa-duotone fa-light fa-user"></i> <span>@GetUserName(auth)</span>
+            </button>
         </div>
     </Authorized>
 </AuthorizeView>
 
 @code {
     private bool isDarkMode;
+
+    // Liczniki nieprzeczytanych pozycji z indigoERP.Api. Powiadomienia (dzwonek) nie mają jeszcze endpointu, więc zostają 0.
+    private int liczbaPowiadomien;
+    private int liczbaWiadomosci;
+    private int liczbaZadan;
+    private int liczbaZdarzen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var usrID = int.TryParse(authState.User.FindFirst("usrID")?.Value, out var parsedUsrID) ? parsedUsrID : 0;
+        var appID = _configuration.GetValue<int?>("appSettings:AppID") ?? 0;
+
+        if (usrID == 0 || appID == 0)
+        {
+            return;
+        }
+
+        var liczniki = await _licznikNaglowkaService.Pobierz(appID, usrID);
+        liczbaWiadomosci = liczniki.Wiadomosci;
+        liczbaZadan = liczniki.Zadania;
+        liczbaZdarzen = liczniki.Zdarzenia;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -32,6 +77,14 @@
                 isDarkMode = false;
             }
         }
+    }
+
+    // Podgląd listy (wiadomości, zadania, zdarzenia) w oknie bocznym; ten sam komponent co strony /podglad/... do osadzania.
+    private async Task OtworzPodglad(string typ, string tytul)
+    {
+        await _dialogService.OpenSideAsync<PodgladLista>(tytul,
+            new Dictionary<string, object?> { ["Typ"] = typ },
+            new SideDialogOptions { Position = DialogPosition.Right, Width = "720px", ShowMask = true, CloseDialogOnOverlayClick = true });
     }
 
     public async Task WyswietlUzytkownik()

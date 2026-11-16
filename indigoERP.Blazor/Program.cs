@@ -103,6 +103,8 @@ services.AddSingleton<IClaimsTransformation, ClaimsTransformation>();
 services.AddScoped<IAplikacjaService, AplikacjaService>();
 services.AddScoped<IAplikacjaUslugaUprawnienieService, AplikacjaUslugaUprawnienieService>();
 services.AddScoped<IGrupaService, GrupaService>();
+services.AddScoped<ILicznikNaglowkaService, LicznikNaglowkaService>();
+services.AddScoped<IPodgladService, PodgladService>();
 services.AddScoped<ILoginBlokadaService, LoginBlokadaService>();
 services.AddScoped<IPracownikService, PracownikService>();
 services.AddScoped<IRolaService, RolaService>();
