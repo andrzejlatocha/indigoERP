@@ -14,7 +14,7 @@
                        checked="@isDarkMode" @onchange="@OnThemeModeChanged" />
                 <label class="form-check-label text-light" for="themeModeSwitch">@(isDarkMode ? "Ciemny" : "Jasny")</label>
             </div>
-            <button type="button" class="btn btn-sm header-action header-action-notify" title="Powiadomienia" @onclick="@(() => OtworzPodglad("powiadomienia", "Powiadomienia"))">
+            <button type="button" class="btn btn-sm header-action header-action-notify" title="Powiadomienie" @onclick="@(() => OtworzPodglad("powiadomienia", "Powiadomienie"))">
                 <i class="fa-duotone fa-light fa-bell"></i> <span>@liczbaPowiadomien</span>
             </button>
             <button type="button" class="btn btn-sm header-action header-action-message" title="Wiadomości" @onclick="@(() => OtworzPodglad("wiadomosci", "Wiadomości"))">
