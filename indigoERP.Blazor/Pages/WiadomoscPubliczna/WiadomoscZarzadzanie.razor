@@ -1,4 +1,5 @@
 ﻿@using indigoERP.Domain.Dtos._Wspolne
+@using indigoERP.Domain.ViewModels._Wspolne
 @using indigoERP.Service.Interfaces._Wspolne
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Primitives
@@ -17,6 +18,18 @@
 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
     <RadzenButton Text="Nowa wiadomość" Icon="add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@OtworzNowy" />
 </RadzenStack>
+
+@if (zaplanowane.Count > 0)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="w-100 mt-2">
+        <span class="text-muted small">Zaplanowane:</span>
+        @foreach (var cykl in zaplanowane)
+        {
+            <RadzenButton Text="@OpisCyklu(cykl)" Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
+                          Variant="Variant.Outlined" Click="@(() => AnulujCykl(cykl))" />
+        }
+    </RadzenStack>
+}
 
 @if (ladowanie)
 {
@@ -37,12 +50,14 @@ else if (robocze is { Count: > 0 })
 @code {
     private List<WiadomoscDto>? robocze;
     private bool ladowanie = true;
+    private List<WiadomoscHarmonogramViewModel> zaplanowane = new();
 
     private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
 
     protected override async Task OnInitializedAsync()
     {
         await OdswiezRobocze();
+        await OdswiezZaplanowane();
     }
 
     // Po przeładowaniu strony (patrz PrzeladujZKomunikatem) pokazujemy komunikat z adresu i usuwamy go z adresu, żeby nie wracał przy F5.
@@ -55,13 +70,13 @@ else if (robocze is { Count: > 0 })
 
         var query = QueryHelpers.ParseQuery(new Uri(_navigationManager.Uri).Query);
 
-        if (!query.TryGetValue(GlosWynik.ParametrTytul, out var tytul) || StringValues.IsNullOrEmpty(tytul))
+        if (!query.TryGetValue(WiadomoscWynik.ParametrTytul, out var tytul) || StringValues.IsNullOrEmpty(tytul))
         {
             return;
         }
 
-        query.TryGetValue(GlosWynik.ParametrTresc, out var tresc);
-        var severity = query.TryGetValue(GlosWynik.ParametrSeverity, out var kodSeverity)
+        query.TryGetValue(WiadomoscWynik.ParametrTresc, out var tresc);
+        var severity = query.TryGetValue(WiadomoscWynik.ParametrSeverity, out var kodSeverity)
             && int.TryParse(kodSeverity, out var wartosc) && Enum.IsDefined(typeof(NotificationSeverity), wartosc)
                 ? (NotificationSeverity)wartosc
                 : NotificationSeverity.Success;
@@ -76,7 +91,7 @@ else if (robocze is { Count: > 0 })
 
         try
         {
-            await _js.InvokeVoidAsync("glosHutnika.usunKomunikat");
+            await _js.InvokeVoidAsync("wiadomoscPubliczna.usunKomunikat");
         }
         catch (JSException)
         {
@@ -96,9 +111,55 @@ else if (robocze is { Count: > 0 })
         }
     }
 
+    private async Task OdswiezZaplanowane()
+    {
+        zaplanowane = (await _wiadomoscPracownikService.SelectHarmonogram(AppID)).ToList();
+    }
+
+    private async Task AnulujCykl(WiadomoscHarmonogramViewModel cykl)
+    {
+        var wynik = await _wiadomoscPracownikService.AnulujHarmonogram(cykl.wiaID);
+
+        if (wynik.Code < 200 || wynik.Code >= 300)
+        {
+            _notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Błąd",
+                Detail = wynik.Message ?? "Nie udało się anulować harmonogramu.",
+                Duration = 8000
+            });
+            return;
+        }
+
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Anulowano",
+            Detail = $"Harmonogram „{cykl.wiaTemat}” został anulowany.",
+            Duration = 8000
+        });
+
+        await OdswiezZaplanowane();
+    }
+
+    private static string OpisCyklu(WiadomoscHarmonogramViewModel cykl)
+    {
+        var rodzaj = cykl.wiaKodHarmonogram switch
+        {
+            "D" => "codziennie",
+            "T" => "tygodniowo",
+            "M" => "miesięcznie",
+            _ => "jednorazowo",
+        };
+        var nastepna = cykl.wiaDataNastepnejWysylki?.ToString("dd.MM.yyyy HH:mm") ?? "-";
+
+        return $"Anuluj: {cykl.wiaTemat} ({rodzaj}, następna: {nastepna})";
+    }
+
     private async Task OtworzNowy()
     {
-        var wynik = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+        var wynik = await _dialogService.OpenSideAsync<WiadomoscWysylkaOkno>(
             "Nowa wiadomość",
             new Dictionary<string, object?>(),
             GetSideOptions());
@@ -108,7 +169,7 @@ else if (robocze is { Count: > 0 })
 
     private async Task OtworzWysylke(WiadomoscDto wiadomosc)
     {
-        var wynik = await _dialogService.OpenSideAsync<GlosWysylkaOkno>(
+        var wynik = await _dialogService.OpenSideAsync<WiadomoscWysylkaOkno>(
             $"Wysyłka: {wiadomosc.wiaTemat}",
             new Dictionary<string, object?> { ["WiadomoscID"] = wiadomosc.wiaID, ["Tytul"] = wiadomosc.wiaTemat },
             GetSideOptions());
@@ -120,7 +181,7 @@ else if (robocze is { Count: > 0 })
     // Komunikat jedzie w adresie i pokazuje się po ponownym renderowaniu (OnAfterRenderAsync).
     private void PrzeladujZKomunikatem(object? wynik)
     {
-        if (wynik is not GlosWynik glos)
+        if (wynik is not WiadomoscWynik glos)
         {
             return;
         }
@@ -128,9 +189,9 @@ else if (robocze is { Count: > 0 })
         var bazowy = new Uri(_navigationManager.Uri).GetLeftPart(UriPartial.Path);
         var adres = QueryHelpers.AddQueryString(bazowy, new Dictionary<string, string?>
         {
-            [GlosWynik.ParametrSeverity] = ((int)glos.Severity).ToString(),
-            [GlosWynik.ParametrTytul] = glos.Tytul,
-            [GlosWynik.ParametrTresc] = glos.Tresc
+            [WiadomoscWynik.ParametrSeverity] = ((int)glos.Severity).ToString(),
+            [WiadomoscWynik.ParametrTytul] = glos.Tytul,
+            [WiadomoscWynik.ParametrTresc] = glos.Tresc
         });
 
         _navigationManager.NavigateTo(adres, forceLoad: true);

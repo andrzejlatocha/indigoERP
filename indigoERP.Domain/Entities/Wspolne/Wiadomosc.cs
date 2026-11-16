@@ -22,5 +22,10 @@ namespace indigoERP.Domain.Entities._Wspolne
         public Guid? wiaSesja { get; set; }
         public string? wiaStatus { get; set; }
         public bool? wiaPubliczna { get; set; }
+        public string? wiaKodHarmonogram { get; set; }
+        public DateTime? wiaDataHarmonogramStart { get; set; }
+        public DateTime? wiaDataHarmonogramKoniec { get; set; }
+        public DateTime? wiaDataNastepnejWysylki { get; set; }
+        public bool wiaHarmonogramAktywny { get; set; }
     }
 }

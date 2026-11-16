@@ -47,12 +47,12 @@ namespace indigoERP.Api.Services
                 .ToListAsync(cancellationToken);
 #pragma warning restore EF1002
 
-            // Do wysyłki tylko pracownicy z adresem e-mail; jeden wiersz na pracownika (widok może zwracać kilka kontaktów).
-            return wiersze
-                .Where(w => w.prcID.HasValue && !string.IsNullOrWhiteSpace(w.kntKontakt))
-                .GroupBy(w => w.prcID!.Value)
-                .Select(g => g.First())
-                .ToList();
+            var poprawne = wiersze.Where(w => w.prcID.HasValue && !string.IsNullOrWhiteSpace(w.kntKontakt));
+
+            // Zakres Głosu Hutnika może zawierać adres służbowy i prywatny jednej osoby.
+            return wzaID == 7
+                ? poprawne.ToList()
+                : poprawne.GroupBy(w => w.prcID!.Value).Select(g => g.First()).ToList();
         }
 
         private static bool TryGetViewName(string widok, out string viewName)

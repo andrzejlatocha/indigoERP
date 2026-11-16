@@ -29,7 +29,7 @@ public sealed class WiadomoscPublicznaPageTests : BunitContext
     [Fact]
     public void Okno_wysylki_asks_for_scope_before_listing_recipients()
     {
-        var cut = Render<Pages.WiadomoscPubliczna.GlosWysylkaOkno>();
+        var cut = Render<Pages.WiadomoscPubliczna.WiadomoscWysylkaOkno>();
 
         cut.WaitForAssertion(() => Assert.Contains("Zapisz jako roboczy", cut.Markup));
         Assert.DoesNotContain("Wybierz zakres odbiorców", cut.Markup);
@@ -38,7 +38,7 @@ public sealed class WiadomoscPublicznaPageTests : BunitContext
     [Fact]
     public void Okno_wysylki_numeru_roboczego_pokazuje_zakres_i_przycisk_wyslij()
     {
-        var cut = Render<Pages.WiadomoscPubliczna.GlosWysylkaOkno>(parameters => parameters
+        var cut = Render<Pages.WiadomoscPubliczna.WiadomoscWysylkaOkno>(parameters => parameters
             .Add(p => p.WiadomoscID, 7)
             .Add(p => p.Tytul, "Gazeta nr 6"));
 
@@ -58,7 +58,7 @@ public sealed class WiadomoscPublicznaPageTests : BunitContext
     [Fact]
     public void Zarzadzanie_renderuje_przycisk_nowego_numeru()
     {
-        var cut = Render<Pages.WiadomoscPubliczna.GlosZarzadzanie>();
+        var cut = Render<Pages.WiadomoscPubliczna.WiadomoscZarzadzanie>();
 
         cut.WaitForAssertion(() => Assert.Contains("Nowa wiadomość", cut.Markup));
     }
@@ -99,6 +99,12 @@ public sealed class WiadomoscPublicznaPageTests : BunitContext
             [
                 new WiadomoscWzorzecEnumerator { msgID = 9, msgTemat = "Głos Hutnika", msgStatus = "2" }
             ]);
+
+        public Task<IEnumerable<WiadomoscHarmonogramViewModel>> SelectHarmonogram(int appID) =>
+            Task.FromResult(Enumerable.Empty<WiadomoscHarmonogramViewModel>());
+
+        public Task<ResponseMessage> AnulujHarmonogram(int wiaID) =>
+            Task.FromResult(new ResponseMessage(204, string.Empty, null));
 
         public Task<IEnumerable<WiadomoscPodsumowanieDto>> SelectPodsumowanie(int appID) =>
             Task.FromResult<IEnumerable<WiadomoscPodsumowanieDto>>([]);

@@ -24,7 +24,7 @@
         <RadzenHtmlEditor @bind-Value="@Model.wiaTresc" Style="height:280px" />
     </RadzenFormField>
     <RadzenFormField Text="Załączniki" Style="width:100%">
-        <InputFile OnChange="@OnFilesSelected" multiple class="rz-w-100" />
+        <InputFile @key="wejscieWersja" OnChange="@OnFilesSelected" multiple class="rz-w-100" />
     </RadzenFormField>
     @if (pendingFiles.Count > 0)
     {
@@ -51,6 +51,8 @@
 
     private List<WiadomoscWzorzecEnumerator> wzorce = new();
     private List<IBrowserFile> pendingFiles = new();
+    // Zmiana klucza wymusza nowy element InputFile, więc przeglądarka też czyści wybrane pliki.
+    private int wejscieWersja;
     private string odbiorcyTekst = string.Empty;
     private bool publikujPublicznie;
     private int? wybranyWzorzecID;
@@ -152,6 +154,8 @@
                 }
             }
 
+            pendingFiles.Clear();
+            wejscieWersja++;
             _dialogService.CloseSide(true);
         }
         finally

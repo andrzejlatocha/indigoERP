@@ -156,6 +156,21 @@ namespace indigoERP.Service.Services._Wspolne
                     content.Add(new StringContent(prcID.ToString()), nameof(model.prcIDs));
                 }
 
+                if (!string.IsNullOrWhiteSpace(model.kodHarmonogram))
+                {
+                    content.Add(new StringContent(model.kodHarmonogram), nameof(model.kodHarmonogram));
+
+                    if (model.dataHarmonogramStart is DateTime start)
+                    {
+                        content.Add(new StringContent(start.ToString("o")), nameof(model.dataHarmonogramStart));
+                    }
+
+                    if (model.dataHarmonogramKoniec is DateTime koniec)
+                    {
+                        content.Add(new StringContent(koniec.ToString("o")), nameof(model.dataHarmonogramKoniec));
+                    }
+                }
+
                 var response = await httpClient.PostAsync($"WiadomoscPracownik/WyslijRobocza/{wiaID}", content);
                 var apiResponse = await response.Content.ReadAsStringAsync();
 
@@ -171,6 +186,32 @@ namespace indigoERP.Service.Services._Wspolne
             catch (Exception ex)
             {
                 return (new ResponseMessage(600, ex.Message, null), null);
+            }
+        }
+
+        public async Task<IEnumerable<WiadomoscHarmonogramViewModel>> SelectHarmonogram(int appID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+            var result = await httpClient.GetFromJsonAsync<IEnumerable<WiadomoscHarmonogramViewModel>>(
+                $"WiadomoscHarmonogram/SelectAktywne?appID={appID}");
+
+            return result ?? Enumerable.Empty<WiadomoscHarmonogramViewModel>();
+        }
+
+        public async Task<ResponseMessage> AnulujHarmonogram(int wiaID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+
+            try
+            {
+                var response = await httpClient.PostAsync($"WiadomoscHarmonogram/Anuluj/{wiaID}", null);
+                var tresc = await response.Content.ReadAsStringAsync();
+
+                return new ResponseMessage((int)response.StatusCode, response.IsSuccessStatusCode ? string.Empty : tresc, null);
+            }
+            catch (Exception ex)
+            {
+                return new ResponseMessage(600, ex.Message, null);
             }
         }
 

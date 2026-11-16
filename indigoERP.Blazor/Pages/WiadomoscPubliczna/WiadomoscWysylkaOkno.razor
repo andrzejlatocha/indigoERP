@@ -22,7 +22,7 @@
         </div>
 
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.NoWrap" Class="mt-2">
-            <InputFile OnChange="@WczytajPliki" multiple accept=".pdf" class="form-control form-control-sm" style="width:600px; flex:0 0 auto" />
+            <InputFile @key="wejscieWersja" OnChange="@WczytajPliki" multiple accept=".pdf" class="form-control form-control-sm" style="width:600px; flex:0 0 auto" />
             <span class="text-nowrap" style="font-size:0.75rem; color:#4a4a4a;">PDF, najwyżej @MaxPlikow plików, do 30 MB każdy (łącznie 60 MB)</span>
         </RadzenStack>
         @if (pliki.Count > 0)
@@ -83,7 +83,7 @@
                     <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcNazwisko" Title="Nazwisko" Width="200px" />
                     <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcImie" Title="Imię" Width="160px" />
                     <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="prcKod" Title="Kod" Width="120px" />
-                    <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="kntKontakt" Title="E-mail" Width="320px" />
+                    <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Property="kntKontakt" Title="Adresy e-mail" Width="320px" />
                 </Columns>
             </RadzenDataGridApp>
         }
@@ -98,7 +98,7 @@
             @if (potwierdzenie)
             {
                 <span class="flex-grow-1" style="font-size:0.8rem; color:#4a4a4a;">Wysłać „@Tytul” do @selected.Count osób z zakresu „@NazwaZakresu”?</span>
-                <RadzenButton Text="WYŚLIJ" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                <RadzenButton Text="@(zaplanuj ? "ZAPLANUJ" : "WYŚLIJ")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                               Click="@Wyslij" IsBusy="@busy" Disabled="@busy" />
                 <RadzenButton Text="Nie" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@AnulujPotwierdzenie" Disabled="@busy" />
             }
@@ -109,6 +109,24 @@
                               Click="@PoprosOPotwierdzenie" Disabled="@(!MoznaWyslac || busy)" />
             }
         </RadzenStack>
+
+        @if (potwierdzenie)
+        {
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="mt-2">
+                <RadzenCheckBox TValue="bool" @bind-Value="@zaplanuj" />
+                <RadzenLabel Text="Zaplanuj wysyłkę (harmonogram)" />
+                @if (zaplanuj)
+                {
+                    <RadzenDropDown TValue="string" Data="@cykle" TextProperty="Nazwa" ValueProperty="Kod" @bind-Value="@kodCyklu" Style="width:150px" />
+                    <RadzenDatePicker TValue="DateTime?" ShowTime="true" @bind-Value="@terminStart" DateFormat="dd.MM.yyyy HH:mm" Style="width:190px" />
+                    @if (kodCyklu != "J")
+                    {
+                        <RadzenLabel Text="do (opcjonalnie)" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@terminKoniec" DateFormat="dd.MM.yyyy" Style="width:150px" />
+                    }
+                }
+            </RadzenStack>
+        }
     }
 </div>
 
@@ -130,11 +148,28 @@
     private IList<WiadomoscZakresPracownikViewModel> selected = new List<WiadomoscZakresPracownikViewModel>();
     private RadzenDataGridApp<WiadomoscZakresPracownikViewModel>? grid;
     private readonly List<WiadomoscPlikWysylki> pliki = new();
+    // Zmiana klucza wymusza nowy element InputFile, więc przeglądarka też czyści wybrane pliki.
+    private int wejscieWersja;
     private int? selectedZakresID;
     private string temat = string.Empty;
     private string tresc = string.Empty;
     private bool busy;
     private bool potwierdzenie;
+
+    // Harmonogram wysyłki (jak job w SQL Server Agent): zamiast wysyłki od razu.
+    private bool zaplanuj;
+    private string kodCyklu = "J";
+    private DateTime? terminStart;
+    private DateTime? terminKoniec;
+    private static readonly List<CyklWysylki> cykle = new()
+    {
+        new("J", "Jednorazowo"),
+        new("D", "Codziennie"),
+        new("T", "Tygodniowo"),
+        new("M", "Miesięcznie"),
+    };
+
+    private sealed record CyklWysylki(string Kod, string Nazwa);
     private List<WiadomoscWzorzecEnumerator> wzorce = new();
     private int? wzorzecID;
 
@@ -275,7 +310,9 @@
                 return;
             }
 
-            ZamknijOkno(new GlosWynik(NotificationSeverity.Success, "Zapisano", "Numer roboczy jest na liście „Robocze”. Wyślij go, gdy będzie gotowy."));
+            pliki.Clear();
+            wejscieWersja++;
+            ZamknijOkno(new WiadomoscWynik(NotificationSeverity.Success, "Zapisano", "Numer roboczy jest na liście „Robocze”. Wyślij go, gdy będzie gotowy."));
         }
         finally
         {
@@ -307,10 +344,19 @@
 
         try
         {
+            if (zaplanuj && terminStart == null)
+            {
+                Notify(NotificationSeverity.Error, "Brak terminu", "Podaj termin pierwszej wysyłki.");
+                return;
+            }
+
             var model = new WiadomoscWyslijRoboczaModel
             {
                 wzaID = selectedZakresID.Value,
-                prcIDs = selected.Where(s => s.prcID.HasValue).Select(s => s.prcID!.Value).ToList()
+                prcIDs = selected.Where(s => s.prcID.HasValue).Select(s => s.prcID!.Value).ToList(),
+                kodHarmonogram = zaplanuj ? kodCyklu : null,
+                dataHarmonogramStart = zaplanuj ? terminStart : null,
+                dataHarmonogramKoniec = zaplanuj && kodCyklu != "J" ? terminKoniec : null
             };
 
             var (response, wynik) = await _wiadomoscPracownikService.WyslijRobocza(WiadomoscID.Value, model);
@@ -321,10 +367,11 @@
                 return;
             }
 
-            // Sukces: okno zamyka się z wynikiem; komunikat i odświeżenie strony robi okno nadrzędne (GlosZarzadzanie).
+            // Sukces: okno zamyka się z wynikiem; komunikat i odświeżenie strony robi okno nadrzędne (WiadomoscZarzadzanie).
             var szczegoly = wynik.komunikaty.Count > 0 ? " " + string.Join(" ", wynik.komunikaty.Take(3)) : string.Empty;
             var severity = wynik.pominieto > 0 ? NotificationSeverity.Warning : NotificationSeverity.Success;
-            ZamknijOkno(new GlosWynik(severity, "Wysłano", $"Odbiorców: {wynik.dodano}, pominięto: {wynik.pominieto}.{szczegoly}"));
+            ZamknijOkno(new WiadomoscWynik(severity, zaplanuj ? "Zaplanowano" : "Wysłano",
+                $"Odbiorców: {wynik.dodano}, pominięto: {wynik.pominieto}.{szczegoly}"));
         }
         finally
         {
@@ -335,7 +382,7 @@
 
     // Zamknięcie okna bocznego (CloseSide; zwykłe Close nie zamyka okna wysuwanego z prawej).
     // Wyjątek nie może zostać cicho połknięty: pokazujemy go w powiadomieniu.
-    private void ZamknijOkno(GlosWynik? wynik)
+    private void ZamknijOkno(WiadomoscWynik? wynik)
     {
         try
         {

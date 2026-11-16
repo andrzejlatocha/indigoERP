@@ -13,6 +13,9 @@ public sealed class WiadomoscKolejkaService
     private const string StatusRozpoczeta = "3";
     private const string StatusZakonczona = "4";
     private const string StatusBlad = "5";
+    // Harmonogram: szablon wysyłki (7) jest kopiowany na zwykłą wiadomość (2) w terminie; po zakończeniu cyklu status 8.
+    private const string StatusHarmonogram = "7";
+    private const string StatusHarmonogramZakonczony = "8";
     private readonly WiadomoscWorkerContextFactory _contextFactory;
     private readonly IMicrosoftGraphMailService _mailService;
     private readonly IWiadomoscMailSender _sender;
@@ -41,6 +44,8 @@ public sealed class WiadomoscKolejkaService
 
     public async Task<int> ProcessAsync(CancellationToken cancellationToken)
     {
+        await ZaplanujHarmonogramyAsync(cancellationToken);
+
         if (!_sender.IsConfigured)
         {
             _logger.LogError(
@@ -148,6 +153,127 @@ public sealed class WiadomoscKolejkaService
             await context.SaveChangesAsync(cancellationToken);
             _logger.LogWarning("Oznaczono {Ile} adresatów jako niedostarczone na podstawie odpowiedzi o niedostarczeniu.", oznaczone);
         }
+    }
+
+    // Kopiuje szablony harmonogramu w terminie na zwykłe wiadomości kolejki (z odbiorcami i załącznikami)
+    // i przelicza następny termin. Przegapione terminy (np. po przestoju Workera) są pomijane, bez zalewu wysyłek.
+    private async Task<int> ZaplanujHarmonogramyAsync(CancellationToken cancellationToken)
+    {
+        var teraz = DateTime.Now;
+        var utworzone = 0;
+
+        await using var context = _contextFactory.CreateDbContext();
+        var szablony = await context.Wiadomosci
+            .Where(w => w.wiaStatus == StatusHarmonogram && w.wiaHarmonogramAktywny
+                && w.wiaDataNastepnejWysylki <= teraz && w.Usuniety != true)
+            .ToListAsync(cancellationToken);
+
+        foreach (var szablon in szablony)
+        {
+            await using var transakcja = await context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+
+            var kopia = new Wiadomosc
+            {
+                wiaWiadomoscID = szablon.wiaID,
+                wiaAplikacjaID = szablon.wiaAplikacjaID,
+                wiaUzytkownikID = szablon.wiaUzytkownikID,
+                wiaEmail = szablon.wiaEmail,
+                wiaTemat = szablon.wiaTemat,
+                wiaTresc = szablon.wiaTresc,
+                wiaWzorzecID = szablon.wiaWzorzecID,
+                wiaGrupa = szablon.wiaGrupa,
+                wiaSesja = szablon.wiaSesja,
+                wiaPubliczna = szablon.wiaPubliczna,
+                wiaStatus = StatusNowa,
+                DataUtworzenie = teraz,
+                UtworzenieID = 0,
+                DataModyfikacja = teraz,
+                ModyfikacjaID = 0,
+                Usuniety = false,
+            };
+            context.Wiadomosci.Add(kopia);
+            await context.SaveChangesAsync(cancellationToken);
+
+            // Odbiorcy ręczni (wiadomości publiczne) są w WiadomoscPracownik; wysyłkę (WiadomoscWysylka) Worker tworzy sam przy wysyłce.
+            var odbiorcy = await context.WiadomoscPracownicy
+                .Where(w => w.wprWiadomoscID == szablon.wiaID && w.wprStatus == StatusHarmonogram)
+                .ToListAsync(cancellationToken);
+
+            foreach (var odbiorca in odbiorcy)
+            {
+                context.WiadomoscPracownicy.Add(new WiadomoscPracownik
+                {
+                    wprWiadomoscID = kopia.wiaID,
+                    wprPracownikID = odbiorca.wprPracownikID,
+                    wprEmail = odbiorca.wprEmail,
+                    wprStatus = StatusNowa,
+                });
+            }
+
+            var zalaczniki = await context.WiadomoscDokumenty
+                .Where(d => d.wdoWiadomoscID == szablon.wiaID)
+                .ToListAsync(cancellationToken);
+
+            foreach (var zalacznik in zalaczniki)
+            {
+                context.WiadomoscDokumenty.Add(new WiadomoscDokument
+                {
+                    wdoWiadomoscID = kopia.wiaID,
+                    wdoTyp = zalacznik.wdoTyp,
+                    wdoNazwa = zalacznik.wdoNazwa,
+                    wdoPlik = zalacznik.wdoPlik,
+                    wdoKatalog = zalacznik.wdoKatalog,
+                    wdoPlikID = zalacznik.wdoPlikID,
+                    wdoLink = zalacznik.wdoLink,
+                    wdoStatus = zalacznik.wdoStatus,
+                });
+            }
+
+            var nastepny = szablon.wiaDataNastepnejWysylki!.Value;
+            var kod = szablon.wiaKodHarmonogram ?? "J";
+
+            do
+            {
+                nastepny = NastepnyTermin(kod, nastepny);
+            }
+            while (nastepny <= teraz && nastepny != DateTime.MaxValue);
+
+            var koniec = szablon.wiaDataHarmonogramKoniec;
+
+            if (nastepny == DateTime.MaxValue || (koniec != null && nastepny > koniec))
+            {
+                szablon.wiaHarmonogramAktywny = false;
+                szablon.wiaStatus = StatusHarmonogramZakonczony;
+                szablon.wiaDataNastepnejWysylki = null;
+            }
+            else
+            {
+                szablon.wiaDataNastepnejWysylki = nastepny;
+            }
+
+            szablon.DataModyfikacja = teraz;
+            szablon.ModyfikacjaID = 0;
+
+            await context.SaveChangesAsync(cancellationToken);
+            await transakcja.CommitAsync(cancellationToken);
+            utworzone++;
+
+            _logger.LogInformation("Harmonogram wiadomości {WiaID}: utworzono wysyłkę {KopiaID}.", szablon.wiaID, kopia.wiaID);
+        }
+
+        return utworzone;
+    }
+
+    // Cykl: J = jednorazowo (brak kolejnego terminu), D = dziennie, T = tygodniowo, M = miesięcznie.
+    private static DateTime NastepnyTermin(string kod, DateTime poprzedni)
+    {
+        return kod switch
+        {
+            "D" => poprzedni.AddDays(1),
+            "T" => poprzedni.AddDays(7),
+            "M" => poprzedni.AddMonths(1),
+            _ => DateTime.MaxValue,
+        };
     }
 
     private async Task<Wiadomosc?> ClaimNextAsync(CancellationToken cancellationToken)

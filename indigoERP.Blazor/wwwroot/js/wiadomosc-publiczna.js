@@ -1,5 +1,5 @@
 ﻿// Strona /wiadomosc (Głos Hutnika): usuwa z adresu parametry komunikatu po jego pokazaniu, żeby nie wracał przy odświeżeniu (F5).
-window.glosHutnika = {
+window.wiadomoscPubliczna = {
     usunKomunikat: function () {
         try {
             const adres = new URL(window.location.href);

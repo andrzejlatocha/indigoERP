@@ -81,6 +81,41 @@ public sealed class WiadomoscWysylkaTests
     }
 
     [Fact]
+    public async Task Publiczna_sends_all_unique_addresses_of_selected_people_only()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var kontroler = Kontroler(context, new FakeZakres(
+            Odbiorca(1, "Kowalski", "office@example.pl"),
+            Odbiorca(1, "Kowalski", " private@example.pl "),
+            Odbiorca(1, "Kowalski", "PRIVATE@example.pl"),
+            Odbiorca(2, "Nowak", "other@example.pl")));
+        var model = Model(1);
+        model.wzaID = 7;
+
+        var result = await kontroler.InsertWysylka(model, null, CancellationToken.None);
+
+        var wynik = Assert.IsType<WiadomoscWysylkaZakresWynikModel>(Assert.IsType<OkObjectResult>(result.Result).Value);
+        Assert.Equal(2, wynik.dodano);
+        var adresy = await context.WiadomoscPracownik.Select(p => p.wprEmail).ToListAsync();
+        Assert.Contains("office@example.pl", adresy);
+        Assert.Contains("private@example.pl", adresy);
+        Assert.DoesNotContain("other@example.pl", adresy);
+    }
+
+    [Fact]
+    public async Task Publiczna_selection_shows_both_addresses_as_one_person()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        var kontroler = Kontroler(context, new FakeZakres(
+            Odbiorca(1, "Kowalski", "office@example.pl"), Odbiorca(1, "Kowalski", "private@example.pl")));
+
+        var result = await kontroler.SelectByWiadomoscZakres(7);
+
+        var osoby = Assert.IsType<List<WiadomoscZakresPracownikViewModel>>(Assert.IsType<OkObjectResult>(result.Result).Value);
+        Assert.Equal("office@example.pl; private@example.pl", Assert.Single(osoby).kntKontakt);
+    }
+
+    [Fact]
     public async Task Wysylka_rejects_an_empty_recipient_list()
     {
         await using var context = ApiTestContextFactory.Create();

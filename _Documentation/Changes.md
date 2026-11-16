@@ -1,4 +1,13 @@
-﻿## 2026-11-14 - Publikacja Blazor na CERES (wersja 3.26.1114.11429)
+﻿## 2026-11-16 - Harmonogram wysyłki wiadomości publicznych, zmiana nazw, poprawka czyszczenia plików
+
+- **Zgłoszenie:** wysyłka wiadomości z harmonogramem (jednorazowo, codziennie, tygodniowo, miesięcznie, z datą końcową albo bez; anulowanie cyklu). Komponenty Głosu nazwane prefiksem Glos, a stałe nadawcy i wzorca wiązały funkcję z jednym rodzajem wiadomości. Po wgraniu plików w oknie nie czyściła się lista plików w komponencie upload.
+- **Zmiana:** Domain: pola harmonogramu w Wiadomosc (wiaKodHarmonogram, wiaDataHarmonogramStart, wiaDataHarmonogramKoniec, wiaDataNastepnejWysylki, wiaHarmonogramAktywny); WiadomoscWyslijRoboczaModel z kodHarmonogram i datami. API: WyslijRobocza zapisuje szablon (status 7) z odbiorcami albo wysyła od razu; WiadomoscHarmonogramController (SelectAktywne, Anuluj, status 6). Worker: ZaplanujHarmonogramyAsync kopiuje szablon w terminie na zwykłą wysyłkę (status 2) razem z odbiorcami i załącznikami, przelicza następny termin, pomija przegapione. Blazor: WiadomoscWysylkaOkno (zaplanuj), WiadomoscZarzadzanie (lista zaplanowanych z Anuluj); zmiana nazw Glos* na Wiadomosc*; InputFile z @key czyszczony po zapisie. Stałe NadawcaWiadomosciPublicznej i WzorzecWiadomosciPublicznej.
+- **Baza danych:** skrypt _SQL Queries/indigoERP20261116_Wiadomosc_Harmonogram.sql (dodaje 5 kolumn do dbo.Wiadomosc). NIE uruchomiony na CERES ani JAPET (stan 2026-11-16): bez niego zapytania EF na Wiadomosc się nie powiodą, dlatego wdrożenie czeka na skrypt.
+- **Status wdrożenia:** tylko commit na developer; bez publikacji.
+- **Weryfikacja:** build Blazor, API, Worker bez błędów; testy API 75/75, Worker 46/46, Blazor 29/29.
+- **Luki:** brak nowych testów dla harmonogramu (walidacja, kopiowanie w Workerze, terminy); nie sprawdzono w przeglądarce (SSO).
+
+## 2026-11-14 - Publikacja Blazor na CERES (wersja 3.26.1114.11429)
 
 - **Zmiana:** eksport master (commit 90e794e); testy indigoERP.Blazor.Tests 29/29. Publish Release; robocopy /MIR z wykluczeniami (w tym DataProtectionKeys) na V:inetpubwwwrootindigoERP. Version 3.26.1113.11428 -> 3.26.1114.11429.
 - **Zawartość:** tytuł Główna, ikony kendoCMMS i formCREATOR, skróty strony głównej (glify 2.9rem, formularz 52 px), trwałe klucze Data Protection, wskaźniki ładowania na stronach administracyjnych.
