@@ -3,8 +3,8 @@
 - **Zgłoszenie:** dzwonek w nagłówku nie pokazywał liczby przy zerze i po kliknięciu nie otwierał listy jak pozostałe przyciski.
 - **Zmiana:** API PowiadomienieController.SelectNieprzeczytane/{appID}/{usrID} (do 50 nieprzeczytanych, najnowsze pierwsze); PodgladService.PowiadomieniaNieprzeczytane; PodgladLista, typ `powiadomienia` (tabela Tytuł, Treść, Data); LoginDisplay: dzwonek zawsze pokazuje liczbę i otwiera listę w oknie bocznym.
 - **Wersja:** 3.26.1116.11434 (Blazor, API).
-- **Status wdrożenia:** commit na developer i master; wdrożenie API i Blazor na DEIMOS i CERES w toku (wynik w logu wdrożenia).
-- **Weryfikacja:** build 0 błędów; indigoERP.Blazor.Tests 29/29.
+- **Status wdrożenia:** commit na developer i master; wdrożone 2026-11-16 (API i Blazor, DEIMOS i CERES), wersja 3.26.1116.11434, okno offline do 20:35, przywrócone online.
+- **Weryfikacja:** testy na eksporcie commita 1b49a04: indigoERP.Blazor.Tests 29/29, indigoERP.Api.Tests 75/75; po wdrożeniu API /Api/ 404, GetSso 400, Blazor 401 (DEIMOS i CERES).
 - **Luki:** brak endpointu oznaczania jako przeczytane; brak źródeł tworzących powiadomienia (tabela dbo.Powiadomienie jest pusta, licznik 0).
 
 
