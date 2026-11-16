@@ -24,6 +24,7 @@ namespace indigoERP.Service.Services._Wspolne
 
             return new LicznikNaglowkaViewModel
             {
+                Powiadomienia = await PobierzLicznik(httpClient, "Powiadomienie", appID, usrID),
                 Wiadomosci = await PobierzLicznik(httpClient, "WiadomoscUzytkownik", appID, usrID),
                 Zadania = await PobierzLicznik(httpClient, "Zadanie", appID, usrID),
                 Zdarzenia = await PobierzLicznik(httpClient, "Zdarzenie", appID, usrID),

@@ -175,6 +175,7 @@ namespace indigoERP.Api.Data
         public virtual DbSet<WiadomoscPracownikViewModel> WiadomoscPracownikViewModel { get; set; }
         public virtual DbSet<WiadomoscZakresPracownikViewModel> WiadomoscZakresPracownikViewModel { get; set; }
         public virtual DbSet<WiadomoscUzytkownikViewModel> WiadomoscUzytkownikViewModel { get; set; }
+        public virtual DbSet<PowiadomienieViewModel> PowiadomienieViewModel { get; set; }
         public virtual DbSet<WiadomoscWzorzecViewModel> WiadomoscWzorzecViewModel { get; set; }
         public virtual DbSet<WiadomoscHistoriaViewModel> WiadomoscHistoriaViewModel { get; set; }
         public virtual DbSet<WiadomoscPublicznaViewModel> WiadomoscPublicznaViewModel { get; set; }

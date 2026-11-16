@@ -58,6 +58,7 @@
         }
 
         var liczniki = await _licznikNaglowkaService.Pobierz(appID, usrID);
+        liczbaPowiadomien = liczniki.Powiadomienia;
         liczbaWiadomosci = liczniki.Wiadomosci;
         liczbaZadan = liczniki.Zadania;
         liczbaZdarzen = liczniki.Zdarzenia;

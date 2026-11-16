@@ -1,4 +1,14 @@
-﻿## 2026-11-16 - Wiadomosci na /wiadomosc: Popraw, Anuluj, Usun; ikony naglowka; kolory przyciskow
+﻿## 2026-11-16 - Licznik powiadomien na naglowku (tabela Powiadomienie, endpoint SelectCountByUzytkownik)
+
+- **Zgloszenie:** dzwonek w naglowku ma pokazywac liczbe nieprzeczytanych powiadomien; test strony glownej po usunieciu atacamaDMS z listy starych aplikacji.
+- **Baza:** skrypt _SQL Queries/indigoERP20261116_Powiadomienie.sql (tabela dbo.Powiadomienie, widok mvw.Powiadomienie, indeks IX_Powiadomienie_01) uruchomiony przez uzytkownika na CERES i JAPET.
+- **Zmiana:** Domain ViewModels/PowiadomienieViewModel (widok mvw, Keyless); indigoERPContext: DbSet PowiadomienieViewModel; API PowiadomienieController.SelectCountByUzytkownik/{appID}/{usrID}; LicznikNaglowkaService: Powiadomienia; LoginDisplay: liczba w dzwonku. HomePageTests: 9 przyciskow starych aplikacji.
+- **Wersja:** 3.26.1116.11433 (Blazor, API).
+- **Status wdrozenia:** commit na developer i master; wdrozenie w logu wdrozenia.
+- **Weryfikacja:** testy na eksporcie (wynik w logu wdrozenia).
+- **Luki:** brak testu licznika (widok Keyless, nie da sie zasilic w InMemory); dzwonek bez akcji po kliknieciu; brak endpointu oznaczania jako przeczytane.
+
+## 2026-11-16 - Wiadomosci na /wiadomosc: Popraw, Anuluj, Usun; ikony naglowka; kolory przyciskow
 
 - **Zgloszenie:** przyciski Popraw, Anuluj i Usun wysylki Glosu w Blazor; usuniecie atacamaDMS z listy starych aplikacji; kolory przyciskow naglowka nie dzialaly na produkcji; ikony naglowka (wiadomosci: dymek, zadania: lista).
 - **Zmiana:** API WiadomoscPracownikController: Popraw (PUT) i Usun (DELETE) dla statusow 1, 2, 7. WiadomoscHarmonogramController: Anuluj dla 2, 3, 7 (status 6); lista zaplanowanych i w kolejce tylko dla wiadomosci publicznych. Worker: anulowanie kodem 6, osobno od kodu 1. Blazor: WiadomoscPoprawaOkno, przyciski w WiadomoscZarzadzanie, bez atacamaDMS w Home, ikony w LoginDisplay, site.css z wyzsza specyficznoscia kolorow.
