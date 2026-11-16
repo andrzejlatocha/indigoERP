@@ -103,6 +103,12 @@ public sealed class WiadomoscPublicznaPageTests : BunitContext
         public Task<IEnumerable<WiadomoscHarmonogramViewModel>> SelectHarmonogram(int appID) =>
             Task.FromResult(Enumerable.Empty<WiadomoscHarmonogramViewModel>());
 
+        public Task<ResponseMessage> PoprawRobocza(int wiaID, WiadomoscPoprawaModel model) =>
+            Task.FromResult(new ResponseMessage(204, string.Empty, null));
+
+        public Task<ResponseMessage> UsunWiadomosc(int wiaID) =>
+            Task.FromResult(new ResponseMessage(204, string.Empty, null));
+
         public Task<ResponseMessage> AnulujHarmonogram(int wiaID) =>
             Task.FromResult(new ResponseMessage(204, string.Empty, null));
 

@@ -215,6 +215,40 @@ namespace indigoERP.Service.Services._Wspolne
             }
         }
 
+        public async Task<ResponseMessage> PoprawRobocza(int wiaID, WiadomoscPoprawaModel model)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+
+            try
+            {
+                var response = await httpClient.PutAsJsonAsync($"WiadomoscPracownik/Popraw/{wiaID}", model);
+                var tresc = await response.Content.ReadAsStringAsync();
+
+                return new ResponseMessage((int)response.StatusCode, response.IsSuccessStatusCode ? string.Empty : tresc, null);
+            }
+            catch (Exception ex)
+            {
+                return new ResponseMessage(600, ex.Message, null);
+            }
+        }
+
+        public async Task<ResponseMessage> UsunWiadomosc(int wiaID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+
+            try
+            {
+                var response = await httpClient.DeleteAsync($"WiadomoscPracownik/Usun/{wiaID}");
+                var tresc = await response.Content.ReadAsStringAsync();
+
+                return new ResponseMessage((int)response.StatusCode, response.IsSuccessStatusCode ? string.Empty : tresc, null);
+            }
+            catch (Exception ex)
+            {
+                return new ResponseMessage(600, ex.Message, null);
+            }
+        }
+
         private static void DodajPliki(MultipartFormDataContent content, IReadOnlyList<WiadomoscPlikWysylki> pliki)
         {
             foreach (var plik in pliki)

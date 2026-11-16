@@ -6,6 +6,8 @@
         public int wiaID { get; set; }
         public string? wiaTemat { get; set; }
         public string? wiaKodHarmonogram { get; set; }
+        public string? wiaStatus { get; set; }
+        public string? wiaTresc { get; set; }
         public DateTime? wiaDataHarmonogramStart { get; set; }
         public DateTime? wiaDataHarmonogramKoniec { get; set; }
         public DateTime? wiaDataNastepnejWysylki { get; set; }

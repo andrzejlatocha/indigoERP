@@ -11,6 +11,8 @@ public sealed class WiadomoscKolejkaService
     private const string StatusAnulowana = "1";
     private const string StatusNowa = "2";
     private const string StatusRozpoczeta = "3";
+    // Anulowanie wiadomości (wiaStatus). Osobno od kodu "1", który oznacza wpisy wysyłki i wiadomość roboczą.
+    private const string StatusWiadomoscAnulowana = "6";
     private const string StatusZakonczona = "4";
     private const string StatusBlad = "5";
     // Harmonogram: szablon wysyłki (7) jest kopiowany na zwykłą wiadomość (2) w terminie; po zakończeniu cyklu status 8.
@@ -313,7 +315,7 @@ public sealed class WiadomoscKolejkaService
         await using var context = _contextFactory.CreateDbContext();
         var message = await context.Wiadomosci.SingleOrDefaultAsync(item => item.wiaID == messageId, cancellationToken);
 
-        if (message == null || message.wiaStatus == StatusAnulowana)
+        if (message == null || message.wiaStatus == StatusWiadomoscAnulowana)
         {
             return;
         }
@@ -395,7 +397,7 @@ public sealed class WiadomoscKolejkaService
                 .Select(item => item.wiaStatus)
                 .SingleAsync(cancellationToken);
 
-            if (status == StatusAnulowana)
+            if (status == StatusWiadomoscAnulowana)
             {
                 _logger.LogInformation("Wiadomość {MessageId} została anulowana podczas wysyłki.", messageId);
                 return;

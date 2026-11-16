@@ -1,0 +1,69 @@
+﻿@using indigoERP.Domain.Models._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+
+@inject IWiadomoscPracownikService _wiadomoscPracownikService
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+<div class="p-2">
+    <RadzenFormField Text="Temat" Style="width:100%">
+        <RadzenTextBox @bind-Value="@temat" Style="width:100%" />
+    </RadzenFormField>
+    <RadzenFormField Text="Treść" Style="width:100%">
+        <RadzenHtmlEditor @bind-Value="@tresc" Style="height:280px" />
+    </RadzenFormField>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem" Class="mt-2">
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.CloseSide(false))" Disabled="@zapisywanie" />
+        <RadzenButton Text="@(zapisywanie ? "Zapisywanie..." : "Zapisz")" Icon="save" ButtonStyle="ButtonStyle.Primary"
+                      Click="@ZapiszAsync" Disabled="@(zapisywanie || string.IsNullOrWhiteSpace(temat))" />
+    </RadzenStack>
+</div>
+
+@code {
+    [Parameter]
+    public int WiadomoscID { get; set; }
+
+    [Parameter]
+    public string? Temat { get; set; }
+
+    [Parameter]
+    public string? Tresc { get; set; }
+
+    private string temat = string.Empty;
+    private string? tresc;
+    private bool zapisywanie;
+
+    protected override void OnInitialized()
+    {
+        temat = Temat ?? string.Empty;
+        tresc = Tresc;
+    }
+
+    private async Task ZapiszAsync()
+    {
+        zapisywanie = true;
+
+        try
+        {
+            var wynik = await _wiadomoscPracownikService.PoprawRobocza(WiadomoscID, new WiadomoscPoprawaModel { wiaTemat = temat, wiaTresc = tresc });
+
+            if (wynik.Code < 200 || wynik.Code >= 300)
+            {
+                _notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Błąd",
+                    Detail = wynik.Message ?? "Nie udało się zapisać zmian.",
+                    Duration = 8000
+                });
+                return;
+            }
+
+            _dialogService.CloseSide(true);
+        }
+        finally
+        {
+            zapisywanie = false;
+        }
+    }
+}

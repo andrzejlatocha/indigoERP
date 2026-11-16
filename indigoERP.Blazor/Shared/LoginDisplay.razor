@@ -22,10 +22,10 @@
                 }
             </button>
             <button type="button" class="btn btn-sm header-action header-action-message" title="Wiadomości" @onclick="@(() => OtworzPodglad("wiadomosci", "Wiadomości"))">
-                <i class="fa-duotone fa-light fa-list-check"></i> <span>@liczbaWiadomosci</span>
+                <i class="fa-duotone fa-light fa-message"></i> <span>@liczbaWiadomosci</span>
             </button>
             <button type="button" class="btn btn-sm header-action header-action-task" title="Zadania" @onclick="@(() => OtworzPodglad("zadania", "Zadania"))">
-                <i class="fa-duotone fa-light fa-message"></i> <span>@liczbaZadan</span>
+                <i class="fa-duotone fa-light fa-list-check"></i> <span>@liczbaZadan</span>
             </button>
             <button type="button" class="btn btn-sm header-action header-action-event" title="Zdarzenia" @onclick="@(() => OtworzPodglad("zdarzenia", "Zdarzenia"))">
                 <i class="fa-duotone fa-light fa-calendar"></i> <span>@liczbaZdarzen</span>

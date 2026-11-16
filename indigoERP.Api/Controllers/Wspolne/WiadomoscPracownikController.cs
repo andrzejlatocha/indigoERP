@@ -455,6 +455,63 @@ public class WiadomoscPracownikController : ControllerBase
         return NoContent();
     }
 
+    // Popraw wiadomość przed rozpoczęciem wysyłki (robocza, w kolejce albo harmonogram przed kolejnym cyklem).
+    [HttpPut("{wiaID}")]
+    public async Task<IActionResult> Popraw(int wiaID, [FromBody] WiadomoscPoprawaModel model, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(model.wiaTemat))
+        {
+            return BadRequest("Podaj temat wiadomości.");
+        }
+
+        var wiadomosc = await _context.Wiadomosc.FirstOrDefaultAsync(
+            w => w.wiaID == wiaID && w.Usuniety != true, cancellationToken);
+
+        if (wiadomosc == null)
+        {
+            return NotFound();
+        }
+
+        if (!MozeBycZmieniona(wiadomosc.wiaStatus))
+        {
+            return BadRequest("Wysyłka tej wiadomości została już rozpoczęta.");
+        }
+
+        wiadomosc.wiaTemat = model.wiaTemat.Trim();
+        wiadomosc.wiaTresc = model.wiaTresc;
+        wiadomosc.DataModyfikacja = DateTime.Now;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    // Usuń wiadomość przed rozpoczęciem wysyłki (logicznie; Worker i listy pomijają usunięte).
+    [HttpDelete("{wiaID}")]
+    public async Task<IActionResult> Usun(int wiaID, CancellationToken cancellationToken)
+    {
+        var wiadomosc = await _context.Wiadomosc.FirstOrDefaultAsync(
+            w => w.wiaID == wiaID && w.Usuniety != true, cancellationToken);
+
+        if (wiadomosc == null)
+        {
+            return NotFound();
+        }
+
+        if (!MozeBycZmieniona(wiadomosc.wiaStatus))
+        {
+            return BadRequest("Wysyłka tej wiadomości została już rozpoczęta.");
+        }
+
+        wiadomosc.Usuniety = true;
+        wiadomosc.DataModyfikacja = DateTime.Now;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+    // Poprawa i usunięcie tylko przed startem wysyłki: robocza (1), w kolejce (2) albo harmonogram (7).
+    private static bool MozeBycZmieniona(string? status) => status is StatusRobocza or StatusWyslana or StatusHarmonogram;
+
     [HttpDelete("{wprID}")]
     public async Task<IActionResult> Delete(int wprID)
     {

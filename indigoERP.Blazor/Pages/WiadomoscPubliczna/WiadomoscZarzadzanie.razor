@@ -21,12 +21,25 @@
 
 @if (zaplanowane.Count > 0)
 {
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" Class="w-100 mt-2">
-        <span class="text-muted small">Zaplanowane:</span>
+    <RadzenStack Orientation="Orientation.Vertical" Gap="0.25rem" Class="w-100 mt-2">
+        <span class="text-muted small">Zaplanowane i w kolejce:</span>
         @foreach (var cykl in zaplanowane)
         {
-            <RadzenButton Text="@OpisCyklu(cykl)" Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
-                          Variant="Variant.Outlined" Click="@(() => AnulujCykl(cykl))" />
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+                <span class="small">@OpisCyklu(cykl)</span>
+                @if (cykl.wiaStatus is "2" or "7")
+                {
+                    <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Outlined"
+                                  Click="@(() => OtworzPoprawkeAsync(cykl.wiaID, cykl.wiaTemat, cykl.wiaTresc))" />
+                }
+                <RadzenButton Text="Anuluj wysyłkę" Icon="cancel" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Outlined"
+                              Click="@(() => AnulujCykl(cykl))" />
+                @if (cykl.wiaStatus is "2" or "7")
+                {
+                    <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Outlined"
+                                  Click="@(() => UsunAsync(cykl.wiaID, cykl.wiaTemat))" />
+                }
+            </RadzenStack>
         }
     </RadzenStack>
 }
@@ -43,6 +56,10 @@ else if (robocze is { Count: > 0 })
         {
             <RadzenButton Text="@($"Wyślij: {wiadomosc.wiaTemat}")" Icon="send" Size="ButtonSize.Small"
                           ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Outlined" Click="@(() => OtworzWysylke(wiadomosc))" />
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Variant="Variant.Outlined"
+                          Click="@(() => OtworzPoprawkeAsync(wiadomosc.wiaID, wiadomosc.wiaTemat, wiadomosc.wiaTresc))" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Outlined"
+                          Click="@(() => UsunAsync(wiadomosc.wiaID, wiadomosc.wiaTemat))" />
         }
     </RadzenStack>
 }
@@ -136,7 +153,7 @@ else if (robocze is { Count: > 0 })
         {
             Severity = NotificationSeverity.Success,
             Summary = "Anulowano",
-            Detail = $"Harmonogram „{cykl.wiaTemat}” został anulowany.",
+            Detail = $"Wysyłka „{cykl.wiaTemat}” została anulowana.",
             Duration = 8000
         });
 
@@ -145,6 +162,11 @@ else if (robocze is { Count: > 0 })
 
     private static string OpisCyklu(WiadomoscHarmonogramViewModel cykl)
     {
+        if (cykl.wiaStatus != "7")
+        {
+            return $"{cykl.wiaTemat} ({(cykl.wiaStatus == "3" ? "w trakcie wysyłki" : "w kolejce")})";
+        }
+
         var rodzaj = cykl.wiaKodHarmonogram switch
         {
             "D" => "codziennie",
@@ -154,7 +176,48 @@ else if (robocze is { Count: > 0 })
         };
         var nastepna = cykl.wiaDataNastepnejWysylki?.ToString("dd.MM.yyyy HH:mm") ?? "-";
 
-        return $"Anuluj: {cykl.wiaTemat} ({rodzaj}, następna: {nastepna})";
+        return $"{cykl.wiaTemat} ({rodzaj}, następna: {nastepna})";
+    }
+
+    private async Task OtworzPoprawkeAsync(int wiadomoscID, string? temat, string? tresc)
+    {
+        var wynik = await _dialogService.OpenSideAsync<WiadomoscPoprawaOkno>("Popraw wiadomość",
+            new Dictionary<string, object?> { ["WiadomoscID"] = wiadomoscID, ["Temat"] = temat, ["Tresc"] = tresc },
+            GetSideOptions());
+
+        if (wynik is true)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Zapisano", Detail = "Zmiany zostały zapisane.", Duration = 8000 });
+            await OdswiezListyAsync();
+        }
+    }
+
+    private async Task UsunAsync(int wiadomoscID, string? temat)
+    {
+        var potwierdzenie = await _dialogService.Confirm($"Usunąć wiadomość „{temat}”? Tej operacji nie można cofnąć.", "Usuń wiadomość",
+            new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Nie" });
+
+        if (potwierdzenie != true)
+        {
+            return;
+        }
+
+        var wynik = await _wiadomoscPracownikService.UsunWiadomosc(wiadomoscID);
+
+        if (wynik.Code < 200 || wynik.Code >= 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = wynik.Message ?? "Nie udało się usunąć wiadomości.", Duration = 8000 });
+            return;
+        }
+
+        _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Usunięto", Detail = $"Wiadomość „{temat}” została usunięta.", Duration = 8000 });
+        await OdswiezListyAsync();
+    }
+
+    private async Task OdswiezListyAsync()
+    {
+        await OdswiezRobocze();
+        await OdswiezZaplanowane();
     }
 
     private async Task OtworzNowy()

@@ -27,13 +27,17 @@ public class WiadomoscHarmonogramController : ControllerBase
     public async Task<ActionResult<IEnumerable<WiadomoscHarmonogramViewModel>>> SelectAktywne(int appID, CancellationToken cancellationToken)
     {
         return await _context.Wiadomosc
-            .Where(w => w.wiaAplikacjaID == appID && w.wiaStatus == StatusHarmonogram && w.wiaHarmonogramAktywny && w.Usuniety != true)
+            .Where(w => w.wiaAplikacjaID == appID && w.Usuniety != true
+                && w.wiaEmail == WiadomoscPracownikController.NadawcaWiadomosciPublicznej
+                && ((w.wiaStatus == StatusHarmonogram && w.wiaHarmonogramAktywny) || w.wiaStatus == "2" || w.wiaStatus == "3"))
             .OrderBy(w => w.wiaDataNastepnejWysylki)
             .Select(w => new WiadomoscHarmonogramViewModel
             {
                 wiaID = w.wiaID,
                 wiaTemat = w.wiaTemat,
                 wiaKodHarmonogram = w.wiaKodHarmonogram,
+                wiaStatus = w.wiaStatus,
+                wiaTresc = w.wiaTresc,
                 wiaDataHarmonogramStart = w.wiaDataHarmonogramStart,
                 wiaDataHarmonogramKoniec = w.wiaDataHarmonogramKoniec,
                 wiaDataNastepnejWysylki = w.wiaDataNastepnejWysylki,
@@ -53,9 +57,10 @@ public class WiadomoscHarmonogramController : ControllerBase
             return NotFound();
         }
 
-        if (szablon.wiaStatus != StatusHarmonogram || !szablon.wiaHarmonogramAktywny)
+        // Anulowanie zatrzymuje wysyłkę: w kolejce (2), w trakcie (3) albo harmonogram (7, wyłącza cykl).
+        if (szablon.wiaStatus is not ("2" or "3" or StatusHarmonogram))
         {
-            return BadRequest("Ta wiadomość nie ma aktywnego harmonogramu.");
+            return BadRequest("Wysyłka tej wiadomości nie może być anulowana (zakończona albo już anulowana).");
         }
 
         szablon.wiaHarmonogramAktywny = false;

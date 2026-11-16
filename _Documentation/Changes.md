@@ -1,4 +1,13 @@
-﻿## 2026-11-16 - Przepisy wewnętrzne: combo folderu HUTY, podgląd w nagłówku, liczniki
+﻿## 2026-11-16 - Wiadomosci na /wiadomosc: Popraw, Anuluj, Usun; ikony naglowka; kolory przyciskow
+
+- **Zgloszenie:** przyciski Popraw, Anuluj i Usun wysylki Glosu w Blazor; usuniecie atacamaDMS z listy starych aplikacji; kolory przyciskow naglowka nie dzialaly na produkcji; ikony naglowka (wiadomosci: dymek, zadania: lista).
+- **Zmiana:** API WiadomoscPracownikController: Popraw (PUT) i Usun (DELETE) dla statusow 1, 2, 7. WiadomoscHarmonogramController: Anuluj dla 2, 3, 7 (status 6); lista zaplanowanych i w kolejce tylko dla wiadomosci publicznych. Worker: anulowanie kodem 6, osobno od kodu 1. Blazor: WiadomoscPoprawaOkno, przyciski w WiadomoscZarzadzanie, bez atacamaDMS w Home, ikony w LoginDisplay, site.css z wyzsza specyficznoscia kolorow.
+- **Wersja:** 3.26.1116.11432 (Blazor, API, Worker).
+- **Status wdrozenia:** commit na developer i master; wdrozenie na DEIMOS i CERES (API, Blazor) oraz Worker na JAPET (wynik w logu wdrozenia).
+- **Weryfikacja:** testy na eksporcie (wynik w logu wdrozenia).
+- **Luki:** brak testow API dla Popraw i Usun; brak sprawdzenia w przegladarce (SSO).
+
+## 2026-11-16 - Przepisy wewnętrzne: combo folderu HUTY, podgląd w nagłówku, liczniki
 
 - **Zgłoszenie:** combo z folderami HUTY (Wszystkie + foldery pierwszego poziomu) na Przepisach; przyciski w nagłówku (Wiadomości, Zadania, Zdarzenia) z podglądem listy; liczniki nieprzeczytanych z API.
 - **Zmiana:** AtacamaPolecenieClient/PrzepisyWewnetrzneController: katalogID i SelectKatalogi (proxy do atacamaDMS API 3.26.1116.10578). PolecenieSluzboweService i Index.razor: combo folderów. LoginDisplay: liczniki (LicznikNaglowkaService) i przyciski podglądu (PodgladLista w oknie bocznym). Strony osadzane /podglad/wiadomosc, /podglad/zadanie, /podglad/zdarzenie (PodgladLayout).

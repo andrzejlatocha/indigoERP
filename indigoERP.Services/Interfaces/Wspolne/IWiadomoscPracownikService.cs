@@ -19,6 +19,8 @@ namespace indigoERP.Service.Interfaces._Wspolne
             int wiaID, WiadomoscWyslijRoboczaModel model);
         Task<IEnumerable<WiadomoscHarmonogramViewModel>> SelectHarmonogram(int appID);
         Task<ResponseMessage> AnulujHarmonogram(int wiaID);
+        Task<ResponseMessage> PoprawRobocza(int wiaID, WiadomoscPoprawaModel model);
+        Task<ResponseMessage> UsunWiadomosc(int wiaID);
         Task<IEnumerable<WiadomoscPracownikViewModel>> SelectWyslane(int appID);
         Task<IEnumerable<WiadomoscPodsumowanieDto>> SelectPodsumowanie(int appID);
     }
