@@ -1,4 +1,12 @@
-﻿## 2026-11-16 - Harmonogram wysyłki wiadomości publicznych, zmiana nazw, poprawka czyszczenia plików
+﻿## 2026-11-16 - Publikacja wersji 3.26.1116.11430 (harmonogram wysyłki)
+
+- **Zmiana:** eksport master (commit 22778c4). Testy: indigoERP.Api.Tests 75/75, indigoERP.Worker.Tests 46/46, indigoERP.Blazor.Tests 29/29. Kolumny harmonogramu (skrypt indigoERP20261116_Wiadomosc_Harmonogram.sql) uruchomione wcześniej na CERES i JAPET. Version 3.26.1114.11429 -> 3.26.1116.11430 (Blazor i API).
+- **Wdrożenie:** API i Blazor na DEIMOS i CERES (robocopy /MIR z wykluczeniami, DataProtectionKeys dla Blazora; backup appsettings.json.prod-backup). Worker na JAPET: C:ServicesindigoERP.Worker (robocopy /MIR z wykluczeniem appsettings.json, Install-Worker.ps1, logs). Usługa indigoERP.Worker POZOSTAJE ZATRZYMANA (decyzja przy uruchomieniu).
+- **Konfiguracja Workera:** lokalny appsettings.json JAPET bez zmian. Nowe klucze z publikacji (Mail:Graph:*, Logging:FilePath) mają wartości domyślne: Graph wyłączony, wysyłka przez SMTP jak dotychczas.
+- **Status wdrożenia:** wdrożone 2026-11-16 (Claude, na polecenie Andrzeja). Uruchomienie Workera na JAPET do potwierdzenia.
+- **Weryfikacja:** HTTP: DEIMOS API 404, CERES API 404, CERES Blazor 200, DEIMOS Blazor 307. Logi CERES API: brak błędów SQL po wdrożeniu (ostatni Invalid column 11:12, przed poprawką).
+
+## 2026-11-16 - Harmonogram wysyłki wiadomości publicznych, zmiana nazw, poprawka czyszczenia plików
 
 - **Zgłoszenie:** wysyłka wiadomości z harmonogramem (jednorazowo, codziennie, tygodniowo, miesięcznie, z datą końcową albo bez; anulowanie cyklu). Komponenty Głosu nazwane prefiksem Glos, a stałe nadawcy i wzorca wiązały funkcję z jednym rodzajem wiadomości. Po wgraniu plików w oknie nie czyściła się lista plików w komponencie upload.
 - **Zmiana:** Domain: pola harmonogramu w Wiadomosc (wiaKodHarmonogram, wiaDataHarmonogramStart, wiaDataHarmonogramKoniec, wiaDataNastepnejWysylki, wiaHarmonogramAktywny); WiadomoscWyslijRoboczaModel z kodHarmonogram i datami. API: WyslijRobocza zapisuje szablon (status 7) z odbiorcami albo wysyła od razu; WiadomoscHarmonogramController (SelectAktywne, Anuluj, status 6). Worker: ZaplanujHarmonogramyAsync kopiuje szablon w terminie na zwykłą wysyłkę (status 2) razem z odbiorcami i załącznikami, przelicza następny termin, pomija przegapione. Blazor: WiadomoscWysylkaOkno (zaplanuj), WiadomoscZarzadzanie (lista zaplanowanych z Anuluj); zmiana nazw Glos* na Wiadomosc*; InputFile z @key czyszczony po zapisie. Stałe NadawcaWiadomosciPublicznej i WzorzecWiadomosciPublicznej.
