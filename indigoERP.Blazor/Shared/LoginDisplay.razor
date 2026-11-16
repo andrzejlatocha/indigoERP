@@ -14,12 +14,8 @@
                        checked="@isDarkMode" @onchange="@OnThemeModeChanged" />
                 <label class="form-check-label text-light" for="themeModeSwitch">@(isDarkMode ? "Ciemny" : "Jasny")</label>
             </div>
-            <button type="button" class="btn btn-sm header-action header-action-notify" title="Powiadomienia">
-                <i class="fa-duotone fa-light fa-bell"></i>
-                @if (liczbaPowiadomien > 0)
-                {
-                    <span class="badge bg-danger ms-1">@liczbaPowiadomien</span>
-                }
+            <button type="button" class="btn btn-sm header-action header-action-notify" title="Powiadomienia" @onclick="@(() => OtworzPodglad("powiadomienia", "Powiadomienia"))">
+                <i class="fa-duotone fa-light fa-bell"></i> <span>@liczbaPowiadomien</span>
             </button>
             <button type="button" class="btn btn-sm header-action header-action-message" title="Wiadomości" @onclick="@(() => OtworzPodglad("wiadomosci", "Wiadomości"))">
                 <i class="fa-duotone fa-light fa-message"></i> <span>@liczbaWiadomosci</span>
@@ -40,7 +36,7 @@
 @code {
     private bool isDarkMode;
 
-    // Liczniki nieprzeczytanych pozycji z indigoERP.Api. Powiadomienia (dzwonek) nie mają jeszcze endpointu, więc zostają 0.
+    // Liczniki nieprzeczytanych pozycji z indigoERP.Api (powiadomienia z tabeli dbo.Powiadomienie).
     private int liczbaPowiadomien;
     private int liczbaWiadomosci;
     private int liczbaZadan;

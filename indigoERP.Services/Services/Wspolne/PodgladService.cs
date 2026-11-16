@@ -44,5 +44,14 @@ namespace indigoERP.Service.Services._Wspolne
 
             return result ?? Enumerable.Empty<ZdarzenieViewModel>();
         }
+    
+        public async Task<IEnumerable<PowiadomienieViewModel>> PowiadomieniaNieprzeczytane(int appID, int usrID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+            var result = await httpClient.GetFromJsonAsync<IEnumerable<PowiadomienieViewModel>>(
+                $"Powiadomienie/SelectNieprzeczytane/{appID}/{usrID}");
+
+            return result ?? Enumerable.Empty<PowiadomienieViewModel>();
+        }
     }
 }

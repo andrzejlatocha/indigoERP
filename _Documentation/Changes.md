@@ -1,4 +1,14 @@
-﻿## 2026-11-16 - Licznik powiadomien na naglowku (tabela Powiadomienie, endpoint SelectCountByUzytkownik)
+﻿## 2026-11-16 - Powiadomienia: lista i licznik zawsze widoczne (dzwonek w nagłówku)
+
+- **Zgłoszenie:** dzwonek w nagłówku nie pokazywał liczby przy zerze i po kliknięciu nie otwierał listy jak pozostałe przyciski.
+- **Zmiana:** API PowiadomienieController.SelectNieprzeczytane/{appID}/{usrID} (do 50 nieprzeczytanych, najnowsze pierwsze); PodgladService.PowiadomieniaNieprzeczytane; PodgladLista, typ `powiadomienia` (tabela Tytuł, Treść, Data); LoginDisplay: dzwonek zawsze pokazuje liczbę i otwiera listę w oknie bocznym.
+- **Wersja:** 3.26.1116.11434 (Blazor, API).
+- **Status wdrożenia:** commit na developer i master; wdrożenie API i Blazor na DEIMOS i CERES w toku (wynik w logu wdrożenia).
+- **Weryfikacja:** build 0 błędów; indigoERP.Blazor.Tests 29/29.
+- **Luki:** brak endpointu oznaczania jako przeczytane; brak źródeł tworzących powiadomienia (tabela dbo.Powiadomienie jest pusta, licznik 0).
+
+
+## 2026-11-16 - Licznik powiadomien na naglowku (tabela Powiadomienie, endpoint SelectCountByUzytkownik)
 
 - **Zgloszenie:** dzwonek w naglowku ma pokazywac liczbe nieprzeczytanych powiadomien; test strony glownej po usunieciu atacamaDMS z listy starych aplikacji.
 - **Baza:** skrypt _SQL Queries/indigoERP20261116_Powiadomienie.sql (tabela dbo.Powiadomienie, widok mvw.Powiadomienie, indeks IX_Powiadomienie_01) uruchomiony przez uzytkownika na CERES i JAPET.

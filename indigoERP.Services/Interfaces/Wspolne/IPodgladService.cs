@@ -8,5 +8,6 @@ namespace indigoERP.Service.Interfaces._Wspolne
         Task<IEnumerable<WiadomoscUzytkownikViewModel>> WiadomosciNieprzeczytane(int appID, int usrID);
         Task<IEnumerable<ZadanieViewModel>> ZadaniaNieprzeczytane(int appID, int usrID);
         Task<IEnumerable<ZdarzenieViewModel>> ZdarzeniaNieprzeczytane(int appID, int usrID);
+        Task<IEnumerable<PowiadomienieViewModel>> PowiadomieniaNieprzeczytane(int appID, int usrID);
     }
 }

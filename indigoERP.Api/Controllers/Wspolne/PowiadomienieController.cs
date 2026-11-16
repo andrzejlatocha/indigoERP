@@ -1,4 +1,5 @@
 ﻿using indigoERP.Api.Data;
+using indigoERP.Domain.ViewModels._Wspolne;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,5 +27,18 @@ public class PowiadomienieController : ControllerBase
     {
         return await _context.PowiadomienieViewModel
             .CountAsync(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt);
+    }
+
+    // GET: api/Powiadomienie/SelectNieprzeczytane/{appID}/{usrID} - nieprzeczytane powiadomienia, najnowsze pierwsze.
+    [Authorize(AuthenticationSchemes = BearerScheme)]
+    [HttpGet("{appID}/{usrID}")]
+    public async Task<ActionResult<IEnumerable<PowiadomienieViewModel>>> SelectNieprzeczytane(int appID, int usrID)
+    {
+        return await _context.PowiadomienieViewModel
+            .AsNoTracking()
+            .Where(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt)
+            .OrderByDescending(w => w.powDataPowiadomienia)
+            .Take(50)
+            .ToListAsync();
     }
 }
