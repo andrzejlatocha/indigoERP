@@ -1,4 +1,13 @@
-﻿## 2026-11-17 - Lewy panel strony głównej: ikony PNG zamiast FontAwesome
+﻿## 2026-11-17 - Ikony PNG lewego panelu: pliki dodane do repozytorium
+
+- **Zgłoszenie:** wdrożenie z poprzedniego commita odwoływało się do form.png, newspaper.png, document.png i email.png, których nie było w repozytorium; na CERES ikony się nie pokazały.
+- **Zmiana:** dodane pliki images/form.png, newspaper.png, document.png, email.png; zaktualizowane images/calendar.png, helpdesk.png, onedrive.png (podmienione przez użytkownika). Kod bez zmian.
+- **Wersja:** 3.26.1117.11439 (Blazor, API).
+- **Status wdrożenia:** commit 20261117_08 na developer (master nieaktualizowany); ponowne wdrożenie na CERES (API i Blazor).
+- **Weryfikacja:** eksport commita: testy API 82/82, Blazor 29/29, Services 10/10, Worker 46/46; po wdrożeniu do sprawdzenia na test.hcz.com.pl (SSO).
+
+
+## 2026-11-17 - Lewy panel strony głównej: ikony PNG zamiast FontAwesome
 
 - **Zgłoszenie:** cztery skróty w lewym panelu (hutaForms, Głos Hutnika, Przepisy wewnętrzne, Formularz zgłoszenia) mają używać plików PNG z projektu zamiast FontAwesome.
 - **Zmiana:** Home.razor: form.png, newspaper.png, document.png, email.png. Pozostałe skróty (helpdesk, outlook, calendar, onedrive) bez zmian.
