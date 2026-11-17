@@ -1,4 +1,13 @@
-﻿## 2026-11-17 - Ikony skrótów i kendoCMMS na stronie głównej
+﻿## 2026-11-17 - Lewy panel strony głównej: ikony PNG zamiast FontAwesome
+
+- **Zgłoszenie:** cztery skróty w lewym panelu (hutaForms, Głos Hutnika, Przepisy wewnętrzne, Formularz zgłoszenia) mają używać plików PNG z projektu zamiast FontAwesome.
+- **Zmiana:** Home.razor: form.png, newspaper.png, document.png, email.png. Pozostałe skróty (helpdesk, outlook, calendar, onedrive) bez zmian.
+- **Wersja:** 3.26.1117.11438 (Blazor, API).
+- **Status wdrożenia:** commit 20261117_07 na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor) w tym dniu.
+- **Weryfikacja:** build Blazor 0 błędów; indigoERP.Blazor.Tests 29/29; wygląd do sprawdzenia na test.hcz.com.pl (SSO).
+
+
+## 2026-11-17 - Ikony skrótów i kendoCMMS na stronie głównej
 
 - **Zgłoszenie:** ikony FontAwesome skrótów (hutaForms, Głos Hutnika, Przepisy wewnętrzne, Formularz zgłoszenia) są za małe; ikony obrazkowe mają być stonowane; ikona kendoCMMS ma być biała jak pozostałe.
 - **Zmiana:** Home.razor.css: glif FontAwesome 2,6 rem (wcześniej 2,1 rem), obrazki skrótów z filter saturate(0.6); ikona kendoCMMS podmieniona przez użytkownika (plik wwwroot/images/aplikacja/kendoCMMS.png, commit 20261117_06).
