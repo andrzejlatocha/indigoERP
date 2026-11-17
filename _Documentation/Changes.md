@@ -8,6 +8,35 @@
 - **Luki:** brak uruchomienia w podglądzie lokalnym (brak launch.json, SSO i baza na CERES).
 
 
+## 2026-11-17 - Publikacja CERES 3.26.1117.11436
+
+- **Zakres:** CERES / `V:\inetpub\wwwroot\indigoERP` i `V:\inetpub\wwwroot\indigoERP.Api`; opublikowano Blazor z nowym
+  wyglądem strony głównej oraz API bez zmian funkcjonalnych, aby wersje komponentów pozostały zgodne.
+- **Bezpieczeństwo wdrożenia:** kopie `appsettings.json`, `web.config` i szablonów offline zapisano w
+  `.codex-build\ceres-config-backup-20261117102936`. Kopiowanie wykluczyło konfigurację, `DataProtectionKeys`, logi i dokumenty;
+  na obu zachowanych plikach konfiguracyjnych zaktualizowano wyłącznie `appSettings:Version` do `3.26.1117.11436`.
+- **Weryfikacja:** pełne `dotnet test indigoERP.sln --no-restore` - 167/167. `https://test.hcz.com.pl/indigoERP/` - HTTP 200;
+  `https://test.hcz.com.pl/indigoERP.Blazor.styles.css` - HTTP 200 i reguły `2.1rem` / `#9b6715`;
+  `https://test.hcz.com.pl/images/hutaIT.png` - HTTP 200; API `https://test.hcz.com.pl:9900/Api/` - oczekiwany HTTP 404.
+
+## 2026-11-17 - Ujednolicenie ikon skrótów strony głównej
+
+- **Zgłoszenie:** ikony hutaForms, Głos Hutnika, Przepisy wewnętrzne i Formularz zgłoszenia mają mieć taki sam rozmiar
+  jak IT Support oraz stonowaną kolorystykę.
+- **Zmiana:** `Home.razor.css` używa jednego rozmiaru `2.1rem` i jasnego symbolu dla ikon Font Awesome. Usunięto lokalne
+  przeskalowania do `2.9rem`; tła skrótów ustawiono odpowiednio na przygaszoną ochrę, zieleń, stalowy błękit i pomarańcz.
+- **Weryfikacja:** `dotnet test indigoERP.Blazor.Tests\indigoERP.Blazor.Tests.csproj --no-restore` - 29/29 testów.
+
+## 2026-11-17 - Tło i ekran ładowania strony głównej
+
+- **Zgłoszenie:** użyć grafiki `D:\\hutaIT.png` jako tła strony głównej oraz wyświetlać przez trzy sekundy pusty ekran
+  ładowania z pomniejszoną grafiką, paskiem postępu i logo Huty Częstochowa.
+- **Zmiana:** dodano `wwwroot\\images\\hutaIT.png`; `Home.razor` odkłada pokazanie zawartości strony o trzy sekundy, a
+  `Home.razor.css` renderuje ekran startowy i rozmyte tło właściwej strony.
+- **Weryfikacja:** `dotnet test indigoERP.Blazor.Tests\indigoERP.Blazor.Tests.csproj --no-restore` - 29/29 testów.
+  Test strony głównej potwierdza obecność ekranu ładowania przed wyrenderowaniem zawartości. Lokalny podgląd przeglądarkowy
+  zatrzymany przez niedostępne API logowania `https://localhost:9900`, niezależne od zmiany strony.
+
 ## 2026-11-17 - Powiadomienia: integracja epicaHR, oznaczanie odczytu, pełna strona
 
 - **Zgłoszenie:** zapis powiadomień dla roli integracji epicaHR (jak wiadomości, zadania i zdarzenia); okno podglądu z oznaczaniem odczytu i przyciskiem „Oznacz wszystkie jako przeczytane”; przycisk „Zobacz wszystkie” do pełnej strony.

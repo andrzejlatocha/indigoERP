@@ -22,7 +22,8 @@ public sealed class HomePageTests : BunitContext
     {
         var cut = Render<Pages.Home>();
 
-        cut.WaitForAssertion(() => Assert.Contains("IT Support", cut.Markup));
+        Assert.Contains("home-loading", cut.Markup);
+        WaitForHomeContent(cut);
         Assert.DoesNotContain("Stary Intranet", cut.Markup);
         Assert.Contains("Formularz zgłoszenia", cut.Markup);
         Assert.Contains("Testowa aplikacja", cut.Markup);
@@ -34,7 +35,7 @@ public sealed class HomePageTests : BunitContext
     {
         var cut = Render<Pages.Home>();
 
-        cut.WaitForAssertion(() => Assert.Contains("IT Support", cut.Markup));
+        WaitForHomeContent(cut);
         var buttons = cut.FindAll("a.legacy-button");
 
         Assert.Equal(9, buttons.Count);
@@ -42,6 +43,11 @@ public sealed class HomePageTests : BunitContext
         Assert.Contains(buttons, b => b.TextContent.Contains("hydraRCP") && b.GetAttribute("href") == "http://wenus.hcz.com.pl/hydra/");
         Assert.Contains(buttons, b => b.TextContent.Contains("cerberTMS") && b.GetAttribute("href") == "https://intranet.hcz.com.pl/cerber/");
         Assert.Equal(9, buttons.Select(b => b.GetAttribute("href")).Distinct().Count());
+    }
+
+    private static void WaitForHomeContent(IRenderedComponent<Pages.Home> cut)
+    {
+        cut.WaitForAssertion(() => Assert.Contains("IT Support", cut.Markup), TimeSpan.FromSeconds(4));
     }
 
     private sealed class HomeServiceStub : IHomeService
