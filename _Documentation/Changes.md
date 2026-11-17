@@ -1,4 +1,13 @@
-﻿## 2026-11-17 - Przegląd powiadomień, testy, strona główna: powrót bez okna ładowania i link Główna
+﻿## 2026-11-17 - Ikona aplikacji bespinEWA
+
+- **Zgłoszenie:** użytkownik poprosił o dodanie ikony bespinEWA.png do publikacji.
+- **Zmiana:** dodany plik indigoERP.Blazor/wwwroot/images/aplikacja/bespinEWA.png (PNG 684 B). Kod bez zmian.
+- **Wersja:** 3.26.1117.11443 (Blazor, API).
+- **Status wdrożenia:** commit 20261117_12 na developer (master nieaktualizowany); wdrożenie na DEIMOS (API i Blazor). CERES na 11442.
+- **Weryfikacja:** testy na eksporcie commita (wynik w logu wdrożenia).
+
+
+## 2026-11-17 - Przegląd powiadomień, testy, strona główna: powrót bez okna ładowania i link Główna
 
 - **Zgłoszenie:** przegląd kodu powiadomień (bezpieczne linki, walidacja, masowe oznaczanie, obsługa błędów); brakujące i pokrywające się testy; na produkcji po długiej bezczynności „Główna” zmieniała adres bez załadowania strony; okno ładowania na stronie głównej miało się nie pokazywać przy powrocie z innego modułu lub aplikacji.
 - **Zmiana API:** PowiadomienieController.Insert sprawdza istnienie aplikacji i użytkownika (BadRequest); OdczytajWszystkie przez ExecuteUpdateAsync (jeden UPDATE, z ModyfikacjaID i DataModyfikacja, bez usuniętych); PowiadomienieDto: [Range(1, int.MaxValue)] na identyfikatorach, [DozwolonyLink] na powLink; Domain Common/BezpieczneLinki i DozwolonyLinkAttribute (tylko ścieżki od / i adresy http/https).
