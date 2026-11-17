@@ -1,4 +1,13 @@
-﻿## 2026-11-17 - Ikony PNG lewego panelu: pliki dodane do repozytorium
+﻿## 2026-11-17 - Lewy panel strony głównej: pastelowe tła ikon
+
+- **Zgłoszenie:** tła ikon skrótów w lewym panelu mają mieć jasny pastelowy odcień wiodącego koloru ikony.
+- **Zmiana:** Home.razor.css: tła skrótów hutaForms #cfe8ff, Głos Hutnika #f2dcd6, Przepisy #e3f3ff, IT Support #e3f3d3, Poczta #cbd3f3, Kalendarz #ffd3d3, OneDrive #cbe3fb, Formularz zgłoszenia #cbebff (kolory wyliczone z dominującej barwy każdego PNG).
+- **Wersja:** 3.26.1117.11440 (Blazor, API).
+- **Status wdrożenia:** commit 20261117_09 na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor).
+- **Weryfikacja:** testy na eksporcie commita (API 82/82, Blazor 29/29, Services 10/10, Worker 46/46); wygląd do sprawdzenia na test.hcz.com.pl (SSO).
+
+
+## 2026-11-17 - Ikony PNG lewego panelu: pliki dodane do repozytorium
 
 - **Zgłoszenie:** wdrożenie z poprzedniego commita odwoływało się do form.png, newspaper.png, document.png i email.png, których nie było w repozytorium; na CERES ikony się nie pokazały.
 - **Zmiana:** dodane pliki images/form.png, newspaper.png, document.png, email.png; zaktualizowane images/calendar.png, helpdesk.png, onedrive.png (podmienione przez użytkownika). Kod bez zmian.

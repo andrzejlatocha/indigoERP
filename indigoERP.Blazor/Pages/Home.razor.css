@@ -198,36 +198,37 @@
     color: #fff;
 }
 
+/* Tła skrótów: jasne pastele w odcieniu wiodącego koloru ikony PNG. */
 .home-shortcut--huta-forms .home-shortcut__icon {
-    background: #9b6715;
+    background: #cfe8ff;
 }
 
 .home-shortcut--glos .home-shortcut__icon {
-    background: #426a50;
+    background: #f2dcd6;
 }
 
 .home-shortcut--polecenia .home-shortcut__icon {
-    background: #426d83;
+    background: #e3f3ff;
 }
 
 .home-shortcut--helpdesk .home-shortcut__icon {
-    background: #b84700;
+    background: #e3f3d3;
 }
 
 .home-shortcut--outlook .home-shortcut__icon {
-    background: #0078d4;
+    background: #cbd3f3;
 }
 
 .home-shortcut--calendar .home-shortcut__icon {
-    background: #7048b5;
+    background: #ffd3d3;
 }
 
 .home-shortcut--onedrive .home-shortcut__icon {
-    background: #147a9b;
+    background: #cbe3fb;
 }
 
 .home-shortcut__icon--mail {
-    background: #9b6618;
+    background: #cbebff;
 }
 
 .home-shortcut--form {
