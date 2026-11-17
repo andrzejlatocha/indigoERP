@@ -1,0 +1,135 @@
+﻿@page "/powiadomienie"
+@using indigoERP.Domain.ViewModels._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+
+@inject IPodgladService _podgladService
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject IConfiguration _configuration
+
+<PageTitle>Powiadomienie</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="m-0">Powiadomienie</h4>
+        <RadzenButton Text="Oznacz wszystkie jako przeczytane" Icon="done_all" ButtonStyle="ButtonStyle.Primary"
+                      Click="@OznaczWszystkie" Disabled="@(ladowanie || powiadomienia.All(p => p.powOdczyt))" />
+    </div>
+
+    @if (ladowanie)
+    {
+        <Load />
+    }
+    else if (blad != null)
+    {
+        <div class="alert alert-warning">@blad</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr><th>Data</th><th>Tytuł</th><th>Treść</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var powiadomienie in powiadomienia)
+                    {
+                        <tr class="@(powiadomienie.powOdczyt ? "" : "fw-bold")">
+                            <td class="text-nowrap">@powiadomienie.powDataPowiadomienia.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(powiadomienie.powLink))
+                                {
+                                    <a href="@powiadomienie.powLink">@powiadomienie.powTytul</a>
+                                }
+                                else
+                                {
+                                    @powiadomienie.powTytul
+                                }
+                            </td>
+                            <td>@powiadomienie.powTresc</td>
+                            <td>
+                                @if (powiadomienie.powOdczyt)
+                                {
+                                    <span class="text-muted">przeczytane</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">nowe</span>
+                                }
+                            </td>
+                            <td class="text-nowrap">
+                                @if (!powiadomienie.powOdczyt)
+                                {
+                                    <RadzenButton Text="Przeczytane" Icon="done" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.ExtraSmall"
+                                                  Click="@(() => OznaczJeden(powiadomienie))" />
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (powiadomienia.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-muted">Brak powiadomień.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private const int LiczbaPozycji = 500;
+
+    private bool ladowanie = true;
+    private string? blad;
+    private List<PowiadomienieViewModel> powiadomienia = new();
+    private int appID;
+    private int usrID;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ZaladujAsync();
+    }
+
+    private async Task ZaladujAsync()
+    {
+        ladowanie = true;
+        blad = null;
+
+        try
+        {
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            usrID = int.TryParse(authState.User.FindFirst("usrID")?.Value, out var parsedUsrID) ? parsedUsrID : 0;
+            appID = _configuration.GetValue<int?>("appSettings:AppID") ?? 0;
+
+            if (usrID == 0 || appID == 0)
+            {
+                blad = "Brak danych użytkownika.";
+                return;
+            }
+
+            powiadomienia = (await _podgladService.PowiadomieniaOstatnie(appID, usrID, LiczbaPozycji)).ToList();
+        }
+        catch (Exception)
+        {
+            blad = "Nie udało się pobrać powiadomień. Spróbuj ponownie później.";
+        }
+        finally
+        {
+            ladowanie = false;
+        }
+    }
+
+    private async Task OznaczJeden(PowiadomienieViewModel powiadomienie)
+    {
+        if (await _podgladService.OznaczPowiadomienie(powiadomienie.powID))
+        {
+            powiadomienie.powOdczyt = true;
+            powiadomienie.powDataOdczytu = DateTime.Now;
+        }
+    }
+
+    private async Task OznaczWszystkie()
+    {
+        await _podgladService.OznaczWszystkiePowiadomienia(appID, usrID);
+        await ZaladujAsync();
+    }
+}

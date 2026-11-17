@@ -82,6 +82,28 @@
         await _dialogService.OpenSideAsync<PodgladLista>(tytul,
             new Dictionary<string, object?> { ["Typ"] = typ },
             new SideDialogOptions { Position = DialogPosition.Right, Width = "720px", ShowMask = true, CloseDialogOnOverlayClick = true });
+
+        // Okno mogło oznaczyć pozycje jako przeczytane; liczniki nagłówka pobieramy ponownie po zamknięciu.
+        await OdswiezLiczniki();
+    }
+
+    private async Task OdswiezLiczniki()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var usrID = int.TryParse(authState.User.FindFirst("usrID")?.Value, out var parsedUsrID) ? parsedUsrID : 0;
+        var appID = _configuration.GetValue<int?>("appSettings:AppID") ?? 0;
+
+        if (usrID == 0 || appID == 0)
+        {
+            return;
+        }
+
+        var liczniki = await _licznikNaglowkaService.Pobierz(appID, usrID);
+        liczbaPowiadomien = liczniki.Powiadomienia;
+        liczbaWiadomosci = liczniki.Wiadomosci;
+        liczbaZadan = liczniki.Zadania;
+        liczbaZdarzen = liczniki.Zdarzenia;
+        StateHasChanged();
     }
 
     public async Task WyswietlUzytkownik()

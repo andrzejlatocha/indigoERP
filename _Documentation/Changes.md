@@ -1,4 +1,25 @@
-﻿## 2026-11-16 - Powiadomienia: lista i licznik zawsze widoczne (dzwonek w nagłówku)
+﻿## 2026-11-17 - Powiadomienia: integracja epicaHR, oznaczanie odczytu, pełna strona
+
+- **Zgłoszenie:** zapis powiadomień dla roli integracji epicaHR (jak wiadomości, zadania i zdarzenia); okno podglądu z oznaczaniem odczytu i przyciskiem „Oznacz wszystkie jako przeczytane”; przycisk „Zobacz wszystkie” do pełnej strony.
+- **Zmiana API:** PowiadomienieController.Insert dla ról `HCZ-indigoERP-Administrator` i `HCZ-indigoERP-Integracja-epicaHR`; SelectOstatnie/{appID}/{usrID}?take= (przeczytane i nieprzeczytane, najnowsze pierwsze, limit 1-500) zamiast SelectNieprzeczytane; Odczytaj/{powID} i OdczytajWszystkie/{appID}/{usrID} tylko dla właściciela (inny użytkownik = 403).
+- **Zmiana Blazor:** PodgladLista (typ powiadomienia): oznaczanie pojedyncze, „Oznacz wszystkie jako przeczytane”, „Zobacz wszystkie”; LoginDisplay odświeża liczniki po zamknięciu okna; nowa strona /powiadomienie (Pages/Powiadomienie/PowiadomienieStrona.razor, 500 pozycji, PageTitle).
+- **Zmiana Services:** IPodgladService: PowiadomieniaOstatnie, OznaczPowiadomienie, OznaczWszystkiePowiadomienia.
+- **Status wdrożenia:** w kodzie, niecommitowane, niewdrożone.
+- **Weryfikacja:** indigoERP.Api.Tests 82/82 (testy Insert: role, zapis; Odczytaj: właściciel i obcy użytkownik; OdczytajWszystkie: tylko nieprzeczytane zalogowanego i obcy użytkownik); indigoERP.Blazor.Tests 29/29.
+- **Luki:** brak testu SelectOstatnie (widok mvw bez klucza nie da się zasilić w InMemory; sprawdzić na bazie testowej); licznik na stronie /powiadomienie nie odświeża nagłówka do najbliższego przeładowania strony; brak testu strony Blazor (PowiadomienieStrona) i okna PodgladLista.
+
+
+## 2026-11-17 - Powiadomienia: endpoint zapisu Insert (rola administratora)
+
+- **Zgłoszenie:** brak możliwości tworzenia powiadomień w API (były tylko odczyty licznika i listy).
+- **Zmiana:** Domain Entities/Wspolne/Powiadomienie.cs (dbo.Powiadomienie, pola audytowe z AuditableEntity); Domain Dtos/Wspolne/PowiadomienieDto.cs (walidacja DataAnnotations); indigoERPContext: DbSet Powiadomienie; API PowiadomienieController.Insert (POST) z `[Authorize(Roles = "HCZ-indigoERP-Administrator")]`, data powstania i odczyt ustawiane przez API.
+- **Decyzja:** na razie zapis tylko dla roli HCZ-indigoERP-Administrator. Integracje (API i workery innych systemów) dojdą później osobną polityką (rola HCZ-indigoERP-Integracja-[klient]).
+- **Status wdrożenia:** w kodzie, niecommitowane, niewdrożone.
+- **Weryfikacja:** build API 0 błędów; indigoERP.Api.Tests 78/78 (w tym 3 nowe w PowiadomienieControllerTests).
+- **Luki:** brak oznaczania jako przeczytane i usuwania; brak polityki dla integracji; brak źródeł tworzących powiadomienia w Workerze.
+
+
+## 2026-11-16 - Powiadomienia: lista i licznik zawsze widoczne (dzwonek w nagłówku)
 
 - **Zgłoszenie:** dzwonek w nagłówku nie pokazywał liczby przy zerze i po kliknięciu nie otwierał listy jak pozostałe przyciski.
 - **Zmiana:** API PowiadomienieController.SelectNieprzeczytane/{appID}/{usrID} (do 50 nieprzeczytanych, najnowsze pierwsze); PodgladService.PowiadomieniaNieprzeczytane; PodgladLista, typ `powiadomienia` (tabela Tytuł, Treść, Data); LoginDisplay: dzwonek zawsze pokazuje liczbę i otwiera listę w oknie bocznym.

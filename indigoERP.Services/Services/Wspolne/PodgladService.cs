@@ -45,13 +45,33 @@ namespace indigoERP.Service.Services._Wspolne
             return result ?? Enumerable.Empty<ZdarzenieViewModel>();
         }
     
-        public async Task<IEnumerable<PowiadomienieViewModel>> PowiadomieniaNieprzeczytane(int appID, int usrID)
+        public async Task<IEnumerable<PowiadomienieViewModel>> PowiadomieniaOstatnie(int appID, int usrID, int take = 50)
         {
             var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
             var result = await httpClient.GetFromJsonAsync<IEnumerable<PowiadomienieViewModel>>(
-                $"Powiadomienie/SelectNieprzeczytane/{appID}/{usrID}");
+                $"Powiadomienie/SelectOstatnie/{appID}/{usrID}?take={take}");
 
             return result ?? Enumerable.Empty<PowiadomienieViewModel>();
+        }
+
+        public async Task<bool> OznaczPowiadomienie(int powID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+            var response = await httpClient.PostAsync($"Powiadomienie/Odczytaj/{powID}", null);
+
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<int> OznaczWszystkiePowiadomienia(int appID, int usrID)
+        {
+            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+            var response = await httpClient.PostAsync($"Powiadomienie/OdczytajWszystkie/{appID}/{usrID}", null);
+            if (!response.IsSuccessStatusCode)
+            {
+                return 0;
+            }
+
+            return await response.Content.ReadFromJsonAsync<int>();
         }
     }
 }
