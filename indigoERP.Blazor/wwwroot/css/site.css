@@ -457,3 +457,27 @@ html, body {
     }
 }
 
+/* Tło docelowe stron-list: rozmyty obrazek z main.jpg (zamiast białego tła); treść na półprzezroczystej karcie. */
+.tlo-docelowe {
+    position: relative;
+    min-height: 100%;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.tlo-docelowe::before {
+    content: "";
+    position: absolute;
+    inset: -24px;
+    background: url('../images/main.jpg') center / cover no-repeat;
+    filter: blur(12px) saturate(0.9);
+    z-index: -1;
+}
+
+.tlo-docelowe .tlo-karta {
+    background-color: rgba(255, 255, 255, 0.92);
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(33, 37, 41, 0.12);
+    padding: 16px;
+}
+
