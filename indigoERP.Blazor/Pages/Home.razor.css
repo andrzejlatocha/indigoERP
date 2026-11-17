@@ -189,10 +189,12 @@
     max-width: 46px;
     max-height: 46px;
     object-fit: contain;
+    filter: saturate(0.6);
 }
 
 .home-shortcut__icon i {
-    font-size: 2.1rem;
+    font-size: 2.6rem;
+    line-height: 1;
     color: #fff;
 }
 
@@ -379,6 +381,11 @@
     max-width: 44px;
     max-height: 44px;
     object-fit: contain;
+}
+
+/* kendoCMMS.png ma ciemny znak; inne ikony są białe. Sprowadzamy do bieli filtrem, bez zmiany pliku. */
+.application-card__icon img[src*="kendo"] {
+    filter: brightness(0) invert(1);
 }
 
 .application-card:nth-child(4n + 1) .application-card__icon {

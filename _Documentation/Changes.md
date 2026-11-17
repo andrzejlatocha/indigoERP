@@ -1,4 +1,14 @@
-﻿## 2026-11-17 - Strona Powiadomienie: tło docelowe zamiast białego
+﻿## 2026-11-17 - Ikony skrótów i kendoCMMS na stronie głównej
+
+- **Zgłoszenie:** ikony FontAwesome skrótów (hutaForms, Głos Hutnika, Przepisy wewnętrzne, Formularz zgłoszenia) są za małe; ikony obrazkowe mają być stonowane; ikona kendoCMMS ma być biała jak pozostałe.
+- **Zmiana:** Home.razor.css: glif FontAwesome 2,6 rem (wcześniej 2,1 rem), obrazki skrótów z filter saturate(0.6); ikona aplikacji kendoCMMS (img z src zawierającym „kendo”) filtrem brightness(0) invert(1), bez zmiany pliku PNG.
+- **Wersja:** 3.26.1117.11437 (Blazor, API).
+- **Status wdrożenia:** commit na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor) w tym dniu.
+- **Weryfikacja:** build Blazor 0 błędów; wygląd do sprawdzenia na test.hcz.com.pl (SSO, bez podglądu lokalnego).
+- **Luki:** brak testu wizualnego; reguła kendo zależy od tego, że ścieżka ikony zawiera „kendo”.
+
+
+## 2026-11-17 - Strona Powiadomienie: tło docelowe zamiast białego
 
 - **Zgłoszenie:** strona /powiadomienie miała białe tło; zamiast tego ma być tło docelowe z rozmytym obrazkiem.
 - **Zmiana:** site.css: klasy .tlo-docelowe (rozmyty main.jpg w ::before, blur 12 px) i .tlo-karta (półprzezroczysta biała karta z treścią); PowiadomienieStrona.razor: nagłówek i tabela na kartach.
