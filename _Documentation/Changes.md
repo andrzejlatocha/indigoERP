@@ -1,4 +1,13 @@
-﻿## 2026-11-17 - Lewy panel strony głównej: pastelowe tła ikon
+﻿## 2026-11-17 - Ikona document i tło Przepisy wewnętrzne (żółty)
+
+- **Zgłoszenie:** użytkownik podmienił ikonę document.png (wiodący kolor żółty); tło skrótu Przepisy wewnętrzne ma odpowiadać kolorowi ikony.
+- **Zmiana:** images/document.png (podmieniona przez użytkownika); Home.razor.css: tło skrótu Przepisy wewnętrzne #fbebcb (jasny pastel żółtego, z dominującej barwy PNG).
+- **Wersja:** 3.26.1117.11441 (Blazor, API).
+- **Status wdrożenia:** commit 20261117_10 na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor).
+- **Weryfikacja:** testy na eksporcie commita (API 82/82, Blazor 29/29, Services 10/10, Worker 46/46); wygląd do sprawdzenia na test.hcz.com.pl (SSO).
+
+
+## 2026-11-17 - Lewy panel strony głównej: pastelowe tła ikon
 
 - **Zgłoszenie:** tła ikon skrótów w lewym panelu mają mieć jasny pastelowy odcień wiodącego koloru ikony.
 - **Zmiana:** Home.razor.css: tła skrótów hutaForms #cfe8ff, Głos Hutnika #f2dcd6, Przepisy #e3f3ff, IT Support #e3f3d3, Poczta #cbd3f3, Kalendarz #ffd3d3, OneDrive #cbe3fb, Formularz zgłoszenia #cbebff (kolory wyliczone z dominującej barwy każdego PNG).
