@@ -1,8 +1,10 @@
 ﻿@page "/powiadomienie"
 @using indigoERP.Domain.ViewModels._Wspolne
+@using indigoERP.Domain.Common
 @using indigoERP.Service.Interfaces._Wspolne
 
 @inject IPodgladService _podgladService
+@inject NotificationService _notificationService
 @inject AuthenticationStateProvider _authenticationStateProvider
 @inject IConfiguration _configuration
 
@@ -36,7 +38,7 @@
                         <tr class="@(powiadomienie.powOdczyt ? "" : "fw-bold")">
                             <td class="text-nowrap">@powiadomienie.powDataPowiadomienia.ToString("dd.MM.yyyy HH:mm")</td>
                             <td>
-                                @if (!string.IsNullOrWhiteSpace(powiadomienie.powLink))
+                                @if (!string.IsNullOrWhiteSpace(powiadomienie.powLink) && BezpieczneLinki.Dozwolony(powiadomienie.powLink))
                                 {
                                     <a href="@powiadomienie.powLink">@powiadomienie.powTytul</a>
                                 }
@@ -125,11 +127,32 @@
             powiadomienie.powOdczyt = true;
             powiadomienie.powDataOdczytu = DateTime.Now;
         }
+        else
+        {
+            PokazBlad();
+        }
     }
 
     private async Task OznaczWszystkie()
     {
-        await _podgladService.OznaczWszystkiePowiadomienia(appID, usrID);
+        var oznaczone = await _podgladService.OznaczWszystkiePowiadomienia(appID, usrID);
+        if (oznaczone is null)
+        {
+            PokazBlad();
+            return;
+        }
+
         await ZaladujAsync();
+    }
+
+    private void PokazBlad()
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Error,
+            Summary = "Błąd",
+            Detail = "Nie udało się oznaczyć powiadomienia. Spróbuj ponownie.",
+            Duration = 6000
+        });
     }
 }

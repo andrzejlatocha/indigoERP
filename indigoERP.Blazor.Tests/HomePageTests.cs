@@ -15,19 +15,32 @@ public sealed class HomePageTests : BunitContext
         Services.AddSingleton<IHttpContextAccessor>(new HttpContextAccessor());
         Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider([new Claim("usrID", "77")]));
         Services.AddSingleton<IHomeService>(new HomeServiceStub());
+        JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
     [Fact]
     public void Home_renders_shortcuts_and_applications_returned_for_the_current_user()
     {
+        JSInterop.Setup<bool>("indigoHome.czyPokazacPowitanie").SetResult(true);
         var cut = Render<Pages.Home>();
 
-        Assert.Contains("home-loading", cut.Markup);
+        cut.WaitForAssertion(() => Assert.Contains("home-loading", cut.Markup));
         WaitForHomeContent(cut);
         Assert.DoesNotContain("Stary Intranet", cut.Markup);
         Assert.Contains("Formularz zgłoszenia", cut.Markup);
         Assert.Contains("Testowa aplikacja", cut.Markup);
         Assert.Contains("https://test.local/aplikacja", cut.Markup);
+    }
+
+    [Fact]
+    public void Home_bez_okna_ladowania_przy_powrocie_w_tej_samej_karcie()
+    {
+        JSInterop.Setup<bool>("indigoHome.czyPokazacPowitanie").SetResult(false);
+
+        var cut = Render<Pages.Home>();
+
+        WaitForHomeContent(cut);
+        Assert.DoesNotContain("home-loading", cut.Markup);
     }
 
     [Fact]

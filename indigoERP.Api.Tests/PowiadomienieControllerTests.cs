@@ -1,8 +1,11 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using System.Security.Claims;
 using indigoERP.Api.Controllers._Wspolne;
 using indigoERP.Api.Data;
+using indigoERP.Domain.Common;
 using indigoERP.Domain.Dtos._Wspolne;
+using indigoERP.Domain.Entities._Administrator;
 using indigoERP.Domain.Entities._Wspolne;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -20,6 +23,7 @@ public class PowiadomienieControllerTests
     public async Task Insert_ZapisujePowiadomienieNieprzeczytane()
     {
         using var context = ApiTestContextFactory.Create(userId: 101);
+        await SeedAplikacjiIUzytkownikaAsync(context);
         var controller = new PowiadomienieController(context);
         var dto = new PowiadomienieDto
         {
@@ -49,6 +53,32 @@ public class PowiadomienieControllerTests
     }
 
     [Fact]
+    public async Task Insert_OdrzucaNieznanaAplikacje()
+    {
+        using var context = ApiTestContextFactory.Create(userId: 101);
+        await SeedAplikacjiIUzytkownikaAsync(context);
+        var controller = new PowiadomienieController(context);
+
+        var wynik = await controller.Insert(DtoTestowe(powAplikacjaID: 999));
+
+        Assert.IsType<BadRequestObjectResult>(wynik.Result);
+        Assert.Equal(0, await context.Powiadomienie.CountAsync());
+    }
+
+    [Fact]
+    public async Task Insert_OdrzucaNieznanegoUzytkownika()
+    {
+        using var context = ApiTestContextFactory.Create(userId: 101);
+        await SeedAplikacjiIUzytkownikaAsync(context);
+        var controller = new PowiadomienieController(context);
+
+        var wynik = await controller.Insert(DtoTestowe(powUzytkownikID: 999));
+
+        Assert.IsType<BadRequestObjectResult>(wynik.Result);
+        Assert.Equal(0, await context.Powiadomienie.CountAsync());
+    }
+
+    [Fact]
     public void Insert_WymagaRoliAdministratoraLubIntegracjiEpicaHR()
     {
         var metoda = typeof(PowiadomienieController).GetMethod(nameof(PowiadomienieController.Insert));
@@ -60,12 +90,41 @@ public class PowiadomienieControllerTests
         Assert.Equal("Bearer", atrybut.AuthenticationSchemes);
     }
 
-    [Fact]
-    public void Insert_NieMaAtrybutuAnonimowego()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Dto_OdrzucaZerowaIdentyfikatoryUzytkownikaIAplikacji(int wartosc)
     {
-        var metoda = typeof(PowiadomienieController).GetMethod(nameof(PowiadomienieController.Insert));
-        Assert.NotNull(metoda);
-        Assert.Null(metoda!.GetCustomAttribute<AllowAnonymousAttribute>());
+        var dto = DtoTestowe(powAplikacjaID: wartosc, powUzytkownikID: wartosc);
+
+        var bledy = WalidujDto(dto);
+
+        Assert.Contains(bledy, b => b.MemberNames.Contains(nameof(PowiadomienieDto.powAplikacjaID)));
+        Assert.Contains(bledy, b => b.MemberNames.Contains(nameof(PowiadomienieDto.powUzytkownikID)));
+    }
+
+    // Sprawdza tylko, że atrybut [DozwolonyLink] jest podpięty do DTO. Pełne reguły są w testach BezpieczneLinki_*.
+    [Fact]
+    public void Dto_podpina_walidacje_linku_i_odrzuca_javascript()
+    {
+        var bledy = WalidujDto(DtoTestowe(powLink: "javascript:alert(1)"));
+
+        Assert.Contains(bledy, b => b.MemberNames.Contains(nameof(PowiadomienieDto.powLink)));
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    [InlineData("/podglad/zadanie", true)]
+    [InlineData("http://localhost:8240/x", true)]
+    [InlineData("https://app.hcz.com.pl/x?a=1", true)]
+    [InlineData("javascript:alert(1)", false)]
+    [InlineData("//evil.example.com", false)]
+    [InlineData("data:text/plain,abc", false)]
+    [InlineData("mailto:ktos@example.com", false)]
+    public void BezpieczneLinki_RozpoznajeDozwoloneAdresy(string? link, bool oczekiwany)
+    {
+        Assert.Equal(oczekiwany, BezpieczneLinki.Dozwolony(link));
     }
 
     [Fact]
@@ -97,21 +156,17 @@ public class PowiadomienieControllerTests
         Assert.False(zapisane.powOdczyt);
     }
 
+    // Brak testu "OdczytajWszystkie_OznaczaTylkoNieprzeczytaneZalogowanego": ExecuteUpdate nie działa w EF InMemory.
+    // Zachowanie masowej aktualizacji trzeba sprawdzić na bazie testowej (luka opisana w Changes.md).
     [Fact]
-    public async Task OdczytajWszystkie_OznaczaTylkoNieprzeczytaneZalogowanego()
+    public async Task Odczytaj_nieistniejacePowiadomienie_zwraca_NotFound()
     {
         using var context = ApiTestContextFactory.Create(userId: 101);
-        await DodajAsync(context, uzytkownikID: 7, tytul: "A");
-        await DodajAsync(context, uzytkownikID: 7, tytul: "B");
-        await DodajAsync(context, uzytkownikID: 7, tytul: "C", odczytane: true);
-        var obcyPowID = await DodajAsync(context, uzytkownikID: 8, tytul: "D");
         var controller = Kontroler(context, usrID: 7);
 
-        var wynik = await controller.OdczytajWszystkie(appID: 132, usrID: 7);
+        var wynik = await controller.Odczytaj(999);
 
-        Assert.Equal(2, Assert.IsType<int>(wynik.Value));
-        Assert.Equal(0, await context.Powiadomienie.CountAsync(w => w.powUzytkownikID == 7 && !w.powOdczyt));
-        Assert.False((await context.Powiadomienie.AsNoTracking().SingleAsync(w => w.powID == obcyPowID)).powOdczyt);
+        Assert.IsType<NotFoundResult>(wynik);
     }
 
     [Fact]
@@ -125,6 +180,33 @@ public class PowiadomienieControllerTests
 
         Assert.IsType<ForbidResult>(wynik.Result);
         Assert.Equal(1, await context.Powiadomienie.CountAsync(w => w.powUzytkownikID == 7 && !w.powOdczyt));
+    }
+
+    private static PowiadomienieDto DtoTestowe(
+        int powAplikacjaID = 132,
+        int powUzytkownikID = 7,
+        string? powLink = "/podglad/wiadomosc") => new()
+    {
+        powAplikacjaID = powAplikacjaID,
+        powUzytkownikID = powUzytkownikID,
+        powKodRodzaj = "TEST",
+        powTytul = "Tytuł testowy",
+        powTresc = "Treść testowa",
+        powLink = powLink
+    };
+
+    private static List<ValidationResult> WalidujDto(PowiadomienieDto dto)
+    {
+        var bledy = new List<ValidationResult>();
+        Validator.TryValidateObject(dto, new ValidationContext(dto), bledy, validateAllProperties: true);
+        return bledy;
+    }
+
+    private static async Task SeedAplikacjiIUzytkownikaAsync(indigoERPContext context)
+    {
+        context.Aplikacja.Add(new Aplikacja { appID = 132 });
+        context.Uzytkownik.Add(new Uzytkownik { usrID = 7 });
+        await context.SaveChangesAsync();
     }
 
     private static PowiadomienieController Kontroler(indigoERPContext context, int usrID)

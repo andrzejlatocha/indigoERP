@@ -1,4 +1,17 @@
-﻿## 2026-11-17 - Ikona document i tło Przepisy wewnętrzne (żółty)
+﻿## 2026-11-17 - Przegląd powiadomień, testy, strona główna: powrót bez okna ładowania i link Główna
+
+- **Zgłoszenie:** przegląd kodu powiadomień (bezpieczne linki, walidacja, masowe oznaczanie, obsługa błędów); brakujące i pokrywające się testy; na produkcji po długiej bezczynności „Główna” zmieniała adres bez załadowania strony; okno ładowania na stronie głównej miało się nie pokazywać przy powrocie z innego modułu lub aplikacji.
+- **Zmiana API:** PowiadomienieController.Insert sprawdza istnienie aplikacji i użytkownika (BadRequest); OdczytajWszystkie przez ExecuteUpdateAsync (jeden UPDATE, z ModyfikacjaID i DataModyfikacja, bez usuniętych); PowiadomienieDto: [Range(1, int.MaxValue)] na identyfikatorach, [DozwolonyLink] na powLink; Domain Common/BezpieczneLinki i DozwolonyLinkAttribute (tylko ścieżki od / i adresy http/https).
+- **Zmiana Services:** PodgladService: try/catch w OznaczPowiadomienie; OznaczWszystkiePowiadomienia zwraca int? (null = błąd).
+- **Zmiana Blazor:** PodgladLista i PowiadomienieStrona: komunikat błędu, link renderowany tylko po sprawdzeniu BezpieczneLinki; linki „Główna” w AdministratorHeader i MainHeader z target="_top" (pełne przejście zamiast nawigacji po zerwanym obwodzie); Home: okno ładowania tylko przy pierwszym wejściu w karcie (indigoHome.czyPokazacPowitanie w site.js, sessionStorage).
+- **Testy:** usunięte pokrywające się (Insert_NieMaAtrybutuAnonimowego, Dto_AkceptujeBrakLinku..., zwinięta teoria linków); dodane: Odczytaj NotFound, PodgladServiceTests (7), PowiadomienieStronaTests (4 + okno), test Home bez okna ładowania przy powrocie.
+- **Wersja:** 3.26.1117.11442 (Blazor, API).
+- **Status wdrożenia:** commit 20261117_11 na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor).
+- **Weryfikacja:** testy na eksporcie commita (wynik w logu wdrożenia): API, Blazor, Services, Worker.
+- **Luki:** komunikat błędu Radzen niesprawdzany automatycznie; OdczytajWszystkie (wariant z danymi) wymaga bazy testowej (ExecuteUpdate nie działa w InMemory); widoki mvw bez klucza bez testów w InMemory; inne linki w menu mogą wymagać tego samego po długiej bezczynności.
+
+
+## 2026-11-17 - Ikona document i tło Przepisy wewnętrzne (żółty)
 
 - **Zgłoszenie:** użytkownik podmienił ikonę document.png (wiodący kolor żółty); tło skrótu Przepisy wewnętrzne ma odpowiadać kolorowi ikony.
 - **Zmiana:** images/document.png (podmieniona przez użytkownika); Home.razor.css: tło skrótu Przepisy wewnętrzne #fbebcb (jasny pastel żółtego, z dominującej barwy PNG).

@@ -167,7 +167,8 @@ else
 @code{
     IEnumerable<AplikacjaViewModel>? data;
     bool browserWarrningVisible;
-    bool pageReady;
+    // Okno ładowania tylko przy pierwszym wejściu w karcie (ustala indigoHome.czyPokazacPowitanie w site.js).
+    bool pageReady = true;
 
     // Serwer testowy (test.hcz.com.pl): ostrzeżenie nad panelami aplikacji, żeby nie pomylić z produkcją.
     private bool JestSerwerTestowy => _navigationManager.BaseUri.Contains("test.hcz.com.pl", StringComparison.OrdinalIgnoreCase);
@@ -195,6 +196,14 @@ else
             return;
         }
 
+        var pokazacPowitanie = await JSRuntime.InvokeAsync<bool>("indigoHome.czyPokazacPowitanie");
+        if (!pokazacPowitanie)
+        {
+            return;
+        }
+
+        pageReady = false;
+        await InvokeAsync(StateHasChanged);
         await Task.Delay(TimeSpan.FromSeconds(3));
         pageReady = true;
         await InvokeAsync(StateHasChanged);

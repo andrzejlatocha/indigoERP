@@ -31,6 +31,16 @@ public class PowiadomienieController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<int>> Insert(PowiadomienieDto powiadomienieDto)
     {
+        if (!await _context.Aplikacja.AnyAsync(w => w.appID == powiadomienieDto.powAplikacjaID))
+        {
+            return BadRequest("Nieznana aplikacja.");
+        }
+
+        if (!await _context.Uzytkownik.AnyAsync(w => w.usrID == powiadomienieDto.powUzytkownikID))
+        {
+            return BadRequest("Nieznany użytkownik.");
+        }
+
         var powiadomienie = powiadomienieDto.Adapt<Powiadomienie>();
         powiadomienie.powDataPowiadomienia = DateTime.Now;
         powiadomienie.powOdczyt = false;
@@ -109,23 +119,17 @@ public class PowiadomienieController : ControllerBase
             return Forbid();
         }
 
-        var nieprzeczytane = await _context.Powiadomienie
-            .Where(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt)
-            .ToListAsync();
-
+        // Jedna instrukcja UPDATE w bazie zamiast wczytywania wszystkich nieprzeczytanych rekordów do pamięci.
         var teraz = DateTime.Now;
-        foreach (var powiadomienie in nieprzeczytane)
-        {
-            powiadomienie.powOdczyt = true;
-            powiadomienie.powDataOdczytu = teraz;
-        }
+        var zmienione = await _context.Powiadomienie
+            .Where(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt && w.Usuniety != true)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(w => w.powOdczyt, true)
+                .SetProperty(w => w.powDataOdczytu, teraz)
+                .SetProperty(w => w.DataModyfikacja, teraz)
+                .SetProperty(w => w.ModyfikacjaID, usrID));
 
-        if (nieprzeczytane.Count > 0)
-        {
-            await _context.SaveChangesAsync();
-        }
-
-        return nieprzeczytane.Count;
+        return zmienione;
     }
 
     private int? BiezacyUzytkownikID() =>

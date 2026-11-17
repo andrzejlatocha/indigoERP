@@ -56,22 +56,36 @@ namespace indigoERP.Service.Services._Wspolne
 
         public async Task<bool> OznaczPowiadomienie(int powID)
         {
-            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
-            var response = await httpClient.PostAsync($"Powiadomienie/Odczytaj/{powID}", null);
+            try
+            {
+                var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+                var response = await httpClient.PostAsync($"Powiadomienie/Odczytaj/{powID}", null);
 
-            return response.IsSuccessStatusCode;
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
-        public async Task<int> OznaczWszystkiePowiadomienia(int appID, int usrID)
+        public async Task<int?> OznaczWszystkiePowiadomienia(int appID, int usrID)
         {
-            var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
-            var response = await httpClient.PostAsync($"Powiadomienie/OdczytajWszystkie/{appID}/{usrID}", null);
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                return 0;
-            }
+                var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+                var response = await httpClient.PostAsync($"Powiadomienie/OdczytajWszystkie/{appID}/{usrID}", null);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
 
-            return await response.Content.ReadFromJsonAsync<int>();
+                return await response.Content.ReadFromJsonAsync<int>();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

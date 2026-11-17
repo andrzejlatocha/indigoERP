@@ -6,6 +6,7 @@
 @inject IConfiguration _configuration
 @inject DialogService _dialogService
 @inject NavigationManager _navigationManager
+@inject NotificationService _notificationService
 
 @if (ladowanie)
 {
@@ -125,12 +126,33 @@ else
             powiadomienie.powOdczyt = true;
             powiadomienie.powDataOdczytu = DateTime.Now;
         }
+        else
+        {
+            PokazBlad();
+        }
     }
 
     private async Task OznaczWszystkie()
     {
-        await _podgladService.OznaczWszystkiePowiadomienia(aktualnyAppID, aktualnyUsrID);
+        var oznaczone = await _podgladService.OznaczWszystkiePowiadomienia(aktualnyAppID, aktualnyUsrID);
+        if (oznaczone is null)
+        {
+            PokazBlad();
+            return;
+        }
+
         await ZaladujAsync();
+    }
+
+    private void PokazBlad()
+    {
+        _notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Error,
+            Summary = "Błąd",
+            Detail = "Nie udało się oznaczyć powiadomienia. Spróbuj ponownie.",
+            Duration = 6000
+        });
     }
 
     // Pełna strona powiadomień; zamknięcie okna bocznego przed przejściem.
