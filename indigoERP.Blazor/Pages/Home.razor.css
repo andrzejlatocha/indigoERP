@@ -383,11 +383,6 @@
     object-fit: contain;
 }
 
-/* kendoCMMS.png ma ciemny znak; inne ikony są białe. Sprowadzamy do bieli filtrem, bez zmiany pliku. */
-.application-card__icon img[src*="kendo"] {
-    filter: brightness(0) invert(1);
-}
-
 .application-card:nth-child(4n + 1) .application-card__icon {
     background: #0078d4;
 }
