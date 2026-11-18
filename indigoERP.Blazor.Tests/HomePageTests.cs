@@ -51,11 +51,11 @@ public sealed class HomePageTests : BunitContext
         WaitForHomeContent(cut);
         var buttons = cut.FindAll("a.legacy-button");
 
-        Assert.Equal(9, buttons.Count);
+        Assert.Equal(8, buttons.Count);
         Assert.All(buttons, button => Assert.Contains("btn-warning", button.ClassName));
         Assert.Contains(buttons, b => b.TextContent.Contains("hydraRCP") && b.GetAttribute("href") == "http://wenus.hcz.com.pl/hydra/");
         Assert.Contains(buttons, b => b.TextContent.Contains("cerberTMS") && b.GetAttribute("href") == "https://intranet.hcz.com.pl/cerber/");
-        Assert.Equal(9, buttons.Select(b => b.GetAttribute("href")).Distinct().Count());
+        Assert.Equal(8, buttons.Select(b => b.GetAttribute("href")).Distinct().Count());
     }
 
     private static void WaitForHomeContent(IRenderedComponent<Pages.Home> cut)

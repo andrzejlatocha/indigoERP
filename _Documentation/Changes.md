@@ -1,4 +1,13 @@
-﻿## 2026-11-17 - Ikona aplikacji bespinEWA
+﻿## 2026-11-18 - Strona główna: bez bespinEWA na liście starych aplikacji, większe okno ładowania
+
+- **Zgłoszenie:** usunąć bespinEWA ze starych aplikacji; okno ładowania strony głównej ma być większe (około dwa razy).
+- **Zmiana:** Home.razor: usunięty wpis bespinEWA z listy starych aplikacji (8 przycisków); HomePageTests: oczekiwana liczba 8; Home.razor.css: panel ładowania 720 px, logo 224 px, pasek postępu 12 px, odstępy i zaokrąglenie podwojone.
+- **Wersja:** 3.26.1118.11444 (Blazor, API).
+- **Status wdrożenia:** commit 20261118 na developer (master nieaktualizowany); wdrożenie na DEIMOS i CERES (API i Blazor).
+- **Weryfikacja:** testy na eksporcie commita (wynik w logu wdrożenia).
+
+
+## 2026-11-17 - Ikona aplikacji bespinEWA
 
 - **Zgłoszenie:** użytkownik poprosił o dodanie ikony bespinEWA.png do publikacji.
 - **Zmiana:** dodany plik indigoERP.Blazor/wwwroot/images/aplikacja/bespinEWA.png (PNG 684 B). Kod bez zmian.
