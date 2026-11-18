@@ -12,9 +12,7 @@
 
 <PageTitle>Główna</PageTitle>
 
-@if (!pageReady)
-{
-    <div class="home-loading" role="status" aria-live="polite">
+<div class="home-loading" role="status" aria-live="polite">
         <section class="home-loading__panel" aria-label="Ładowanie strony głównej">
             <div class="home-loading__preview">
                 <img class="home-loading__logo" src="images/logo_white.svg" alt="Huta Częstochowa" />
@@ -23,9 +21,6 @@
             <span class="visually-hidden">Ładowanie strony głównej.</span>
         </section>
     </div>
-}
-else
-{
 <div class="home-page main-image">
     <aside class="home-sidebar">
         <nav class="home-shortcuts" aria-label="Skróty">
@@ -162,13 +157,10 @@ else
         }
     </main>
 </div>
-}
 
 @code{
     IEnumerable<AplikacjaViewModel>? data;
     bool browserWarrningVisible;
-    // Okno ładowania tylko przy pierwszym wejściu w karcie (ustala indigoHome.czyPokazacPowitanie w site.js).
-    bool pageReady = true;
 
     // Serwer testowy (test.hcz.com.pl): ostrzeżenie nad panelami aplikacji, żeby nie pomylić z produkcją.
     private bool JestSerwerTestowy => _navigationManager.BaseUri.Contains("test.hcz.com.pl", StringComparison.OrdinalIgnoreCase);
@@ -187,26 +179,6 @@ else
     };
 
     private sealed record LegacyApp(string Name, string Icon, string Url);
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
-
-        var pokazacPowitanie = await JSRuntime.InvokeAsync<bool>("indigoHome.czyPokazacPowitanie");
-        if (!pokazacPowitanie)
-        {
-            return;
-        }
-
-        pageReady = false;
-        await InvokeAsync(StateHasChanged);
-        await Task.Delay(TimeSpan.FromSeconds(3));
-        pageReady = true;
-        await InvokeAsync(StateHasChanged);
-    }
 
     protected override async Task OnParametersSetAsync()
     {

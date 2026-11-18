@@ -1,4 +1,15 @@
-﻿## 2026-11-18 - Strona główna: bez bespinEWA na liście starych aplikacji, większe okno ładowania
+﻿## 2026-11-18 - Okno ładowania strony głównej: bez migania, o 50% większe
+
+- **Zgłoszenie:** strona najpierw wyświetla się normalnie, potem znika, pojawia się okno ładowania i znów strona; okno ma być większe o 50%.
+- **Diagnoza:** Home renderował treść, a po odpowiedzi JavaScriptu przełączał się na okno ładowania na 3 s (pageReady).
+- **Zmiana:** Home.razor: okno ładowania zawsze w HTML, bez warunku i bez OnAfterRenderAsync; _Host.cshtml: skrypt w head sprawdza przed pierwszym malowaniem sessionStorage (indigoERP.homeLoaded) tylko dla ścieżki bazowej i dodaje klasę indigo-first-visit na html na 3 s; Home.razor.css: .home-loading ukryte domyślnie, pokazywane jako nakładka tylko przy indigo-first-visit; panel 1080 px (było 720), logo 336 px (było 224), odstępy 42 px, pasek 18 px, obramowanie 3 px, zaokrąglenie 24 px.
+- **Wersja:** 3.26.1118.11445 (Blazor, API).
+- **Status wdrożenia:** commit 20261118_01 na developer (master nieaktualizowany); wdrożenie na CERES i DEIMOS (API i Blazor).
+- **Weryfikacja:** testy na eksporcie commita (wynik w logu wdrożenia); Blazor 34/34 (usunięty test powrotu: logika w skrypcie i CSS, bUnit jej nie sprawdza).
+- **Luki:** zachowanie okna ładowania (migotanie, czas) tylko do sprawdzenia w przeglądarce na test.hcz.com.pl.
+
+
+## 2026-11-18 - Strona główna: bez bespinEWA na liście starych aplikacji, większe okno ładowania
 
 - **Zgłoszenie:** usunąć bespinEWA ze starych aplikacji; okno ładowania strony głównej ma być większe (około dwa razy).
 - **Zmiana:** Home.razor: usunięty wpis bespinEWA z listy starych aplikacji (8 przycisków); HomePageTests: oczekiwana liczba 8; Home.razor.css: panel ładowania 720 px, logo 224 px, pasek postępu 12 px, odstępy i zaokrąglenie podwojone.
