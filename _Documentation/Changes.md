@@ -1,4 +1,15 @@
-﻿## 2026-11-18 - Okno ładowania strony głównej: bez migania, o 50% większe
+﻿## 2026-11-20 - Data Protection: katalog kluczy ze zmiennej DataProtection_KeysPath
+
+- **Zgłoszenie:** katalog kluczy Data Protection miał być na sztywno w katalogu aplikacji (DataProtectionKeys); ustalenie: katalog ze zmiennej systemowej DataProtection_KeysPath, wspólnej dla serwera.
+- **Zmiana:** indigoERP.Blazor/Program.cs: zmienna DataProtection_KeysPath (Process, potem Machine) nadpisuje DataProtection:KeysPath; konfiguracja jako rezerwa; poza Development brak obu zatrzymuje start komunikatem InvalidOperationException; w Development domyślnie katalog DataProtectionKeys w katalogu aplikacji.
+- **Wymagania wdrożenia:** na CERES i DEIMOS zmienna systemowa DataProtection_KeysPath i katalog z prawem zapisu/odczytu dla konta puli; przed pierwszym startem skopiować istniejące klucze z DataProtectionKeys do nowego katalogu (inaczej wylogowanie użytkowników). CERES: iisreset (zmienne Machine); DEIMOS: tylko restart puli.
+- **Publikacja:** wykluczenie /XD DataProtectionKeys zostaje do czasu migracji; po migracji można je usunąć z procedury.
+- **Status wdrożenia:** w drzewie roboczym, niecommitowane, niewdrożone.
+- **Weryfikacja:** build indigoERP.Blazor 0 błędów; ostrzeżenie ASPDEPR003 (AddRazorRuntimeCompilation) istniało wcześniej.
+- **Luki:** nie sprawdzono zmiennej i uprawnień na serwerach (brak dostępu); inne projekty z listy (menageKSeF, kendoCMMS, atacamaDMS, sapphireCP, cerberTMS.Portal) poza tym repozytorium.
+
+
+## 2026-11-18 - Okno ładowania strony głównej: bez migania, o 50% większe
 
 - **Zgłoszenie:** strona najpierw wyświetla się normalnie, potem znika, pojawia się okno ładowania i znów strona; okno ma być większe o 50%.
 - **Diagnoza:** Home renderował treść, a po odpowiedzi JavaScriptu przełączał się na okno ładowania na 3 s (pageReady).
