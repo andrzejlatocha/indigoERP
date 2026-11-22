@@ -1,4 +1,4 @@
-using indigoERP.Domain.Dtos._Administrator;
+﻿using indigoERP.Domain.Dtos._Administrator;
 using indigoERP.Domain.Models._Wspolne;
 using indigoERP.Domain.ViewModels._Administracja;
 
@@ -15,5 +15,6 @@ namespace indigoERP.Service.Interfaces._Administrator
         Task<ResponseMessage> Delete(int groID);
         Task<ResponseMessage> InsertCzlonek(GrupaCzlonkowieDto czlonek);
         Task<ResponseMessage> DeleteCzlonek(int uwgID);
+        Task<ResponseMessage> DeleteCzlonkowieByUzytkownik(int usrID);
     }
 }

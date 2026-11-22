@@ -1,4 +1,5 @@
-﻿@using indigoERP.Domain.Models._Wspolne
+﻿@using indigoERP.Domain.Common
+@using indigoERP.Domain.Models._Wspolne
 @using indigoERP.Domain.ViewModels._Wspolne
 @using indigoERP.Domain.Enumerators._Wspolne
 @using indigoERP.Service.Interfaces._Wspolne
@@ -57,6 +58,24 @@
                           Variant="Variant.Outlined" Click="@OdznaczWszystko" Disabled="@(selected.Count == 0)" />
         </RadzenStack>
 
+        @if (JestZakresWlasny)
+        {
+            <div class="mt-3">
+                <RadzenDropDown TValue="IEnumerable<string>" Value="@wlasneAdresyWybrane" ValueChanged="@OnAdresyZmienione"
+                                Multiple="true" AllowCustomValues="true" AllowClear="true" Data="@(new List<string>())"
+                                Placeholder="Wpisz adres e-mail i zatwierdź Enter" Style="width:100%" />
+                @if (WlasneAdresy.Count > 0 && BladAdresow != null)
+                {
+                    <div class="text-danger small mt-1">@BladAdresow</div>
+                }
+                else if (WlasneAdresy.Count > 0)
+                {
+                    <div class="text-muted small mt-1">Adresów: @WlasneAdresy.Count</div>
+                }
+            </div>
+        }
+        else
+        {
         <div class="glos-okno-siatka mt-3">
         @if (selectedZakresID == null)
         {
@@ -70,7 +89,7 @@
         {
             <RadzenDataGridApp @ref="grid" Data="@pracownicy" TItem="WiadomoscZakresPracownikViewModel" AllowPaging="true" PageSize="23"
                                AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                               Density="Density.Compact" Class="administrator-grid" Style="height:calc(100vh - 15rem)">
+                               Density="Density.Compact" Class="administrator-grid" Style="height:calc(100vh - 19.5rem)">
                 <Columns>
                     <RadzenDataGridColumn TItem="WiadomoscZakresPracownikViewModel" Sortable="false" Filterable="false" Width="50px" TextAlign="TextAlign.Center">
                         <HeaderTemplate>
@@ -88,6 +107,7 @@
             </RadzenDataGridApp>
         }
         </div>
+        }
 
         @if (busy)
         {
@@ -97,7 +117,7 @@
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3 w-100">
             @if (potwierdzenie)
             {
-                <span class="flex-grow-1" style="font-size:0.8rem; color:#4a4a4a;">Wysłać „@Tytul” do @selected.Count osób z zakresu „@NazwaZakresu”?</span>
+                <span class="flex-grow-1" style="font-size:0.8rem; color:#4a4a4a;">Wysłać „@Tytul” do @LiczbaOdbiorcow osób z zakresu „@NazwaZakresu”?</span>
                 <RadzenButton Text="@(zaplanuj ? "ZAPLANUJ" : "WYŚLIJ")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                               Click="@Wyslij" IsBusy="@busy" Disabled="@busy" />
                 <RadzenButton Text="Nie" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@AnulujPotwierdzenie" Disabled="@busy" />
@@ -105,7 +125,7 @@
             else
             {
                 <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => ZamknijOkno(null))" Disabled="@busy" />
-                <RadzenButton Text="@($"Wyślij ({selected.Count})")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
+                <RadzenButton Text="@($"Wyślij ({LiczbaOdbiorcow})")" Icon="send" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                               Click="@PoprosOPotwierdzenie" Disabled="@(!MoznaWyslac || busy)" />
             }
         </RadzenStack>
@@ -173,6 +193,22 @@
     private List<WiadomoscWzorzecEnumerator> wzorce = new();
     private int? wzorzecID;
 
+    // Zakres z własną listą adresów (wzaWlasne): zamiast pracowników tagbox z adresami e-mail.
+    private IEnumerable<string>? wlasneAdresyWybrane;
+
+    private bool JestZakresWlasny => zakresy.FirstOrDefault(z => z.wzaID == selectedZakresID)?.wzaWlasne == true;
+
+    private List<string> WlasneAdresy => (wlasneAdresyWybrane ?? Enumerable.Empty<string>()).ToList();
+
+    private string? BladAdresow => AdresyEmail.Waliduj(WlasneAdresy).Blad;
+
+    private int LiczbaOdbiorcow => JestZakresWlasny ? AdresyEmail.Waliduj(WlasneAdresy).Adresy.Count : selected.Count;
+
+    private void OnAdresyZmienione(IEnumerable<string>? wartosci)
+    {
+        wlasneAdresyWybrane = wartosci;
+    }
+
     private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
 
     private string NazwaZakresu => zakresy.FirstOrDefault(z => z.wzaID == selectedZakresID)?.wzaNazwa ?? "wybrany zakres";
@@ -182,7 +218,8 @@
         && !string.IsNullOrWhiteSpace(System.Text.RegularExpressions.Regex.Replace(tresc ?? string.Empty, "<[^>]*>", string.Empty).Trim())
         && wzorzecID.HasValue;
 
-    private bool MoznaWyslac => selectedZakresID.HasValue && selected.Count > 0;
+    private bool MoznaWyslac => selectedZakresID.HasValue
+        && (JestZakresWlasny ? AdresyEmail.Waliduj(WlasneAdresy).Blad == null : selected.Count > 0);
 
     protected override async Task OnInitializedAsync()
     {
@@ -200,8 +237,9 @@
     {
         selected = new List<WiadomoscZakresPracownikViewModel>();
         pracownicy = null;
+        wlasneAdresyWybrane = null;
 
-        if (selectedZakresID.HasValue)
+        if (selectedZakresID.HasValue && !JestZakresWlasny)
         {
             pracownicy = (await _wiadomoscPracownikService.SelectPracownicyZakres(selectedZakresID.Value)).ToList();
         }
@@ -335,7 +373,7 @@
 
     private async Task Wyslij()
     {
-        if (WiadomoscID == null || !selectedZakresID.HasValue || selected.Count == 0)
+        if (WiadomoscID == null || !MoznaWyslac)
         {
             return;
         }
@@ -353,7 +391,8 @@
             var model = new WiadomoscWyslijRoboczaModel
             {
                 wzaID = selectedZakresID.Value,
-                prcIDs = selected.Where(s => s.prcID.HasValue).Select(s => s.prcID!.Value).ToList(),
+                prcIDs = JestZakresWlasny ? new List<int>() : selected.Where(s => s.prcID.HasValue).Select(s => s.prcID!.Value).ToList(),
+                adresy = JestZakresWlasny ? AdresyEmail.Waliduj(WlasneAdresy).Adresy : new List<string>(),
                 kodHarmonogram = zaplanuj ? kodCyklu : null,
                 dataHarmonogramStart = zaplanuj ? terminStart : null,
                 dataHarmonogramKoniec = zaplanuj && kodCyklu != "J" ? terminKoniec : null

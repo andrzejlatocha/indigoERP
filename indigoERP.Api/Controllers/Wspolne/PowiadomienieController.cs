@@ -31,6 +31,16 @@ public class PowiadomienieController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<int>> Insert(PowiadomienieDto powiadomienieDto)
     {
+        if (!await _context.Aplikacja.AnyAsync(w => w.appID == powiadomienieDto.powAplikacjaID))
+        {
+            return BadRequest("Nieznana aplikacja.");
+        }
+
+        if (!await _context.Uzytkownik.AnyAsync(w => w.usrID == powiadomienieDto.powUzytkownikID))
+        {
+            return BadRequest("Nieznany użytkownik.");
+        }
+
         var powiadomienie = powiadomienieDto.Adapt<Powiadomienie>();
         powiadomienie.powDataPowiadomienia = DateTime.Now;
         powiadomienie.powOdczyt = false;
@@ -50,7 +60,18 @@ public class PowiadomienieController : ControllerBase
             .CountAsync(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt);
     }
 
-    // GET: api/Powiadomienie/SelectOstatnie/{appID}/{usrID}?take=50 - najnowsze powiadomienia (przeczytane i nieprzeczytane).
+    // Nieprzeczytane powiadomienia bieżącego użytkownika, maksymalnie 50.
+    [Authorize(AuthenticationSchemes = BearerScheme)]
+    [HttpGet("{appID}/{usrID}")]
+    public async Task<ActionResult<IEnumerable<PowiadomienieViewModel>>> SelectNieprzeczytane(int appID, int usrID)
+    {
+        if (BiezacyUzytkownikID() != usrID) return Forbid();
+        return await _context.PowiadomienieViewModel.AsNoTracking()
+            .Where(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt)
+            .OrderByDescending(w => w.powDataPowiadomienia).ThenByDescending(w => w.powID).Take(50).ToListAsync();
+    }
+
+    // GET: api/Powiadomienie/SelectOstatnie/{appID}/{usrID}?take=50 - najnowsze powiadomienia.
     [Authorize(AuthenticationSchemes = BearerScheme)]
     [HttpGet("{appID}/{usrID}")]
     public async Task<ActionResult<IEnumerable<PowiadomienieViewModel>>> SelectOstatnie(int appID, int usrID, int take = 50)
@@ -109,23 +130,17 @@ public class PowiadomienieController : ControllerBase
             return Forbid();
         }
 
-        var nieprzeczytane = await _context.Powiadomienie
-            .Where(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt)
-            .ToListAsync();
-
+        // Jedna instrukcja UPDATE w bazie zamiast wczytywania wszystkich nieprzeczytanych rekordów do pamięci.
         var teraz = DateTime.Now;
-        foreach (var powiadomienie in nieprzeczytane)
-        {
-            powiadomienie.powOdczyt = true;
-            powiadomienie.powDataOdczytu = teraz;
-        }
+        var zmienione = await _context.Powiadomienie
+            .Where(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt && w.Usuniety != true)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(w => w.powOdczyt, true)
+                .SetProperty(w => w.powDataOdczytu, teraz)
+                .SetProperty(w => w.DataModyfikacja, teraz)
+                .SetProperty(w => w.ModyfikacjaID, usrID));
 
-        if (nieprzeczytane.Count > 0)
-        {
-            await _context.SaveChangesAsync();
-        }
-
-        return nieprzeczytane.Count;
+        return zmienione;
     }
 
     private int? BiezacyUzytkownikID() =>

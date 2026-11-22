@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using indigoERP.Domain.Common;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Worker.Data;
 using Microsoft.EntityFrameworkCore;
@@ -236,7 +237,7 @@ public sealed class WiadomoscKolejkaService
 
             do
             {
-                nastepny = NastepnyTermin(kod, nastepny);
+                nastepny = HarmonogramTerminy.NastepnyTermin(kod, nastepny);
             }
             while (nastepny <= teraz && nastepny != DateTime.MaxValue);
 
@@ -264,18 +265,6 @@ public sealed class WiadomoscKolejkaService
         }
 
         return utworzone;
-    }
-
-    // Cykl: J = jednorazowo (brak kolejnego terminu), D = dziennie, T = tygodniowo, M = miesięcznie.
-    private static DateTime NastepnyTermin(string kod, DateTime poprzedni)
-    {
-        return kod switch
-        {
-            "D" => poprzedni.AddDays(1),
-            "T" => poprzedni.AddDays(7),
-            "M" => poprzedni.AddMonths(1),
-            _ => DateTime.MaxValue,
-        };
     }
 
     private async Task<Wiadomosc?> ClaimNextAsync(CancellationToken cancellationToken)

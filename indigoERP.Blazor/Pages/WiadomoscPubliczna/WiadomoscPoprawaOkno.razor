@@ -1,4 +1,5 @@
-﻿@using indigoERP.Domain.Models._Wspolne
+﻿@using indigoERP.Domain.Common
+@using indigoERP.Domain.Models._Wspolne
 @using indigoERP.Service.Interfaces._Wspolne
 
 @inject IWiadomoscPracownikService _wiadomoscPracownikService
@@ -12,10 +13,21 @@
     <RadzenFormField Text="Treść" Style="width:100%">
         <RadzenHtmlEditor @bind-Value="@tresc" Style="height:280px" />
     </RadzenFormField>
+    @if (wlasne)
+    {
+        <RadzenFormField Text="Adresy e-mail" Style="width:100%">
+            <RadzenDropDown TValue="IEnumerable<string>" Value="@adresy" ValueChanged="@OnAdresyZmienione"
+                            Multiple="true" AllowCustomValues="true" AllowClear="true" Data="@(new List<string>())" Style="width:100%" />
+        </RadzenFormField>
+        @if (adresy.Count > 0 && AdresyEmail.Waliduj(adresy).Blad is { } blad)
+        {
+            <div class="text-danger small">@blad</div>
+        }
+    }
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem" Class="mt-2">
         <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.CloseSide(false))" Disabled="@zapisywanie" />
         <RadzenButton Text="@(zapisywanie ? "Zapisywanie..." : "Zapisz")" Icon="save" ButtonStyle="ButtonStyle.Primary"
-                      Click="@ZapiszAsync" Disabled="@(zapisywanie || string.IsNullOrWhiteSpace(temat))" />
+                      Click="@ZapiszAsync" Disabled="@(zapisywanie || string.IsNullOrWhiteSpace(temat) || (wlasne && AdresyEmail.Waliduj(adresy).Blad != null))" />
     </RadzenStack>
 </div>
 
@@ -29,14 +41,27 @@
     [Parameter]
     public string? Tresc { get; set; }
 
+    /// <summary>Własna lista adresów wiadomości (zakres z wzaWlasne); brak = wiadomość z zakresem pracowników.</summary>
+    [Parameter]
+    public List<string>? Adresy { get; set; }
+
     private string temat = string.Empty;
     private string? tresc;
     private bool zapisywanie;
+    private bool wlasne;
+    private List<string> adresy = new();
 
     protected override void OnInitialized()
     {
         temat = Temat ?? string.Empty;
         tresc = Tresc;
+        wlasne = Adresy is { Count: > 0 };
+        adresy = Adresy?.ToList() ?? new List<string>();
+    }
+
+    private void OnAdresyZmienione(IEnumerable<string>? wartosci)
+    {
+        adresy = wartosci?.ToList() ?? new List<string>();
     }
 
     private async Task ZapiszAsync()
@@ -45,7 +70,13 @@
 
         try
         {
-            var wynik = await _wiadomoscPracownikService.PoprawRobocza(WiadomoscID, new WiadomoscPoprawaModel { wiaTemat = temat, wiaTresc = tresc });
+            var model = new WiadomoscPoprawaModel
+            {
+                wiaTemat = temat,
+                wiaTresc = tresc,
+                adresy = wlasne ? AdresyEmail.Waliduj(adresy).Adresy : null
+            };
+            var wynik = await _wiadomoscPracownikService.PoprawRobocza(WiadomoscID, model);
 
             if (wynik.Code < 200 || wynik.Code >= 300)
             {

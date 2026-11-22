@@ -79,17 +79,6 @@
                         Model.PierwszePdf.TryGetValue(wiadomosc.wiaID, out var pdf);
 
                         <article class="glos-kafelek">
-                            <a asp-page="WiadomoscPubliczna" asp-route-wiaID="@wiadomosc.wiaID" class="glos-miniatura">
-                                @if (pdf != null)
-                                {
-                                    <img src="@Url.Page("WiadomoscPubliczna", "Miniatura", new { wdoID = pdf.wdoID })"
-                                         alt="Pierwsza strona: @wiadomosc.wiaTemat" loading="lazy" />
-                                }
-                                else
-                                {
-                                    <span class="glos-miniatura-brak">Brak PDF</span>
-                                }
-                            </a>
                             <div class="glos-kafelek-tresc">
                                 <small class="text-muted">@wiadomosc.wiaData?.ToString("d")</small>
                                 <h5><a asp-page="WiadomoscPubliczna" asp-route-wiaID="@wiadomosc.wiaID">@wiadomosc.wiaTemat</a></h5>

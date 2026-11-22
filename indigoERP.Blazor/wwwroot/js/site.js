@@ -94,3 +94,19 @@ async function downloadFileFromStream(fileName, contentStreamReference) {
     anchor.remove();
     URL.revokeObjectURL(url);
 }
+
+// Okno ładowania strony głównej pokazujemy tylko przy pierwszym wejściu w karcie.
+// Powroty z innych modułów i aplikacji (ta sama karta) pomijają ładowanie.
+window.indigoHome = {
+    czyPokazacPowitanie: function () {
+        try {
+            if (sessionStorage.getItem("indigoERP.homeLoaded") === "1") {
+                return false;
+            }
+            sessionStorage.setItem("indigoERP.homeLoaded", "1");
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+};

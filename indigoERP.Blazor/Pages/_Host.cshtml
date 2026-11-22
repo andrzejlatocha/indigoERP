@@ -54,6 +54,24 @@
     <script src="~/js/fontawesome.min.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
 
+    <script>
+        // Okno ładowania strony głównej tylko przy pierwszym wejściu w karcie. Powroty z innych modułów i aplikacji
+        // (ta sama karta) go pomijają. Klasa na <html> jest ustawiana przed pierwszym malowaniem, więc nie ma migania.
+        (function () {
+            try {
+                var baza = new URL('.', document.baseURI).pathname;
+                if (window.location.pathname !== baza || sessionStorage.getItem('indigoERP.homeLoaded') === '1') {
+                    return;
+                }
+                sessionStorage.setItem('indigoERP.homeLoaded', '1');
+                document.documentElement.classList.add('indigo-first-visit');
+                setTimeout(function () {
+                    document.documentElement.classList.remove('indigo-first-visit');
+                }, 3000);
+            } catch (e) {
+            }
+        })();
+    </script>
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>

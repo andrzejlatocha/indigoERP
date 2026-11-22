@@ -1,5 +1,6 @@
 ﻿using indigoERP.Api.Data;
 using indigoERP.Api.Services;
+using indigoERP.Domain.Common;
 using indigoERP.Domain.Dtos._Wspolne;
 using indigoERP.Domain.Entities._Wspolne;
 using indigoERP.Domain.Models._Wspolne;
@@ -212,27 +213,40 @@ public class WiadomoscPracownikController : ControllerBase
         // Szkice zapisane przed ustawieniem wzorca dostają go przy wysyłce.
         wiadomosc.wiaWzorzecID ??= WzorzecWiadomosciPublicznej;
 
-        if (model.prcIDs.Count == 0)
-        {
-            return BadRequest("Wybierz co najmniej jednego odbiorcę.");
-        }
-
+        var wlasne = await CzyZakresWlasny(model.wzaID, cancellationToken);
         var zakres = await _zakresy.Pobierz(model.wzaID, cancellationToken);
 
-        if (zakres == null)
+        if (!wlasne && zakres == null)
         {
             return BadRequest("Nieprawidłowy zakres odbiorców.");
         }
 
-        var wynik = new WiadomoscWysylkaZakresWynikModel { wiaID = wiaID };
-        var doWyslania = PrzygotujOdbiorcow(zakres, model.prcIDs, wynik, model.wzaID == 7);
+        var walidacja = wlasne ? AdresyEmail.Waliduj(model.adresy) : (Adresy: new List<string>(), Blad: (string?)null);
 
-        if (doWyslania.Count == 0)
+        if (walidacja.Blad != null)
+        {
+            return BadRequest(walidacja.Blad);
+        }
+
+        if (!wlasne && model.prcIDs.Count == 0)
+        {
+            return BadRequest("Wybierz co najmniej jednego odbiorcę.");
+        }
+
+        var wynik = new WiadomoscWysylkaZakresWynikModel { wiaID = wiaID };
+        var doWyslania = wlasne
+            ? new List<WiadomoscZakresPracownikViewModel>()
+            : PrzygotujOdbiorcow(zakres!, model.prcIDs, wynik, model.wzaID == 7);
+        var liczba = wlasne ? walidacja.Adresy.Count : doWyslania.Count;
+
+        if (liczba == 0)
         {
             return BadRequest("Żaden z wybranych odbiorców nie ma adresu e-mail w zakresie.");
         }
 
-        var bladHarmonogramu = string.IsNullOrWhiteSpace(model.kodHarmonogram) ? null : WalidujHarmonogram(model);
+        var bladHarmonogramu = string.IsNullOrWhiteSpace(model.kodHarmonogram)
+            ? null
+            : HarmonogramTerminy.Waliduj(model.kodHarmonogram, model.dataHarmonogramStart, model.dataHarmonogramKoniec, DateTime.Now);
 
         if (bladHarmonogramu != null)
         {
@@ -247,13 +261,13 @@ public class WiadomoscPracownikController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(model.kodHarmonogram))
         {
-            DodajOdbiorcow(wiaID, doWyslania);
+            ZapiszOdbiorcow(wiaID, wlasne, walidacja.Adresy, doWyslania, WprStatusNowa);
             wiadomosc.wiaStatus = StatusWyslana;
         }
         else
         {
             // Harmonogram: szablon (status 7) z odbiorcami; Worker kopiuje go na wysyłkę w terminie.
-            DodajOdbiorcow(wiaID, doWyslania, StatusHarmonogram);
+            ZapiszOdbiorcow(wiaID, wlasne, walidacja.Adresy, doWyslania, StatusHarmonogram);
             wiadomosc.wiaStatus = StatusHarmonogram;
             wiadomosc.wiaKodHarmonogram = model.kodHarmonogram;
             wiadomosc.wiaDataHarmonogramStart = model.dataHarmonogramStart;
@@ -270,7 +284,7 @@ public class WiadomoscPracownikController : ControllerBase
             await transakcja.CommitAsync(cancellationToken);
         }
 
-        wynik.dodano = doWyslania.Count;
+        wynik.dodano = liczba;
 
         return Ok(wynik);
     }
@@ -295,11 +309,6 @@ public class WiadomoscPracownikController : ControllerBase
             return BadRequest("Wybierz wzorzec wiadomości.");
         }
 
-        if (model.prcIDs.Count == 0)
-        {
-            return BadRequest("Wybierz co najmniej jednego odbiorcę.");
-        }
-
         var zalaczniki = pliki?.ToList() ?? new List<IFormFile>();
         var blad = WalidujZalaczniki(zalaczniki);
 
@@ -308,17 +317,33 @@ public class WiadomoscPracownikController : ControllerBase
             return BadRequest(blad);
         }
 
+        var wlasne = await CzyZakresWlasny(model.wzaID, cancellationToken);
         var zakres = await _zakresy.Pobierz(model.wzaID, cancellationToken);
 
-        if (zakres == null)
+        if (!wlasne && zakres == null)
         {
             return BadRequest("Nieprawidłowy zakres odbiorców.");
         }
 
-        var wynik = new WiadomoscWysylkaZakresWynikModel();
-        var doWyslania = PrzygotujOdbiorcow(zakres, model.prcIDs, wynik, model.wzaID == 7);
+        var walidacja = wlasne ? AdresyEmail.Waliduj(model.adresy) : (Adresy: new List<string>(), Blad: (string?)null);
 
-        if (doWyslania.Count == 0)
+        if (walidacja.Blad != null)
+        {
+            return BadRequest(walidacja.Blad);
+        }
+
+        if (!wlasne && model.prcIDs.Count == 0)
+        {
+            return BadRequest("Wybierz co najmniej jednego odbiorcę.");
+        }
+
+        var wynik = new WiadomoscWysylkaZakresWynikModel();
+        var doWyslania = wlasne
+            ? new List<WiadomoscZakresPracownikViewModel>()
+            : PrzygotujOdbiorcow(zakres!, model.prcIDs, wynik, model.wzaID == 7);
+        var liczba = wlasne ? walidacja.Adresy.Count : doWyslania.Count;
+
+        if (liczba == 0)
         {
             return BadRequest("Żaden z wybranych odbiorców nie ma adresu e-mail w zakresie.");
         }
@@ -347,7 +372,7 @@ public class WiadomoscPracownikController : ControllerBase
         await _context.SaveChangesAsync(cancellationToken);
 
         await ZapiszZalaczniki(wiadomosc.wiaID, model.wiaAplikacjaID, zalaczniki, usrID, cancellationToken);
-        DodajOdbiorcow(wiadomosc.wiaID, doWyslania);
+        ZapiszOdbiorcow(wiadomosc.wiaID, wlasne, walidacja.Adresy, doWyslania, WprStatusNowa);
         await _context.SaveChangesAsync(cancellationToken);
 
         if (transakcja != null)
@@ -356,7 +381,7 @@ public class WiadomoscPracownikController : ControllerBase
         }
 
         wynik.wiaID = wiadomosc.wiaID;
-        wynik.dodano = doWyslania.Count;
+        wynik.dodano = liczba;
 
         return Ok(wynik);
     }
@@ -369,7 +394,7 @@ public class WiadomoscPracownikController : ControllerBase
             .AsNoTracking()
             .Where(w => w.wiaAplikacjaID == appID && w.Usuniety != true)
             .OrderByDescending(w => w.wiaData)
-            .Select(w => new { w.wiaID, w.wiaTemat, w.wiaData, w.wiaStatus })
+            .Select(w => new { w.wiaID, w.wiaTemat, w.wiaTresc, w.wiaData, w.wiaStatus })
             .ToListAsync();
 
         var ids = wiadomosci.Select(w => w.wiaID).ToList();
@@ -388,6 +413,16 @@ public class WiadomoscPracownikController : ControllerBase
             .ToListAsync();
         var slownik = liczby.ToDictionary(x => x.WiadomoscID);
 
+        // Adresy z własnej listy (wiersze bez pracownika) wracają do tagboxa przy poprawce.
+        var adresyWlasne = await _context.WiadomoscPracownik
+            .AsNoTracking()
+            .Where(p => p.wprWiadomoscID != null && p.wprPracownikID == null && p.wprEmail != null && ids.Contains(p.wprWiadomoscID.Value))
+            .Select(p => new { WiadomoscID = p.wprWiadomoscID!.Value, Email = p.wprEmail! })
+            .ToListAsync();
+        var adresyPoWiadomosci = adresyWlasne
+            .GroupBy(x => x.WiadomoscID)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Email).ToList());
+
         return wiadomosci.Select(w =>
         {
             slownik.TryGetValue(w.wiaID, out var l);
@@ -395,6 +430,8 @@ public class WiadomoscPracownikController : ControllerBase
             {
                 wiaID = w.wiaID,
                 wiaTemat = w.wiaTemat,
+                wiaTresc = w.wiaTresc,
+                wiaAdresy = adresyPoWiadomosci.TryGetValue(w.wiaID, out var adresy) ? adresy : new List<string>(),
                 wiaData = w.wiaData,
                 wiaStatus = w.wiaStatus,
                 Razem = l?.Razem ?? 0,
@@ -475,6 +512,23 @@ public class WiadomoscPracownikController : ControllerBase
         if (!MozeBycZmieniona(wiadomosc.wiaStatus))
         {
             return BadRequest("Wysyłka tej wiadomości została już rozpoczęta.");
+        }
+
+        // Własna lista adresów: zastępuje wiersze bez pracownika (wysyłka jeszcze nie ruszyła, więc status 2 albo 7).
+        if (model.adresy != null && wiadomosc.wiaStatus is StatusWyslana or StatusHarmonogram)
+        {
+            var walidacja = AdresyEmail.Waliduj(model.adresy);
+
+            if (walidacja.Blad != null)
+            {
+                return BadRequest(walidacja.Blad);
+            }
+
+            var stare = await _context.WiadomoscPracownik
+                .Where(p => p.wprWiadomoscID == wiaID && p.wprPracownikID == null)
+                .ToListAsync(cancellationToken);
+            _context.WiadomoscPracownik.RemoveRange(stare);
+            DodajAdresy(wiaID, walidacja.Adresy, wiadomosc.wiaStatus == StatusHarmonogram ? StatusHarmonogram : WprStatusNowa);
         }
 
         wiadomosc.wiaTemat = model.wiaTemat.Trim();
@@ -629,30 +683,38 @@ public class WiadomoscPracownikController : ControllerBase
         return doWyslania.DistinctBy(o => o.kntKontakt!.Trim(), StringComparer.OrdinalIgnoreCase).ToList();
     }
 
-    // Cykl: J = jednorazowo, D = codziennie, T = tygodniowo, M = miesięcznie. Termin musi być w przyszłości.
-    private static string? WalidujHarmonogram(WiadomoscWyslijRoboczaModel model)
+    /// <summary>Zakres z własną listą adresów (wzaWlasne = true, aktywny). Odbiorców wyznacza lista adresów, nie pracownicy.</summary>
+    private Task<bool> CzyZakresWlasny(int wzaID, CancellationToken cancellationToken) =>
+        _context.WiadomoscZakresEnumerator
+            .AsNoTracking()
+            .AnyAsync(w => w.wzaID == wzaID && w.wzaStatus == "2" && w.wzaWlasne == true, cancellationToken);
+
+    private void ZapiszOdbiorcow(int wiaID, bool wlasne, IReadOnlyList<string> adresy,
+        IEnumerable<WiadomoscZakresPracownikViewModel> odbiorcy, string status)
     {
-        if (model.kodHarmonogram is not ("J" or "D" or "T" or "M"))
+        if (wlasne)
         {
-            return "Nieprawidłowy rodzaj harmonogramu (J, D, T albo M).";
+            DodajAdresy(wiaID, adresy, status);
         }
-
-        if (model.dataHarmonogramStart == null)
+        else
         {
-            return "Podaj termin pierwszej wysyłki.";
+            DodajOdbiorcow(wiaID, odbiorcy, status);
         }
+    }
 
-        if (model.dataHarmonogramStart <= DateTime.Now)
+    // Każdy adres z własnej listy to osobny wiersz WiadomoscPracownik bez pracownika (wprPracownikID = null).
+    private void DodajAdresy(int wiaID, IEnumerable<string> adresy, string status)
+    {
+        foreach (var adres in adresy)
         {
-            return "Termin pierwszej wysyłki musi być w przyszłości.";
+            _context.WiadomoscPracownik.Add(new WiadomoscPracownik
+            {
+                wprWiadomoscID = wiaID,
+                wprPracownikID = null,
+                wprEmail = adres,
+                wprStatus = status
+            });
         }
-
-        if (model.kodHarmonogram != "J" && model.dataHarmonogramKoniec is DateTime koniec && koniec < model.dataHarmonogramStart)
-        {
-            return "Data końcowa cyklu jest wcześniejsza niż pierwszy termin.";
-        }
-
-        return null;
     }
 
     private void DodajOdbiorcow(int wiaID, IEnumerable<WiadomoscZakresPracownikViewModel> odbiorcy, string status = WprStatusNowa)

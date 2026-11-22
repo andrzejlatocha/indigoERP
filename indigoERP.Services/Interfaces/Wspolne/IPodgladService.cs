@@ -10,6 +10,7 @@ namespace indigoERP.Service.Interfaces._Wspolne
         Task<IEnumerable<ZdarzenieViewModel>> ZdarzeniaNieprzeczytane(int appID, int usrID);
         Task<IEnumerable<PowiadomienieViewModel>> PowiadomieniaOstatnie(int appID, int usrID, int take = 50);
         Task<bool> OznaczPowiadomienie(int powID);
-        Task<int> OznaczWszystkiePowiadomienia(int appID, int usrID);
+        /// <summary>Liczba oznaczonych powiadomień albo null, gdy operacja się nie udała.</summary>
+        Task<int?> OznaczWszystkiePowiadomienia(int appID, int usrID);
     }
 }

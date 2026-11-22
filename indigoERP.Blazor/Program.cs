@@ -38,10 +38,32 @@ builder.Services.AddTransient<ApiErrorHandler>();
 builder.Services.ConfigureHttpClientDefaults(b => b.AddHttpMessageHandler<ApiErrorHandler>());
 builder.Services.AddOProgramie(builder.Configuration, builder.Environment);
 
-// Klucze Data Protection (cookies logowania i antyfalsyfikacja Blazora) zapisane na dysku: po restarcie procesu nie gina sesje.
-// Katalog DataProtectionKeys lezy w katalogu aplikacji; publikacja (robocopy /MIR) musi go wykluczac (/XD DataProtectionKeys).
+// Katalog kluczy Data Protection (cookies logowania i antyfalsyfikacja Blazora) zapisany na dysku: po restarcie procesu nie gina sesje.
+// Zmienna systemowa DataProtection_KeysPath (wspolna dla serwera, Process, potem Machine) nadpisuje DataProtection:KeysPath z appsettings.
+// Konfiguracja jest tylko rezerwa. Poza Development brak obu zatrzymuje start czytelnym bledem.
+var dataProtectionKeysPathFromEnv = Environment.GetEnvironmentVariable("DataProtection_KeysPath")
+    ?? Environment.GetEnvironmentVariable("DataProtection_KeysPath", EnvironmentVariableTarget.Machine);
+
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPathFromEnv))
+{
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["DataProtection:KeysPath"] = dataProtectionKeysPathFromEnv });
+}
+
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+
+if (string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    if (!builder.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException(
+            "Brak katalogu kluczy Data Protection. Ustaw zmienna systemowa DataProtection_KeysPath (wspolna dla serwera) albo DataProtection:KeysPath w konfiguracji.");
+    }
+
+    dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "DataProtectionKeys");
+}
+
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtectionKeys")))
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
     .SetApplicationName("indigoERP.Blazor");
 
 // Zmienna środowiskowa InternalSso nadpisuje InternalSso:Key z appsettings.json — jedna, wspólna

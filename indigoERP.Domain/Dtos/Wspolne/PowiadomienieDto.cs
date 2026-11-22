@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using indigoERP.Domain.Common;
 
 namespace indigoERP.Domain.Dtos._Wspolne
 {
@@ -6,9 +7,11 @@ namespace indigoERP.Domain.Dtos._Wspolne
     public class PowiadomienieDto
     {
         [Required]
+        [Range(1, int.MaxValue)]
         public int powAplikacjaID { get; set; }
 
         [Required]
+        [Range(1, int.MaxValue)]
         public int powUzytkownikID { get; set; }
 
         [Required]
@@ -23,6 +26,7 @@ namespace indigoERP.Domain.Dtos._Wspolne
         public string? powTresc { get; set; }
 
         [MaxLength(500)]
+        [DozwolonyLink]
         public string? powLink { get; set; }
     }
 }

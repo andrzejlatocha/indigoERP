@@ -12,4 +12,6 @@ public sealed class WiadomoscZakresEnumerator
     public string? wzaNazwa { get; set; }
     public string? wzaWidok { get; set; }
     public string? wzaStatus { get; set; }
+    /// <summary>Zakres z własną listą adresów e-mail (tagbox w oknie wysyłki); adresy zapisywane jako wiersze WiadomoscPracownik.</summary>
+    public bool? wzaWlasne { get; set; }
 }

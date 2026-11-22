@@ -15,8 +15,12 @@
                         @bind-Value="@selectedGroupID" AllowClear="true" AllowFiltering="true"
                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         Placeholder="Wybierz grupę" Style="width:640px" />
-        <RadzenButton Text="Dodaj" Icon="add_circle" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@AddSelectedGroup" />
-        <RadzenButton Text="Zamknij" Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@Close" />
+        <RadzenButton Icon="add_circle" title="Dodaj grupę" aria-label="Dodaj grupę" Size="ButtonSize.Small"
+                      ButtonStyle="ButtonStyle.Primary" Click="@AddSelectedGroup" Disabled="@busy" />
+        <RadzenButton Icon="delete_sweep" title="Usuń wszystkie grupy" aria-label="Usuń wszystkie grupy" Size="ButtonSize.Small"
+                      ButtonStyle="ButtonStyle.Danger" Click="@ClearGroups" Disabled="@(busy || data == null || data.Count == 0)" />
+        <RadzenButton Icon="close" title="Zamknij" aria-label="Zamknij" Size="ButtonSize.Small"
+                      ButtonStyle="ButtonStyle.Light" Click="@Close" Disabled="@busy" />
         <RadzenDropDown Data="@applications" TextProperty="Nazwa" ValueProperty="appID" TValue="int?"
                         Value="@selectedApplicationID" ValueChanged="@OnApplicationChanged" AllowClear="true" AllowFiltering="true"
                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -53,7 +57,7 @@
                                       TextAlign="TextAlign.Center">
                     <Template Context="row">
                         <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Small"
-                                      Click="@(_ => DeleteRow(row))" />
+                                      title="Usuń grupę" aria-label="Usuń grupę" Disabled="@busy" Click="@(_ => DeleteRow(row))" />
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -73,6 +77,7 @@
     private List<GrupaViewModel> availableGroups = new();
     private int? selectedGroupID;
     private int? selectedApplicationID;
+    private bool busy;
 
     private IEnumerable<UzytkownikGrupaViewModel> FilteredData => (data ?? new List<UzytkownikGrupaViewModel>())
         .Where(w => selectedApplicationID is null || w.appID == selectedApplicationID.Value);
@@ -164,6 +169,25 @@
                 await grid.SelectRow(selected, false);
             }
         }
+    }
+
+    private async Task ClearGroups()
+    {
+        var options = new ConfirmOptions { OkButtonText = "Usuń wszystkie", CancelButtonText = "Anuluj", WrapperCssClass = "administrator-confirm-wrapper" };
+        var confirmed = await _dialogService.Confirm("Usunąć wszystkie bezpośrednie grupy użytkownika we wszystkich aplikacjach?", "Potwierdzenie", options);
+        if (confirmed != true || busy) return;
+
+        busy = true;
+        try
+        {
+            var response = await _grupaService.DeleteCzlonkowieByUzytkownik(UzytkownikID);
+            ShowResponse(response.Code, "Usunięto wszystkie bezpośrednie grupy użytkownika.", response.Message);
+            await LoadData();
+            selectedItems = new List<UzytkownikGrupaViewModel>();
+            selectedGroupID = null;
+            if (grid != null) await grid.Reload();
+        }
+        finally { busy = false; }
     }
 
     private async Task DeleteRow(UzytkownikGrupaViewModel row)

@@ -1,48 +1,65 @@
-﻿## 2026-11-17 - Ikona document i tło Przepisy wewnętrzne (żółty)
+﻿## 2026-11-21 — nieprzeczytane powiadomienia w kaizenITSM
 
-- **Zgłoszenie:** użytkownik podmienił ikonę document.png (wiodący kolor żółty); tło skrótu Przepisy wewnętrzne ma odpowiadać kolorowi ikony.
-- **Zmiana:** images/document.png (podmieniona przez użytkownika); Home.razor.css: tło skrótu Przepisy wewnętrzne #fbebcb (jasny pastel żółtego, z dominującej barwy PNG).
-- **Wersja:** 3.26.1117.11441 (Blazor, API).
-- **Status wdrożenia:** commit 20261117_10 na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor).
-- **Weryfikacja:** testy na eksporcie commita (API 82/82, Blazor 29/29, Services 10/10, Worker 46/46); wygląd do sprawdzenia na test.hcz.com.pl (SSO).
+- Dodano `Powiadomienie/SelectNieprzeczytane` z weryfikacją identyfikatora z tokenu i rozszerzono monitor SignalR o licznik powiadomień. Bez zmian bazy i bez publikacji. Pełny zestaw indigoERP.Api.Tests 112/112; test końcowy z rzeczywistym tokenem i wdrożonym API pozostaje do wykonania.
+## 2026-11-22 — okno Wysyłanie: wysokość siatki odbiorców
+
+- **Zgłoszenie:** w oknie Wysyłanie pole „Zaplanuj wysyłkę (harmonogram)” było poza widokiem, bo siatka odbiorców zajmowała za dużo miejsca.
+- **Zmiana:** `indigoERP.Blazor/Pages/WiadomoscPubliczna/WiadomoscWysylkaOkno.razor`: wysokość siatki `calc(100vh - 15rem)` zmieniona na `calc(100vh - 19.5rem)` (mniej o dwa wiersze). Liczba wierszy na stronie (`PageSize=23`) bez zmian.
+- **Status wdrożenia:** w drzewie roboczym, niecommitowane, niewdrożone.
+- **Weryfikacja:** build `indigoERP.Blazor` 0 błędów. Nie sprawdzono wizualnie (okno wymaga logowania SSO).
+- **Luki:** brak testu wizualnego; wartość 4,5 rem to szacunek dwóch wierszy trybu Compact.
+
+## 2026-11-20 — skrypt ról i grup kaizenITSM
+
+- Przygotowano `_SQL Queries/indigoERP20261120145207.sql` dla bazy indigoERP, aplikacja kaizenITSM ID 360: 31 ról, grup o tych samych nazwach i powiązań w `RolaCzlonkowie`, bez użytkowników i zmian w AD. Istniejące aktywne wpisy są zachowywane; konflikty przerywają transakcję. Możliwy tryb próby z `@Zatwierdz=0`.
+- Sprawdzono odczytowo schemat i dane JAPET (administrator i jego grupa już istnieją), zgodność 31 nazw ze stałymi kaizenITSM oraz kodowanie polskich znaków. SQL Server skompilował skrypt w trybie `NOEXEC`; nie uruchomiono skryptu ani nie zapisano danych. Build indigoERP.sln: 0 błędów, 59 ostrzeżeń zależności i istniejącego kodu. Status wdrożenia: oczekuje na użytkownika, cel JAPET.indigoERP.
+## 2026-11-20 — sygnały powiadomień dla kaizenITSM
+
+- Dodano uwierzytelniony hub SignalR i monitor zmian liczników wiadomości, zadań oraz zdarzeń. Identyfikator użytkownika pochodzi z tokenu; odbiorca otrzymuje tylko sygnał do ponownego odczytu. Monitor wykrywa również zapisy indigoERP.Worker bez zmiany jego kolejki ani wysyłki.
+- Zmiany lokalne, bez publikacji i migracji bazy. Testy indigoERP.Api.Tests 111/111, w tym PowiadomienieHubTests 2/2; build API bez błędów, z istniejącymi ostrzeżeniami projektu. Nie wykonano testu integracyjnego na działających usługach.
+## 2026-11-20 - Data Protection: katalog kluczy ze zmiennej DataProtection_KeysPath
+
+- **Zgłoszenie:** katalog kluczy Data Protection miał być na sztywno w katalogu aplikacji (DataProtectionKeys); ustalenie: katalog ze zmiennej systemowej DataProtection_KeysPath, wspólnej dla serwera.
+- **Zmiana:** indigoERP.Blazor/Program.cs: zmienna DataProtection_KeysPath (Process, potem Machine) nadpisuje DataProtection:KeysPath; konfiguracja jako rezerwa; poza Development brak obu zatrzymuje start komunikatem InvalidOperationException; w Development domyślnie katalog DataProtectionKeys w katalogu aplikacji.
+- **Wymagania wdrożenia:** na CERES i DEIMOS zmienna systemowa DataProtection_KeysPath i katalog z prawem zapisu/odczytu dla konta puli; przed pierwszym startem skopiować istniejące klucze z DataProtectionKeys do nowego katalogu (inaczej wylogowanie użytkowników). CERES: iisreset (zmienne Machine); DEIMOS: tylko restart puli.
+- **Publikacja:** wykluczenie /XD DataProtectionKeys zostaje do czasu migracji; po migracji można je usunąć z procedury.
+- **Status wdrożenia:** w drzewie roboczym, niecommitowane, niewdrożone.
+- **Weryfikacja:** build indigoERP.Blazor 0 błędów; ostrzeżenie ASPDEPR003 (AddRazorRuntimeCompilation) istniało wcześniej.
+- **Luki:** nie sprawdzono zmiennej i uprawnień na serwerach (brak dostępu); inne projekty z listy (menageKSeF, kendoCMMS, atacamaDMS, sapphireCP, cerberTMS.Portal) poza tym repozytorium.
+
+## 2026-11-18 - Publikacja wersji 3.26.1118.11445 (API i Blazor, DEIMOS i CERES)
+
+- **Wersja:** 3.26.1118.11445 w `appsettings.json` Blazora i API (zgodnie na obu serwerach).
+- **Zawartość:** harmonogram wysyłki wiadomości publicznych (pola `wiaHarmonogram*` w Domain, `WiadomoscHarmonogramController` w API, `WiadomoscWysylkaOkno` i `WiadomoscZarzadzanie` w Blazorze). Lista adresów własnych (`wzaWlasne`) NIE jest częścią tej publikacji.
+- **Status wdrożenia:** wdrożone 2026-11-18 około 14:09 (daty plików DLL w `\\10.0.40.103\c$\inetpub\wwwroot\indigoERP` oraz `V:\inetpub\wwwroot\indigoERP`, osobno dla Blazora i API). Najbliższy commit na `developer`: `7337e2c` (20261118_01, 14:08:19), nie potwierdzono wprost, że to on został wyeksportowany.
+- **Worker (JAPET):** nie wdrażany w tej publikacji; DLL `indigoERP.Worker.dll` pochodzi z 16.11 i zawiera `ZaplanujHarmonogramyAsync`.
+- **Baza danych:** skrypt `_SQL Queries/indigoERP20261116_Wiadomosc_Harmonogram.sql` uruchomiony wcześniej na CERES i JAPET (wpis z 16.11, wersja 3.26.1116.11430); nie sprawdzono ponownie.
+- **Weryfikacja:** brak wpisu z testami i sprawdzeniem HTTP dla tej publikacji; wpis uzupełniony po fakcie z dat plików, nie z dziennika wdrożenia.
+- **Luki:** brak potwierdzenia commita i wyniku `dotnet test` dla eksportu; logi workera nie pokazują cykli harmonogramu po 16.11 19:24; commit `21d4798` (katalog kluczy Data Protection) nie wszedł w tej publikacji.
+
+## 2026-11-17 - Przegląd powiadomień: bezpieczne linki, walidacja, masowe oznaczanie, obsługa błędów
+
+- **Zgłoszenie:** przegląd kodu powiadomień znalazł: link z powiadomienia renderowany jako href bez walidacji schematu (ryzyko javascript:), brak zakresów i sprawdzenia istnienia aplikacji i użytkownika w Insert, brak obsługi błędów sieci przy oznaczaniu, niewidoczny błąd „Oznacz wszystkie”, masowe oznaczanie wczytujące wszystkie rekordy do pamięci.
+- **Zmiana:** Domain Common/BezpieczneLinki i DozwolonyLinkAttribute (tylko ścieżki od / i adresy http/https); PowiadomienieDto: [Range(1, int.MaxValue)] na identyfikatorach, [DozwolonyLink] na powLink; API Insert: BadRequest dla nieznanej aplikacji i użytkownika; OdczytajWszystkie: ExecuteUpdateAsync (jedna instrukcja UPDATE, z ModyfikacjaID i DataModyfikacja, bez usuniętych); PodgladService: try/catch w OznaczPowiadomienie, OznaczWszystkiePowiadomienia zwraca int? (null = błąd); PodgladLista i PowiadomienieStrona: komunikat błędu, link renderowany tylko po sprawdzeniu BezpieczneLinki.
+- **Wersja:** bez zmiany (zmiany niewdrożone i niezacommitowane).
+- **Status wdrożenia:** w drzewie roboczym, niecommitowane, niewdrożone.
+- **Weryfikacja:** indigoERP.Api.Tests 102/102 (w tym 20 przypadków walidacji linków i zakresów, testy nieznanej aplikacji i użytkownika); indigoERP.Blazor.Tests 29/29; indigoERP.Services.Tests 10/10; build Blazor 0 błędów.
+- **Luki:** brak testu masowego OdczytajWszystkie w wariancie „tylko nieprzeczytane zalogowanego” (ExecuteUpdate nie działa w EF InMemory) – do sprawdzenia na bazie testowej; brak testów UI dla PodgladLista i PowiadomienieStrona.
 
 
-## 2026-11-17 - Lewy panel strony głównej: pastelowe tła ikon
+## 2026-11-17 - Czyszczenie grup użytkownika
 
-- **Zgłoszenie:** tła ikon skrótów w lewym panelu mają mieć jasny pastelowy odcień wiodącego koloru ikony.
-- **Zmiana:** Home.razor.css: tła skrótów hutaForms #cfe8ff, Głos Hutnika #f2dcd6, Przepisy #e3f3ff, IT Support #e3f3d3, Poczta #cbd3f3, Kalendarz #ffd3d3, OneDrive #cbe3fb, Formularz zgłoszenia #cbebff (kolory wyliczone z dominującej barwy każdego PNG).
-- **Wersja:** 3.26.1117.11440 (Blazor, API).
-- **Status wdrożenia:** commit 20261117_09 na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor).
-- **Weryfikacja:** testy na eksporcie commita (API 82/82, Blazor 29/29, Services 10/10, Worker 46/46); wygląd do sprawdzenia na test.hcz.com.pl (SSO).
+- Okno grup użytkownika: przyciski ikonowe oraz potwierdzane usunięcie wszystkich bezpośrednich przynależności we wszystkich
+  aplikacjach, niezależnie od filtra. Endpoint `Grupa/DeleteCzlonkowieByUzytkownik/{usrID}` wymaga roli administratora.
+- Weryfikacja: `dotnet test indigoERP.sln --no-restore -v:q` - 168/168; istnieją ostrzeżenia kompilacji i NuGet.
+  Nie wykonano testu w przeglądarce ani na rzeczywistej bazie. Zmian schematu bazy i publikacji brak.
 
+## 2026-11-17 - Blokada ról i grup helpDESK oraz simpleLMS
 
-## 2026-11-17 - Ikony PNG lewego panelu: pliki dodane do repozytorium
-
-- **Zgłoszenie:** wdrożenie z poprzedniego commita odwoływało się do form.png, newspaper.png, document.png i email.png, których nie było w repozytorium; na CERES ikony się nie pokazały.
-- **Zmiana:** dodane pliki images/form.png, newspaper.png, document.png, email.png; zaktualizowane images/calendar.png, helpdesk.png, onedrive.png (podmienione przez użytkownika). Kod bez zmian.
-- **Wersja:** 3.26.1117.11439 (Blazor, API).
-- **Status wdrożenia:** commit 20261117_08 na developer (master nieaktualizowany); ponowne wdrożenie na CERES (API i Blazor).
-- **Weryfikacja:** eksport commita: testy API 82/82, Blazor 29/29, Services 10/10, Worker 46/46; po wdrożeniu do sprawdzenia na test.hcz.com.pl (SSO).
-
-
-## 2026-11-17 - Lewy panel strony głównej: ikony PNG zamiast FontAwesome
-
-- **Zgłoszenie:** cztery skróty w lewym panelu (hutaForms, Głos Hutnika, Przepisy wewnętrzne, Formularz zgłoszenia) mają używać plików PNG z projektu zamiast FontAwesome.
-- **Zmiana:** Home.razor: form.png, newspaper.png, document.png, email.png. Pozostałe skróty (helpdesk, outlook, calendar, onedrive) bez zmian.
-- **Wersja:** 3.26.1117.11438 (Blazor, API).
-- **Status wdrożenia:** commit 20261117_07 na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor) w tym dniu.
-- **Weryfikacja:** build Blazor 0 błędów; indigoERP.Blazor.Tests 29/29; wygląd do sprawdzenia na test.hcz.com.pl (SSO).
-
-
-## 2026-11-17 - Ikony skrótów i kendoCMMS na stronie głównej
-
-- **Zgłoszenie:** ikony FontAwesome skrótów (hutaForms, Głos Hutnika, Przepisy wewnętrzne, Formularz zgłoszenia) są za małe; ikony obrazkowe mają być stonowane; ikona kendoCMMS ma być biała jak pozostałe.
-- **Zmiana:** Home.razor.css: glif FontAwesome 2,6 rem (wcześniej 2,1 rem), obrazki skrótów z filter saturate(0.6); ikona kendoCMMS podmieniona przez użytkownika (plik wwwroot/images/aplikacja/kendoCMMS.png, commit 20261117_06).
-- **Wersja:** 3.26.1117.11437 (Blazor, API).
-- **Status wdrożenia:** commit na developer (master nieaktualizowany); wdrożenie na CERES (API i Blazor) w tym dniu.
-- **Weryfikacja:** build Blazor 0 błędów; wygląd do sprawdzenia na test.hcz.com.pl (SSO, bez podglądu lokalnego).
-- **Luki:** brak testu wizualnego; brak; ikona kendoCMMS do wymiany (ciemny znak na stronie głównej).
-
+- Zgłoszenie: zablokować role i grupy PL-SCX-APP-helpDESK* i PL-SCX-APP-simpleLMS* oraz usunąć użytkowników.
+- Skrypt: `_SQL Queries/indigoERP20261117114343.sql`; cel JAPET / indigoERP; wykonanie zgłoszone przez użytkownika. Zachowuje powiązania grup i usuwa bezpośrednie przypisania użytkowników z ról i grup.
+- Weryfikacja tylko do odczytu: znaleziono 9 ról, 9 grup, 3600 bezpośrednich przypisań użytkowników grup i 4 zagnieżdżenia grup w zakresie; bezpośrednich przypisań użytkowników do ról nie znaleziono. Wynik przed wykonaniem może ulec zmianie.
+- Kontrola po informacji użytkownika o wykonaniu: w JAPET / indigoERP zablokowanych 9/9 grup i 9/9 ról; bezpośrednie przypisania użytkowników do tych grup i ról: 0; 4 zagnieżdżenia grup zachowane. Widok mvw.vUzytkownikRolaEfektywna nadal zwraca 12 wpisów dla roli helpDESK-Administrator, powiązanej również z innymi grupami; rzeczywista odmowa dostępu wymaga osobnej weryfikacji.
 
 ## 2026-11-17 - Strona Powiadomienie: tło docelowe zamiast białego
 
@@ -114,33 +131,25 @@
 - **Luki:** brak endpointu oznaczania jako przeczytane; brak źródeł tworzących powiadomienia (tabela dbo.Powiadomienie jest pusta, licznik 0).
 
 
-## 2026-11-16 - Licznik powiadomien na naglowku (tabela Powiadomienie, endpoint SelectCountByUzytkownik)
+## 2026-11-16 - Wdrożenie procedury synchronizacji kont na JAPET
 
-- **Zgloszenie:** dzwonek w naglowku ma pokazywac liczbe nieprzeczytanych powiadomien; test strony glownej po usunieciu atacamaDMS z listy starych aplikacji.
-- **Baza:** skrypt _SQL Queries/indigoERP20261116_Powiadomienie.sql (tabela dbo.Powiadomienie, widok mvw.Powiadomienie, indeks IX_Powiadomienie_01) uruchomiony przez uzytkownika na CERES i JAPET.
-- **Zmiana:** Domain ViewModels/PowiadomienieViewModel (widok mvw, Keyless); indigoERPContext: DbSet PowiadomienieViewModel; API PowiadomienieController.SelectCountByUzytkownik/{appID}/{usrID}; LicznikNaglowkaService: Powiadomienia; LoginDisplay: liczba w dzwonku. HomePageTests: 9 przyciskow starych aplikacji.
-- **Wersja:** 3.26.1116.11433 (Blazor, API).
-- **Status wdrozenia:** commit na developer i master; wdrozenie w logu wdrozenia.
-- **Weryfikacja:** testy na eksporcie (wynik w logu wdrozenia).
-- **Luki:** brak testu licznika (widok Keyless, nie da sie zasilic w InMemory); dzwonek bez akcji po kliknieciu; brak endpointu oznaczania jako przeczytane.
+- Na wyraźne polecenie użytkownika wykonano `_SQL Queries/indigoERP.Api20261116120000.sql` w JAPET / indigoERP. Potwierdzono nową definicję procedury `dbo.aspSynchronizujKontaEpicaHR`.
+- Podgląd `@Wykonaj=0`: BLOKUJ 1, ODBLOKUJ 205, POMIN_KOLIZJA 16. ODBLOKUJ obejmuje również konta z blokadą ręczną. Nie wykonano `@Wykonaj=1`, nie zmieniono statusów kont ani nie rozwiązano kolizji.
 
-## 2026-11-16 - Wiadomosci na /wiadomosc: Popraw, Anuluj, Usun; ikony naglowka; kolory przyciskow
+## 2026-11-16 - Przepisy wewnętrzne: combo folderu HUTY i podgląd w nagłówku
 
-- **Zgloszenie:** przyciski Popraw, Anuluj i Usun wysylki Glosu w Blazor; usuniecie atacamaDMS z listy starych aplikacji; kolory przyciskow naglowka nie dzialaly na produkcji; ikony naglowka (wiadomosci: dymek, zadania: lista).
-- **Zmiana:** API WiadomoscPracownikController: Popraw (PUT) i Usun (DELETE) dla statusow 1, 2, 7. WiadomoscHarmonogramController: Anuluj dla 2, 3, 7 (status 6); lista zaplanowanych i w kolejce tylko dla wiadomosci publicznych. Worker: anulowanie kodem 6, osobno od kodu 1. Blazor: WiadomoscPoprawaOkno, przyciski w WiadomoscZarzadzanie, bez atacamaDMS w Home, ikony w LoginDisplay, site.css z wyzsza specyficznoscia kolorow.
-- **Wersja:** 3.26.1116.11432 (Blazor, API, Worker).
-- **Status wdrozenia:** commit na developer i master; wdrozenie na DEIMOS i CERES (API, Blazor) oraz Worker na JAPET (wynik w logu wdrozenia).
-- **Weryfikacja:** testy na eksporcie (wynik w logu wdrozenia).
-- **Luki:** brak testow API dla Popraw i Usun; brak sprawdzenia w przegladarce (SSO).
+- **Zgłoszenie:** combo z wyborem folderu (tylko HUTA plus Wszystkie) na stronie Przepisy wewnętrzne.
+- **Zmiana:** AtacamaPolecenieClient/PrzepisyWewnetrzneController: parametr katalogID i endpoint SelectKatalogi (proxy do atacamaDMS). PolecenieSluzboweService i Index.razor: combo folderów. Nagłówek: przyciski Wiadomości, Zadania, Zdarzenia otwierają listę nieprzeczytanych (PodgladLista). Nowe strony /podglad/wiadomosc, /podglad/zadanie, /podglad/zdarzenie (osadzanie w iframe). Liczniki nagłówka z istniejących endpointów API (LicznikNaglowkaService).
+- **Status wdrożenia:** tylko w kodzie; wymaga wdrożenia atacamaDMS.Api z tym samym zmianami.
+- **Weryfikacja:** indigoERP.Api.Tests 75/75, indigoERP.Blazor.Tests 29/29.
+- **Luki:** brak testu klienta HTTP dla katalogID; dzwonek bez obsługi.
 
-## 2026-11-16 - Przepisy wewnętrzne: combo folderu HUTY, podgląd w nagłówku, liczniki
+## 2026-11-16 - Synchronizacja kont pracowników APT i nowych pracowników
 
-- **Zgłoszenie:** combo z folderami HUTY (Wszystkie + foldery pierwszego poziomu) na Przepisach; przyciski w nagłówku (Wiadomości, Zadania, Zdarzenia) z podglądem listy; liczniki nieprzeczytanych z API.
-- **Zmiana:** AtacamaPolecenieClient/PrzepisyWewnetrzneController: katalogID i SelectKatalogi (proxy do atacamaDMS API 3.26.1116.10578). PolecenieSluzboweService i Index.razor: combo folderów. LoginDisplay: liczniki (LicznikNaglowkaService) i przyciski podglądu (PodgladLista w oknie bocznym). Strony osadzane /podglad/wiadomosc, /podglad/zadanie, /podglad/zdarzenie (PodgladLayout).
-- **Wersja:** 3.26.1116.11431 (Blazor i API).
-- **Status wdrożenia:** commit na developer; wdrożenie API i Blazor na DEIMOS i CERES 2026-11-16.
-- **Weryfikacja:** testy na eksporcie (wynik w logu wdrożenia).
-- **Luki:** dzwonek (powiadomienia) bez obsługi i bez endpointu; brak testu klienta HTTP dla katalogID.
+- **Zgłoszenie:** aktywni pracownicy APT mają status 1, a dla części nowych osób brak statusu użytkownika.
+- **Diagnoza:** na JAPET jest starsza procedura tworząca zablokowane konta ze statusem 1; 194 aktywnych APT ma status 1 i blokadę. `usrStatus` nie zawiera NULL, natomiast 16 aktywnych osób (14 T, 2 P) nie ma konta i podgląd je pomija z powodu kolizji nazwy z istniejącym kontem innego pracownika. Stan na 2026-11-16.
+- **Zmiana SQL:** `_SQL Queries/indigoERP.Api20261116120000.sql`, cel JAPET / indigoERP; przygotowany, niewykonany. Aktualizuje tylko procedurę synchronizacji na wcześniej przygotowaną wersję P/T. Aktywny angaż daje status 2 i usuwa blokadę również ręczną; brak aktywnego angażu daje status 1 i blokadę. Nowe konta aktywne status 2; kolizje nadal pomijane i wymagają indywidualnego rozstrzygnięcia. Skrypt uruchamia użytkownik, nie uruchamia synchronizacji ani nie naprawia istniejących danych.
+- **Weryfikacja:** odczyt aktualnej procedury, danych i podglądu `@Wykonaj=0`; migracja i zapisowa synchronizacja niewykonane. Build: 0 błędów, 769 ostrzeżeń; pełny zestaw testów: 160/160. Testy aplikacji nie wykonują ani nie potwierdzają działania zmienionej procedury SQL.
 
 ## 2026-11-16 - Publikacja wersji 3.26.1116.11430 (harmonogram wysyłki)
 

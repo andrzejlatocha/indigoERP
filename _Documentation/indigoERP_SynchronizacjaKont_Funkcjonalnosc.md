@@ -107,3 +107,9 @@ Nie weryfikowano przypisania nazw AD ani logowania SSO. Stary job pozostał wył
 Dla pracowników własnych P i tymczasowych T aktywny, obowiązujący dziś angaż o statusie `2` oznacza `usrBlokada=0` i `usrStatus=2`. Przy braku takiego angażu konto jest blokowane i otrzymuje `usrStatus=1`. Nowe konta aktywne nie otrzymują nazwy AD ani hasła; administrator uzupełnia nazwę AD. Synchronizacja odblokowuje też konta zablokowane ręcznie. Konta niepowiązane oraz usunięte nie są aktualizowane; kolizje nazw są pomijane z pierwszeństwem pracowników P.
 
 Na liście użytkowników i w SSO pracownicy APT mają wydział i stanowisko z aktualnego angażu; do nazwy stanowiska dopisuje się ` (APT)`. Źródłem jest `epicaHR.sha.vPracownikListaAPT`, udostępniane przez `indigoERP.rdb.vPracownikLista`. Skrypty są przygotowane, nie zostały wdrożone ani uruchomione.
+
+## Stan i poprawka 2026-11-16
+
+Na JAPET nadal działa starsza procedura, tworząca konta ze statusem 1 i blokadą. Przygotowano `_SQL Queries/indigoERP.Api20261116120000.sql` do wdrożenia opisanej wyżej reguły P/T; skrypt nie wykonuje synchronizacji. Po wdrożeniu należy sprawdzić podgląd `@Wykonaj=0` przed ewentualnym zapisem. Kolizje nazw z innymi kontami są nadal pomijane, ponieważ samą zgodnością imienia i nazwiska nie można bezpiecznie potwierdzić tożsamości.
+
+Wdrożenie 2026-11-16: na polecenie użytkownika wykonano skrypt w JAPET / indigoERP i potwierdzono nową definicję. Podgląd wykazał 1 blokadę, 205 odblokowań i 16 pominiętych kolizji. Synchronizacji zapisującej nie uruchomiono; statusy kont nie zostały zmienione.

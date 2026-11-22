@@ -13,6 +13,26 @@ namespace indigoERP.Api.Tests;
 public sealed class AdministrationControllerTests
 {
     [Fact]
+    public async Task Clear_user_groups_removes_only_memberships_of_the_selected_user()
+    {
+        await using var context = ApiTestContextFactory.Create();
+        context.GrupaCzlonkowie.AddRange(
+            new GrupaCzlonkowie { uwgUzytkownikID = 12, uwgGrupaNadrzednaID = 1 },
+            new GrupaCzlonkowie { uwgUzytkownikID = 12, uwgGrupaNadrzednaID = 2 },
+            new GrupaCzlonkowie { uwgUzytkownikID = 13, uwgGrupaNadrzednaID = 1 },
+            new GrupaCzlonkowie { uwgGrupaID = 12, uwgGrupaNadrzednaID = 1 });
+        await context.SaveChangesAsync();
+        var controller = new GrupaController(context, ApiTestContextFactory.Configuration());
+        Assert.IsType<NoContentResult>(await controller.DeleteCzlonkowieByUzytkownik(12));
+        Assert.Equal(2, await context.GrupaCzlonkowie.CountAsync());
+        Assert.IsType<BadRequestObjectResult>(await controller.DeleteCzlonkowieByUzytkownik(0));
+        var authorization = typeof(GrupaController).GetMethod(nameof(GrupaController.DeleteCzlonkowieByUzytkownik))!
+            .GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), false)
+            .Cast<Microsoft.AspNetCore.Authorization.AuthorizeAttribute>().Single();
+        Assert.Equal("HCZ-indigoERP-Administrator", authorization.Roles);
+    }
+
+    [Fact]
     public async Task Aplikacja_insert_rejects_an_existing_identifier()
     {
         await using var context = ApiTestContextFactory.Create();

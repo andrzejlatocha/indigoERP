@@ -17,6 +17,9 @@
         public int wzaID { get; set; }
         public List<int> prcIDs { get; set; } = new();
 
+        /// <summary>Adresy e-mail z własnej listy (zakres z wzaWlasne = true); zamiast prcIDs.</summary>
+        public List<string> adresy { get; set; } = new();
+
         /// <summary>Harmonogram: brak = wysyłka od razu; J = jednorazowo, D = codziennie, T = tygodniowo, M = miesięcznie.</summary>
         public string? kodHarmonogram { get; set; }
 
