@@ -1,4 +1,14 @@
-﻿## 2026-11-21 — nieprzeczytane powiadomienia w kaizenITSM
+﻿## 2026-11-22 - Publikacja wersji 3.26.1122.11449 (API i Blazor, CERES i DEIMOS)
+
+- **Zgłoszenie:** publikacja całości prac z indigoERP: harmonogram wysyłki i jego testy, lista adresów własnych (wzaWlasne), okno Wysyłanie (wysokość siatki), usunięcie miniatury z kafelka `/wiadomosc`, katalog kluczy Data Protection, powiadomienia SignalR i odczyt nieprzeczytanych dla kaizenITSM.
+- **Zmiana:** commit `eb5087c` (20261122) na `developer`, merge do `master` jako `0828e22` (wersja 3.26.1122.11449). Nowy `Domain\Common\HarmonogramTerminy.cs` (walidacja terminów i kolejny termin cyklu wspólne dla API i Workera); usunięte prywatne kopie z `WiadomoscPracownikController` i `WiadomoscKolejkaService`. Testy harmonogramu: `HarmonogramTerminyTests`, `WiadomoscHarmonogramControllerTests`.
+- **Baza danych:** skrypt `_SQL Queries/indigoERP20261120_WiadomoscZakres_wzaWlasne_widok.sql` uruchomiony przez użytkownika (zgłoszone 2026-11-22) na CERES i JAPET. Pozostałe skrypty w `_SQL Queries` z tego okresu nie są wymagane przez ten kod, o ile zostały wykonane wcześniej.
+- **Konfiguracja:** `DataProtection_KeysPath` ustawiona na serwerach jako zmienna środowiskowa (zgłoszone przez użytkownika). Na serwerach `appsettings.json` zmieniono tylko wartość `Version`; poprzednia wersja zachowana w `appsettings.json.prod-backup`.
+- **Status wdrożenia:** wdrożone 2026-11-22 przez Claude na polecenie Andrzeja. CERES ok. 14:22–14:28, DEIMOS ok. 14:28–14:40 (kolejno API, potem Blazor), okno offline do 15:22 (CERES) i 15:28 (DEIMOS). Worker na JAPET nie był wdrażany w tej publikacji.
+- **Weryfikacja:** testy na eksporcie `master`: indigoERP.Api.Tests 130/130, indigoERP.Services.Tests 17/17, indigoERP.Blazor.Tests 34/34, indigoERP.Worker.Tests 46/46. Po wdrożeniu: CERES i DEIMOS API `/Api/` 404; Blazor bez logowania 401, z logowaniem Negotiate 200 (`/` i `/wiadomosc`). Logi API na DEIMOS: brak błędów startu; wpisy `Polly ResilienceEvent` z godzin 13:41–14:06 są sprzed wdrożenia.
+- **Luki:** test kopiowania harmonogramu w Workerze (`ZaplanujHarmonogramyAsync`) nieobecny. Na CERES API używa kluczy Data Protection w pamięci (`EphemeralXmlRepository`), bo katalog kluczy dotyczy tylko Blazora. Brak wpisu w `Nowosc` dla nowych funkcji (wymaga decyzji, czy opisać zmiany dla użytkowników). Brak sprawdzenia w przeglądarce po zalogowaniu (SSO).
+
+## 2026-11-21 — nieprzeczytane powiadomienia w kaizenITSM
 
 - Dodano `Powiadomienie/SelectNieprzeczytane` z weryfikacją identyfikatora z tokenu i rozszerzono monitor SignalR o licznik powiadomień. Bez zmian bazy i bez publikacji. Pełny zestaw indigoERP.Api.Tests 112/112; test końcowy z rzeczywistym tokenem i wdrożonym API pozostaje do wykonania.
 ## 2026-11-22 — okno Wysyłanie: wysokość siatki odbiorców
