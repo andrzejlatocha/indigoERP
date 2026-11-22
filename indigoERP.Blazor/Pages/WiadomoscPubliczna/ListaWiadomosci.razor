@@ -1,9 +1,10 @@
 ﻿@using indigoERP.Domain.Dtos._Wspolne
 
-@* Lista wysłanych wiadomości ze statusem; dane i filtr roku podaje WiadomosciPanel. *@
+@* Lista wysłanych wiadomości ze statusem; dane i filtr roku/statusu podaje WiadomosciPanel.
+   Popraw i Usuń są dostępne, dopóki wysyłka się nie rozpoczęła (status 2); Anuluj zatrzymuje wysyłkę (status 2 i 3). *@
 
 <RadzenDataGrid Data="@Lista" TItem="WiadomoscPodsumowanieDto" AllowSorting="true" AllowFiltering="false" AllowPaging="true" PageSize="10"
-                Density="Density.Compact" EmptyText="Brak wysłanych wiadomości." Style="margin-top: 1rem; max-height: calc(100vh - 16rem);">
+                Density="Density.Compact" EmptyText="Brak wiadomości dla wybranego filtru." Style="margin-top: 1rem; max-height: calc(100vh - 16rem);">
     <Columns>
         <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaData" Title="Data" Width="160px" FormatString="{0:dd.MM.yyyy HH:mm}" />
         <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaTemat" Title="Temat" />
@@ -18,12 +19,44 @@
                 <img src="@GetStatusIcon(wiadomosc.wiaStatus)" alt="Status @wiadomosc.wiaStatus" title="Status @wiadomosc.wiaStatus" width="20" height="20" />
             </Template>
         </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Title="Akcje" Width="280px" Sortable="false" TextAlign="TextAlign.Left">
+            <Template Context="wiadomosc">
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" Wrap="FlexWrap.Wrap">
+                    @if (MozeBycPoprawiona(wiadomosc))
+                    {
+                        <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Variant="Variant.Outlined"
+                                      Click="@(() => OnPopraw.InvokeAsync(wiadomosc))" />
+                        <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Outlined"
+                                      Click="@(() => OnUsun.InvokeAsync(wiadomosc))" />
+                    }
+                    @if (MozeBycAnulowana(wiadomosc))
+                    {
+                        <RadzenButton Text="Anuluj" Icon="cancel" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Outlined"
+                                      Click="@(() => OnAnuluj.InvokeAsync(wiadomosc))" />
+                    }
+                </RadzenStack>
+            </Template>
+        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
 @code {
     [Parameter]
     public IEnumerable<WiadomoscPodsumowanieDto> Lista { get; set; } = Enumerable.Empty<WiadomoscPodsumowanieDto>();
+
+    [Parameter]
+    public EventCallback<WiadomoscPodsumowanieDto> OnPopraw { get; set; }
+
+    [Parameter]
+    public EventCallback<WiadomoscPodsumowanieDto> OnUsun { get; set; }
+
+    [Parameter]
+    public EventCallback<WiadomoscPodsumowanieDto> OnAnuluj { get; set; }
+
+    // Status „2” = czeka na wysyłkę, „3” = w trakcie wysyłania, „4” = wysłana, „6” = anulowana.
+    private static bool MozeBycPoprawiona(WiadomoscPodsumowanieDto wiadomosc) => wiadomosc.wiaStatus == "2";
+
+    private static bool MozeBycAnulowana(WiadomoscPodsumowanieDto wiadomosc) => wiadomosc.wiaStatus is "2" or "3";
 
     // Status „1” (robocza) pokazujemy ikoną „oczekujący na wysłanie” (2.png, jak w epicaHR).
     private static string GetStatusIcon(string? status) => status switch

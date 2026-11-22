@@ -182,6 +182,19 @@ namespace indigoERP.Api.Controllers._Administrator
             return NoContent();
         }
 
+        [HttpDelete("{usrID:int}")]
+        [Authorize(Roles = AdministratorRole, AuthenticationSchemes = BearerScheme)]
+        public async Task<IActionResult> DeleteCzlonkowieByUzytkownik(int usrID)
+        {
+            if (usrID <= 0)
+                return BadRequest("Nieprawidłowy identyfikator użytkownika.");
+
+            var memberships = await _context.GrupaCzlonkowie.Where(w => w.uwgUzytkownikID == usrID).ToListAsync();
+            _context.GrupaCzlonkowie.RemoveRange(memberships);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         [HttpDelete("{groID}")]
         [Authorize(Roles = AdministratorRole, AuthenticationSchemes = BearerScheme)]
         public async Task<IActionResult> Delete(int groID)

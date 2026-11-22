@@ -11,6 +11,9 @@
         public int? wiaWzorzecID { get; set; }
         public int wzaID { get; set; }
         public List<int> prcIDs { get; set; } = new();
+
+        /// <summary>Adresy e-mail z własnej listy (zakres z wzaWlasne = true); zamiast prcIDs.</summary>
+        public List<string> adresy { get; set; } = new();
     }
 
     /// <summary>Wynik wysyłki: utworzona wiadomość, liczba odbiorców i powody pominięcia.</summary>

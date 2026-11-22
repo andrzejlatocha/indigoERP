@@ -84,6 +84,9 @@ var connectionString = builder.Configuration.GetConnectionString("indigoERPConne
 
 services.AddHttpContextAccessor();
 services.AddControllers();
+services.AddSignalR();
+services.AddSingleton<indigoERP.Api.Realtime.PowiadomienieSubskrypcje>();
+services.AddHostedService<indigoERP.Api.Realtime.PowiadomienieMonitor>();
 int serverVersion = configuration.GetSection("appSettings").GetValue<int>(key: "serverVer");
 
 if (serverVersion > 2008)
@@ -213,5 +216,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<indigoERP.Api.Realtime.PowiadomienieHub>("/hubs/powiadomienia", options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();

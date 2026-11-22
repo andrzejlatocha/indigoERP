@@ -17,6 +17,15 @@ namespace indigoERP.Api.Tests;
 
 public class PowiadomienieControllerTests
 {
+    [Fact]
+    public async Task SelectNieprzeczytane_OdrzucaInnegoUzytkownika()
+    {
+        using var context = ApiTestContextFactory.Create(userId: 7);
+        var controller = Kontroler(context, usrID: 7);
+        var wynik = await controller.SelectNieprzeczytane(360, 8);
+        Assert.IsType<ForbidResult>(wynik.Result);
+    }
+
     private const string RolaZapisu = "HCZ-indigoERP-Administrator,HCZ-indigoERP-Integracja-epicaHR";
 
     [Fact]

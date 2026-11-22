@@ -138,6 +138,20 @@ namespace indigoERP.Service.Services._Administrator
             }
         }
 
+        public async Task<ResponseMessage> DeleteCzlonkowieByUzytkownik(int usrID)
+        {
+            try
+            {
+                var client = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);
+                var response = await client.DeleteAsync($"Grupa/DeleteCzlonkowieByUzytkownik/{usrID}");
+                return new ResponseMessage((int)response.StatusCode, await response.Content.ReadAsStringAsync(), usrID);
+            }
+            catch (Exception ex)
+            {
+                return new ResponseMessage(600, ex.Message, null);
+            }
+        }
+
         public async Task<ResponseMessage> DeleteCzlonek(int uwgID)
         {
             var httpClient = await _httpClientFactory.CreateClientWithTokenAsync(_authenticationStateProvider);

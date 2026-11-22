@@ -156,6 +156,12 @@ namespace indigoERP.Service.Services._Wspolne
                     content.Add(new StringContent(prcID.ToString()), nameof(model.prcIDs));
                 }
 
+                // Własna lista adresów (zakres z wzaWlasne); API zapisuje je jako wiersze WiadomoscPracownik.
+                foreach (var adres in model.adresy)
+                {
+                    content.Add(new StringContent(adres), nameof(model.adresy));
+                }
+
                 if (!string.IsNullOrWhiteSpace(model.kodHarmonogram))
                 {
                     content.Add(new StringContent(model.kodHarmonogram), nameof(model.kodHarmonogram));

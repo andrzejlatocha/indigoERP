@@ -6,6 +6,10 @@
         public int wiaID { get; set; }
         /// <summary>Temat, data i status wiadomości (wypełniane tylko przez WiadomoscPracownik/SelectPodsumowanie).</summary>
         public string? wiaTemat { get; set; }
+        /// <summary>Treść potrzebna do poprawki (Popraw) dla wiadomości jeszcze nie wysyłanej.</summary>
+        public string? wiaTresc { get; set; }
+        /// <summary>Własna lista adresów e-mail wiadomości (puste dla odbiorców z zakresu pracowników).</summary>
+        public List<string> wiaAdresy { get; set; } = new();
         public DateTime? wiaData { get; set; }
         public string? wiaStatus { get; set; }
         /// <summary>Wszystkie wiersze adresatów.</summary>

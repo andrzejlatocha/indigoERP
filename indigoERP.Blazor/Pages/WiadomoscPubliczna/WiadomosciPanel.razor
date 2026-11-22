@@ -3,11 +3,14 @@
 
 @inject IWiadomoscPracownikService _wiadomoscPracownikService
 @inject IConfiguration _configuration
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
 
-@* Panel zarządzania na publicznej stronie (/wiadomosc) tylko dla ról Gazeta / Administrator: wybór roku, przycisk nowego numeru i lista. *@
+@* Panel zarządzania na publicznej stronie (/wiadomosc) tylko dla ról Gazeta / Administrator: rok, filtr statusu, przycisk nowego numeru i lista. *@
 
 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
     <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="rok" Style="width: 110px;" />
+    <RadzenDropDown TValue="int" Data="@filtry" TextProperty="Tekst" ValueProperty="Wartosc" @bind-Value="filtrStatusu" Style="width: 280px;" />
     <WiadomoscZarzadzanie />
 </RadzenStack>
 
@@ -17,17 +20,28 @@
 }
 else
 {
-    <ListaWiadomosci Lista="@WiadomosciRoku" />
+    <ListaWiadomosci Lista="@WiadomosciRoku" OnPopraw="OtworzPoprawkeAsync" OnUsun="UsunAsync" OnAnuluj="AnulujAsync" />
 }
 
 @code {
     // Rekordy sprzed tej daty nie są pokazywane (ustalenie użytkownika).
     private static readonly DateTime DataOd = new(2026, 10, 1);
 
+    // Filtry statusu: 0 = aktualne (czeka na wysyłkę „2” i w trakcie „3”), 1 = wysłane („4”), 2 = wszystkie.
+    private sealed record FiltrStatusu(string Tekst, int Wartosc);
+
+    private static readonly List<FiltrStatusu> filtry =
+    [
+        new("aktualne: nowe i w trakcie wysyłania", 0),
+        new("wysłane", 1),
+        new("wszystkie", 2)
+    ];
+
     private List<WiadomoscPodsumowanieDto> wszystkie = new();
     private bool ladowanie = true;
 
     private int rok = DateTime.Now.Year;
+    private int filtrStatusu = 0;
 
     private int AppID => _configuration.GetValue<int?>("appSettings:AppID") ?? 900;
 
@@ -44,7 +58,15 @@ else
 
     private IEnumerable<WiadomoscPodsumowanieDto> WiadomosciRoku => Widoczne
         .Where(w => w.wiaData?.Year == rok)
+        .Where(PasujeDoStatusu)
         .OrderByDescending(w => w.wiaData);
+
+    private bool PasujeDoStatusu(WiadomoscPodsumowanieDto wiadomosc) => filtrStatusu switch
+    {
+        0 => wiadomosc.wiaStatus is "2" or "3",
+        1 => wiadomosc.wiaStatus == "4",
+        _ => true
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,5 +85,63 @@ else
         {
             ladowanie = false;
         }
+    }
+
+    // Poprawka tylko dla wiadomości, której wysyłka się nie rozpoczęła (status „2”); API sprawdza to samo.
+    private async Task OtworzPoprawkeAsync(WiadomoscPodsumowanieDto wiadomosc)
+    {
+        var wynik = await _dialogService.OpenSideAsync<WiadomoscPoprawaOkno>("Popraw wiadomość",
+            new Dictionary<string, object?>
+            {
+                ["WiadomoscID"] = wiadomosc.wiaID,
+                ["Temat"] = wiadomosc.wiaTemat,
+                ["Tresc"] = wiadomosc.wiaTresc,
+                // Wiadomość z własną listą adresów: tagbox w oknie poprawki; pozostałe bez zmian.
+                ["Adresy"] = wiadomosc.wiaAdresy.Count > 0 ? wiadomosc.wiaAdresy : null
+            },
+            new SideDialogOptions { Position = DialogPosition.Right, Width = "1000px", CloseDialogOnOverlayClick = false, ShowTitle = true, ShowClose = true });
+
+        if (wynik is true)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Zapisano", Detail = "Zmiany zostały zapisane.", Duration = 8000 });
+            await OdswiezAsync();
+        }
+    }
+
+    private async Task UsunAsync(WiadomoscPodsumowanieDto wiadomosc)
+    {
+        var potwierdzenie = await _dialogService.Confirm($"Usunąć wiadomość „{wiadomosc.wiaTemat}”? Tej operacji nie można cofnąć.", "Usuń wiadomość",
+            new ConfirmOptions { OkButtonText = "Usuń", CancelButtonText = "Nie" });
+
+        if (potwierdzenie != true)
+        {
+            return;
+        }
+
+        var wynik = await _wiadomoscPracownikService.UsunWiadomosc(wiadomosc.wiaID);
+
+        if (wynik.Code < 200 || wynik.Code >= 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = wynik.Message ?? "Nie udało się usunąć wiadomości.", Duration = 8000 });
+            return;
+        }
+
+        _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Usunięto", Detail = $"Wiadomość „{wiadomosc.wiaTemat}” została usunięta.", Duration = 8000 });
+        await OdswiezAsync();
+    }
+
+    // Anulowanie zatrzymuje wysyłkę (status „2” lub „3”); po anulowaniu wiadomość ma status „6”.
+    private async Task AnulujAsync(WiadomoscPodsumowanieDto wiadomosc)
+    {
+        var wynik = await _wiadomoscPracownikService.AnulujHarmonogram(wiadomosc.wiaID);
+
+        if (wynik.Code < 200 || wynik.Code >= 300)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = wynik.Message ?? "Nie udało się anulować wysyłki.", Duration = 8000 });
+            return;
+        }
+
+        _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Anulowano", Detail = $"Wysyłka „{wiadomosc.wiaTemat}” została zatrzymana.", Duration = 8000 });
+        await OdswiezAsync();
     }
 }

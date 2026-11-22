@@ -60,7 +60,18 @@ public class PowiadomienieController : ControllerBase
             .CountAsync(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt);
     }
 
-    // GET: api/Powiadomienie/SelectOstatnie/{appID}/{usrID}?take=50 - najnowsze powiadomienia (przeczytane i nieprzeczytane).
+    // Nieprzeczytane powiadomienia bieżącego użytkownika, maksymalnie 50.
+    [Authorize(AuthenticationSchemes = BearerScheme)]
+    [HttpGet("{appID}/{usrID}")]
+    public async Task<ActionResult<IEnumerable<PowiadomienieViewModel>>> SelectNieprzeczytane(int appID, int usrID)
+    {
+        if (BiezacyUzytkownikID() != usrID) return Forbid();
+        return await _context.PowiadomienieViewModel.AsNoTracking()
+            .Where(w => w.powAplikacjaID == appID && w.powUzytkownikID == usrID && !w.powOdczyt)
+            .OrderByDescending(w => w.powDataPowiadomienia).ThenByDescending(w => w.powID).Take(50).ToListAsync();
+    }
+
+    // GET: api/Powiadomienie/SelectOstatnie/{appID}/{usrID}?take=50 - najnowsze powiadomienia.
     [Authorize(AuthenticationSchemes = BearerScheme)]
     [HttpGet("{appID}/{usrID}")]
     public async Task<ActionResult<IEnumerable<PowiadomienieViewModel>>> SelectOstatnie(int appID, int usrID, int take = 50)
