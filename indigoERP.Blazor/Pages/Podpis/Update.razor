@@ -1,4 +1,4 @@
-﻿@using indigoERP.Domain.ViewModels._Podpis
+@using indigoERP.Domain.ViewModels._Podpis
 
 @inject DialogService _dialogService
 
@@ -23,8 +23,8 @@
         Dostępne tokeny podstawiane danymi użytkownika: {Imie}, {Nazwisko}, {ImieNazwisko}, {Stanowisko}, {Dzial}, {Telefon}, {Komorka}, {Email}.
     </RadzenText>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
         <RadzenButton Text="Zapisz" Icon="save" ButtonStyle="ButtonStyle.Primary" Click="@Save" />
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
     </RadzenStack>
 </RadzenStack>
 

@@ -1,4 +1,4 @@
-﻿@inject DialogService _dialogService
+@inject DialogService _dialogService
 
 <RadzenStack Gap="1rem" Class="p-3">
     <RadzenFormField Text="Status" Style="width:100%">
@@ -19,8 +19,8 @@
         <RadzenHtmlEditor @bind-Value="@Model.msgTresc" Style="height:280px" />
     </RadzenFormField>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
         <RadzenButton Text="Zapisz" Icon="save" ButtonStyle="ButtonStyle.Primary" Click="@Save" />
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
     </RadzenStack>
 </RadzenStack>
 

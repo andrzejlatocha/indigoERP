@@ -1,4 +1,4 @@
-﻿@using indigoERP.Domain.Common
+@using indigoERP.Domain.Common
 @using indigoERP.Domain.Models._Wspolne
 @using indigoERP.Domain.ViewModels._Wspolne
 @using indigoERP.Domain.Enumerators._Wspolne
@@ -37,10 +37,10 @@
             </RadzenStack>
         }
 
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
-            <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => ZamknijOkno(null))" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3" JustifyContent="JustifyContent.End">
             <RadzenButton Text="Zapisz jako roboczy" Icon="save" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                           Click="@ZapiszRobocza" Disabled="@(!MoznaZapisacRobocza || busy)" />
+            <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => ZamknijOkno(null))" />
         </RadzenStack>
         <div class="text-muted small mt-2">Numer roboczy nie jest jeszcze widoczny na stronie. Wysyłka odbywa się z listy „Robocze”.</div>
     }

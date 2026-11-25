@@ -1,4 +1,4 @@
-﻿@using indigoERP.Domain.Enumerators._Administrator
+@using indigoERP.Domain.Enumerators._Administrator
 @using indigoERP.Domain.ViewModels._Autoryzacja
 @using System.Globalization
 
@@ -42,8 +42,8 @@
         <RadzenLabel Text="Edycja" />
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" ButtonType="ButtonType.Button" Click="@Cancel" />
         <RadzenButton Text="Zapisz" Icon="save" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Button" Click="@Save" />
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" ButtonType="ButtonType.Button" Click="@Cancel" />
     </RadzenStack>
 </RadzenStack>
 

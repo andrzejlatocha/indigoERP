@@ -1,4 +1,4 @@
-﻿@using indigoERP.Domain.ViewModels
+@using indigoERP.Domain.ViewModels
 
 @inject DialogService _dialogService
 
@@ -32,8 +32,8 @@
         <RadzenLabel Text="Wyświetlaj" />
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
         <RadzenButton Text="Zapisz" Icon="save" ButtonStyle="ButtonStyle.Primary" Click="@Save" />
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@Cancel" />
     </RadzenStack>
 </RadzenStack>
 

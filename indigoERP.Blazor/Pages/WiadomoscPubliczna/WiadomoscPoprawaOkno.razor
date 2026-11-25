@@ -1,4 +1,4 @@
-﻿@using indigoERP.Domain.Common
+@using indigoERP.Domain.Common
 @using indigoERP.Domain.Models._Wspolne
 @using indigoERP.Service.Interfaces._Wspolne
 
@@ -25,9 +25,9 @@
         }
     }
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem" Class="mt-2">
-        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.CloseSide(false))" Disabled="@zapisywanie" />
         <RadzenButton Text="@(zapisywanie ? "Zapisywanie..." : "Zapisz")" Icon="save" ButtonStyle="ButtonStyle.Primary"
                       Click="@ZapiszAsync" Disabled="@(zapisywanie || string.IsNullOrWhiteSpace(temat) || (wlasne && AdresyEmail.Waliduj(adresy).Blad != null))" />
+        <RadzenButton Text="Anuluj" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@(() => _dialogService.CloseSide(false))" Disabled="@zapisywanie" />
     </RadzenStack>
 </div>
 

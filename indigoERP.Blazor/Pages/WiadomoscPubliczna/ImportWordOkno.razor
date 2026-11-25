@@ -1,4 +1,4 @@
-﻿@using System.IO
+@using System.IO
 @using DocumentFormat.OpenXml.Packaging
 @using indigoERP.Blazor.Utils
 
@@ -14,7 +14,7 @@
         <div class="mt-2 small">Wybrano: @plik.Name</div>
     }
 
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Class="mt-3" JustifyContent="JustifyContent.End">
         <RadzenButton Text="Wczytaj" Icon="upload_file" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary"
                       Click="@Wczytaj" IsBusy="@busy" Disabled="@(plik == null || busy)" />
         <RadzenButton Text="Anuluj" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
