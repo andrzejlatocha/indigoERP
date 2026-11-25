@@ -1,4 +1,23 @@
-﻿## 2026-11-22 - Publikacja wersji 3.26.1122.11449 (API i Blazor, CERES i DEIMOS)
+﻿## 2026-11-25 - Publikacja Blazor 3.26.1125.11452 (DEIMOS): stopka jak w cerberTMS
+
+- **Zgłoszenie:** wysokość stopki w indigoERP odbiegała od standardu (cerberTMS): globalny `.footer` z `site.css` ustawiał linię 60 px.
+- **Diagnoza:** `wwwroot/css/site.css` (`.footer { line-height: 60px }`) nadpisywał wysokość stopki z `Shared/Footer.razor.css`.
+- **Zmiana:** `indigoERP.Blazor/Shared/Footer.razor.css` — `.footer` dostaje `padding: .5rem` i `line-height: inherit` (jak w cerberTMS). Wersja `appSettings:Version` 3.26.1122.11449 -> 3.26.1125.11452 w `indigoERP.Blazor/appsettings.json` i `indigoERP.Api/appsettings.json`.
+- **Decyzja:** wzór „standard” to stopka cerberTMS (wytyczne: wygląd jak w cerberTMS). Nie zmieniono `site.css`, żeby nie ruszać innych stron.
+- **Status wdrożenia:** commit `20261125` na `developer`, merge do `master` (wersja 3.26.1125.11452), publikacja Blazor na DEIMOS (tylko Blazor; API na DEIMOS nadal 3.26.1122.11449 do czasu jego publikacji).
+- **Weryfikacja:** testy na eksporcie `master` — wynik podany w sekcji wdrożenia poniżej. Wizualnie stopki nie sprawdzono w przeglądarce (wymaga lokalnego startu z SSO).
+- **Luki:** brak testu wizualnego stopki (zmiana tylko CSS).
+
+## 2026-11-22 - Worker na JAPET: anulowanie statusem 6 i wspólne terminy harmonogramu
+
+- **Zgłoszenie:** wdrożenie zmian Workera z `eb5087c` (merge `0828e22`, master `f715e00`) na JAPET; od wdrożenia 16.11 Worker nie był aktualizowany.
+- **Zmiana (Worker):** `WiadomoscKolejkaService` — anulowanie wiadomości to status `6` (sprawdzenie przed wysyłką i w trakcie); kolejny termin harmonogramu z `HarmonogramTerminy.NastepnyTermin` (Domain), usunięta prywatna kopia.
+- **Weryfikacja:** eksport `master` (`git archive`), `dotnet publish -c Release`, `indigoERP.Worker.Tests` 46/46. Build z ostrzeżeniami spoza tej zmiany: CS8618 w `MiejscowoscEnumerator.cs` (Domain) i CS0618 `FromSqlInterpolated` w `WiadomoscKolejkaService.cs(276)`.
+- **Wdrożenie:** kopia `Z:\Services\indigoERP.Worker_backup_20261122_pre_status6` (bez `logs`), robocopy `/MIR` z publikacji do `Z:\Services\indigoERP.Worker` z wykluczeniem `appsettings*.json`, `Install-Worker.ps1`, `logs`. Hash `indigoERP.Worker.dll` zgodny z publikacją; `appsettings.json` nietknięty (31.10.2026).
+- **Status wdrożenia:** pliki podmienione 22.11.2026 ok. 16:09. Usługa `indigoERP.Worker` pozostaje zatrzymana (start do decyzji). Wykonał Claude na polecenie Andrzeja.
+- **Luki:** brak testu statusu `6` w `Worker.Tests` i testu `ZaplanujHarmonogramyAsync`; po starcie sprawdzić log `logs` pod kątem cykli harmonogramu.
+
+## 2026-11-22 - Publikacja wersji 3.26.1122.11449 (API i Blazor, CERES i DEIMOS)
 
 - **Zgłoszenie:** publikacja całości prac z indigoERP: harmonogram wysyłki i jego testy, lista adresów własnych (wzaWlasne), okno Wysyłanie (wysokość siatki), usunięcie miniatury z kafelka `/wiadomosc`, katalog kluczy Data Protection, powiadomienia SignalR i odczyt nieprzeczytanych dla kaizenITSM.
 - **Zmiana:** commit `eb5087c` (20261122) na `developer`, merge do `master` jako `0828e22` (wersja 3.26.1122.11449). Nowy `Domain\Common\HarmonogramTerminy.cs` (walidacja terminów i kolejny termin cyklu wspólne dla API i Workera); usunięte prywatne kopie z `WiadomoscPracownikController` i `WiadomoscKolejkaService`. Testy harmonogramu: `HarmonogramTerminyTests`, `WiadomoscHarmonogramControllerTests`.
