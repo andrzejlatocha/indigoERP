@@ -60,7 +60,10 @@ html[data-bs-theme="dark"] .footer-serwer-panel {
     background-color: #1C1C1B;
 }
 
-/* Stopka wyśrodkowana jak w atacamaDMS (gridlayout-item: text-align center). */
+/* Stopka wyśrodkowana jak w atacamaDMS (gridlayout-item: text-align center).
+   Wysokość jak w cerberTMS (Footer.razor.css): padding .5rem zamiast stałej linii 60px z site.css. */
 .footer {
     text-align: center;
+    padding: .5rem;
+    line-height: inherit;
 }
