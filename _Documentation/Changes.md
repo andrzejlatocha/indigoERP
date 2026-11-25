@@ -4,8 +4,9 @@
 - **Diagnoza:** `wwwroot/css/site.css` (`.footer { line-height: 60px }`) nadpisywał wysokość stopki z `Shared/Footer.razor.css`.
 - **Zmiana:** `indigoERP.Blazor/Shared/Footer.razor.css` — `.footer` dostaje `padding: .5rem` i `line-height: inherit` (jak w cerberTMS). Wersja `appSettings:Version` 3.26.1122.11449 -> 3.26.1125.11452 w `indigoERP.Blazor/appsettings.json` i `indigoERP.Api/appsettings.json`.
 - **Decyzja:** wzór „standard” to stopka cerberTMS (wytyczne: wygląd jak w cerberTMS). Nie zmieniono `site.css`, żeby nie ruszać innych stron.
-- **Status wdrożenia:** commit `20261125` na `developer`, merge do `master` (wersja 3.26.1125.11452), publikacja Blazor na DEIMOS (tylko Blazor; API na DEIMOS nadal 3.26.1122.11449 do czasu jego publikacji).
-- **Weryfikacja:** testy na eksporcie `master` — wynik podany w sekcji wdrożenia poniżej. Wizualnie stopki nie sprawdzono w przeglądarce (wymaga lokalnego startu z SSO).
+- **Status wdrożenia:** commit `63dbfd6` (20261125) na `developer`, merge do `master` jako `4ee33fc` (wersja 3.26.1125.11452). Publikacja Blazor na DEIMOS 25.11.2026 ok. 08:40–08:41 (tryb offline z przywróceniem 09:41, zdjęty wcześniej). Pula IIS `indigoERP`. Na serwerze: kopia `appsettings.json.prod-backup`, zmieniona tylko wersja; robocopy `/MIR` z wykluczeniami (exit 3 = OK). API na DEIMOS nadal 3.26.1122.11449 (w repo 11452, do publikacji API).
+- **Weryfikacja:** testy na eksporcie `master`: indigoERP.Api.Tests 130/130, indigoERP.Services.Tests 17/17, indigoERP.Blazor.Tests 34/34, indigoERP.Worker.Tests 46/46. Po wdrożeniu `https://app.hcz.com.pl/indigoERP/` i `/wiadomosc` zwracają 401 bez logowania; log dzienny bez `Unhandled`. Wizualnie stopki nie sprawdzono w przeglądarce (wymaga logowania SSO).
+- **Uwaga:** `/MIR` usunął z DEIMOS plik `wwwroot/images/aplikacja/kalahariTOL.png` (nieśledzony w git, nieużywany w `master`). Plik zostaje lokalnie w drzewie roboczym.
 - **Luki:** brak testu wizualnego stopki (zmiana tylko CSS).
 
 ## 2026-11-22 - Worker na JAPET: anulowanie statusem 6 i wspólne terminy harmonogramu
