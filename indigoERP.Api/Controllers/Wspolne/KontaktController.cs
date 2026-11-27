@@ -82,7 +82,7 @@ namespace indigoERP.Api.Controllers._Wspolne
         }
 
         // DELETE: api/Kontakt/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{kntID}")]
         public async Task<IActionResult> Delete(int kntID)
         {
             if (_context.Kontakt == null)
