@@ -1,4 +1,15 @@
-﻿## 2026-11-25 - Publikacja Blazor 3.26.1125.11452 (DEIMOS): stopka jak w cerberTMS
+﻿﻿## 2026-11-27 - Logowanie SSO: timeout bazy zamiast 404 i błąd gateway bez 500 (wersja 3.26.1127.11454)
+
+- **Zgłoszenie:** strona indigoERP zwracała 500 (wcześniej 404 „Nie znaleziono użytkownika”), mimo że konto istniało w tabeli `Uzytkownik`.
+- **Diagnoza:** zapytanie `uspGetUzytkownikSso` łączyło się z widokiem `rdb.vPracownikLista` (epicaHR) i przekraczało 30 s. API łapało `Execution Timeout Expired` w `AuthenticateSso` i zwracało `null`, co dawało 404. Blazor nie łapał błędu gateway w `ClaimsTransformation`, więc wyjątek kończył się 500. Blokady nie było: w SSMS została otwarta transakcja, którą wycofano.
+- **Zmiana (Api):** `LoginController.GetSso` zwraca `503` przy `DbException` (z komunikatem), a `AuthenticateSso` nie zamienia już błędów bazy na `null`.
+- **Zmiana (Blazor):** `ClaimsTransformation.TransformAsync` łapie `HttpRequestException` z `GetSso` i zapisuje claim `ssoFailureStatusCode` zamiast przerywać potok.
+- **Baza danych:** procedura `uspGetUzytkownikSso` i widok `rdb.vPracownikSso` zmienione przez użytkownika na JAPET (skrypty w `_SQL Queries`, nie są w tym commicie). Zapytanie SSO trwa ok. 0,3 s.
+- **Wersja:** `appSettings:Version` 3.26.1125.11452 -> 3.26.1127.11454 w `indigoERP.Api/appsettings.json` i `indigoERP.Blazor/appsettings.json`.
+- **Status wdrożenia:** commit na `developer`, merge do `master`, publikacja API i Blazora na DEIMOS (cykl `app_offline`, pule `indigoERP` i `indigoERP.Api`). Wykonał Claude na polecenie Andrzeja.
+- **Weryfikacja:** testy na eksporcie `master`: indigoERP.Api.Tests 130/130, indigoERP.Blazor.Tests 34/34. Po wdrożeniu: `https://app.hcz.com.pl/indigoERP/` zwraca 401, API `/Api/` zwraca 404.
+- **Luki:** brak testu jednostkowego dla ścieżki 503 w `GetSso` i dla claimu `ssoFailureStatusCode` (wymaga mocka `ILoginService`).
+## 2026-11-25 - Publikacja Blazor 3.26.1125.11452 (DEIMOS): stopka jak w cerberTMS
 
 - **Zgłoszenie:** wysokość stopki w indigoERP odbiegała od standardu (cerberTMS): globalny `.footer` z `site.css` ustawiał linię 60 px.
 - **Diagnoza:** `wwwroot/css/site.css` (`.footer { line-height: 60px }`) nadpisywał wysokość stopki z `Shared/Footer.razor.css`.

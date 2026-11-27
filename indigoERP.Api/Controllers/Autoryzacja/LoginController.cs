@@ -119,7 +119,18 @@ namespace indigoERP.Controllers
                 }
             }
 
-            var uzytkownik = AuthenticateSso(usrNazwa, usrKomputer, appID);
+            UzytkownikViewModel? uzytkownik;
+
+            try
+            {
+                uzytkownik = AuthenticateSso(usrNazwa, usrKomputer, appID);
+            }
+            catch (DbException ex)
+            {
+                // Awaria bazy (np. timeout zapytania) to nie brak użytkownika: 503 zamiast 404.
+                _logger.LogError($"LoginControler [GetSso] - błąd bazy dla {usrNazwa}: {ex.Message}");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, "Baza danych nie odpowiada. Spróbuj ponownie.");
+            }
 
             if (uzytkownik != null)
             {
@@ -258,6 +269,11 @@ namespace indigoERP.Controllers
                 {
                     _logger.LogInformation("User object is null (SSO)");
                 }
+            }
+            catch (DbException)
+            {
+                // Błąd bazy nie jest brakiem użytkownika - przekazujemy go do GetSso (503).
+                throw;
             }
             catch (Exception ex)
             {
