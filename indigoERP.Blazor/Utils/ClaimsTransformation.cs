@@ -24,7 +24,21 @@ namespace indigoERP.Blazor.Utils
 
             string appID = _configuration["appSettings:appID"];
 
-            UzytkownikViewModel uzytkownik = await _loginService.GetSso(principal.Identity.Name, "WebBrowser", appID);
+            UzytkownikViewModel uzytkownik;
+
+            try
+            {
+                uzytkownik = await _loginService.GetSso(principal.Identity.Name, "WebBrowser", appID);
+            }
+            catch (HttpRequestException ex)
+            {
+                // Błąd gateway (np. 404 „Nie znaleziono użytkownika”, 423 konto zablokowane) nie może przerwać potoku:
+                // zapisujemy kod w claimie, a strona pokazuje odmowę dostępu zamiast 500.
+                var failure = principal.Clone();
+                failure.AddIdentity(new ClaimsIdentity(
+                    new[] { new Claim("ssoFailureStatusCode", ((int?)ex.StatusCode ?? 0).ToString()) }, "jwtAuthType"));
+                return failure;
+            }
 
             if (uzytkownik == null)
                 return principal;
