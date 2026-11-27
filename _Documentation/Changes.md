@@ -1,14 +1,17 @@
-﻿﻿## 2026-11-27 - Logowanie SSO: timeout bazy zamiast 404 i błąd gateway bez 500 (wersja 3.26.1127.11454)
+﻿## 2026-11-27 - Kontakt: poprawna trasa usuwania (DELETE)
 
-- **Zgłoszenie:** strona indigoERP zwracała 500 (wcześniej 404 „Nie znaleziono użytkownika”), mimo że konto istniało w tabeli `Uzytkownik`.
-- **Diagnoza:** zapytanie `uspGetUzytkownikSso` łączyło się z widokiem `rdb.vPracownikLista` (epicaHR) i przekraczało 30 s. API łapało `Execution Timeout Expired` w `AuthenticateSso` i zwracało `null`, co dawało 404. Blazor nie łapał błędu gateway w `ClaimsTransformation`, więc wyjątek kończył się 500. Blokady nie było: w SSMS została otwarta transakcja, którą wycofano.
-- **Zmiana (Api):** `LoginController.GetSso` zwraca `503` przy `DbException` (z komunikatem), a `AuthenticateSso` nie zamienia już błędów bazy na `null`.
-- **Zmiana (Blazor):** `ClaimsTransformation.TransformAsync` łapie `HttpRequestException` z `GetSso` i zapisuje claim `ssoFailureStatusCode` zamiast przerywać potok.
-- **Baza danych:** procedura `uspGetUzytkownikSso` i widok `rdb.vPracownikSso` zmienione przez użytkownika na JAPET (skrypty w `_SQL Queries`, nie są w tym commicie). Zapytanie SSO trwa ok. 0,3 s.
-- **Wersja:** `appSettings:Version` 3.26.1125.11452 -> 3.26.1127.11454 w `indigoERP.Api/appsettings.json` i `indigoERP.Blazor/appsettings.json`.
-- **Status wdrożenia:** commit na `developer`, merge do `master`, publikacja API i Blazora na DEIMOS (cykl `app_offline`, pule `indigoERP` i `indigoERP.Api`). Wykonał Claude na polecenie Andrzeja.
-- **Weryfikacja:** testy na eksporcie `master`: indigoERP.Api.Tests 130/130, indigoERP.Blazor.Tests 34/34. Po wdrożeniu: `https://app.hcz.com.pl/indigoERP/` zwraca 401, API `/Api/` zwraca 404.
-- **Luki:** brak testu jednostkowego dla ścieżki 503 w `GetSso` i dla claimu `ssoFailureStatusCode` (wymaga mocka `ILoginService`).
+- **Zgłoszenie:** `KontaktController.Delete` miał trasę `{id}`, a parametr metody to `kntID`, więc DELETE nie wiązał identyfikatora. Potrzebne do odpinania kontaktów z synchronizacji epicaHR i kaizenITSM.
+- **Zmiana:** `indigoERP.Api/Controllers/Wspolne/KontaktController.cs`: `[HttpDelete("{kntID}")]`. Test `indigoERP.Api.Tests/KontaktControllerRouteTests.cs`. Wersja `3.26.1127.11455`.
+- **Status wdrożenia:** wdrożone na DEIMOS 2026-11-27 (tryb offline do 20:45, kopia `appsettings.json.prod-backup-20261127`, robocopy /MIR z wykluczeniami). Kontakt/Get zwraca 200.
+- **Weryfikacja:** build API 0 błędów, testy API 131/131.
+
+## 2026-11-26 - Wersja .NET 11 i DevExpress 26.2.2-beta
+
+- **Zgłoszenie:** przejście na .NET 11 i DevExpress 26.2.2. Stabilna 26.2.2 nie jest dostępna na nuget.org, użyto 26.2.2-beta.
+- **Zmiana:** `TargetFramework` na `net11.0` (`net11.0-windows` dla projektów Windows), pakiety `Microsoft.*` na 11.0.0, pakiety `DevExpress*` na 26.2.2-beta w plikach `.csproj`.
+- **Status wdrożenia:** zacommitowane na `developer`. Nie wdrożone.
+- **Weryfikacja:** Nie budowano w tej zmianie (tylko wersje w csproj); do sprawdzenia przed publikacją.
+
 ## 2026-11-25 - Publikacja Blazor 3.26.1125.11452 (DEIMOS): stopka jak w cerberTMS
 
 - **Zgłoszenie:** wysokość stopki w indigoERP odbiegała od standardu (cerberTMS): globalny `.footer` z `site.css` ustawiał linię 60 px.
@@ -20,6 +23,18 @@
 - **Uwaga:** `/MIR` usunął z DEIMOS plik `wwwroot/images/aplikacja/kalahariTOL.png` (nieśledzony w git, nieużywany w `master`). Plik zostaje lokalnie w drzewie roboczym.
 - **Luki:** brak testu wizualnego stopki (zmiana tylko CSS).
 
+## 2026-11-24 — logi Workera do C:\Services\logs
+
+- **Zgłoszenie:** wszystkie Workery zapisują logi do wspólnego katalogu C:\Services\logs\{projekt}.Worker.
+- **Zmiana:** appsettings.json, sekcja Logging:FilePath: z C:\inetpub\logs\{projekt}.Worker na C:\Services\logs\{projekt}.Worker.
+- **Status wdrożenia:** zmiana w konfiguracji, niewdrożona. Na serwerze trzeba utworzyć katalog C:\Services\logs i nadać prawo zapisu kontu usługi Workera.
+- **Weryfikacja:** brak odwołań do inetpub w Workerach (sprawdzone wyszukiwaniem).
+## 2026-11-23 — komponent ThinkingDotsSquare (animacja „myślenia”)
+
+- **Zgłoszenie:** wspólny wskaźnik ładowania z wzorca (4 kropki w kwadracie, potem losowo 3 kropki).
+- **Zmiana:** dodano Components/Shared/ThinkingDotsSquare.razor i .css. Istniejący komponent ThinkingDots nie został zmieniony. Źródło: U:\_Projekty\Wzory\Komponenty\ThinkingDots\.
+- **Status wdrożenia:** zmiana w kodzie, niewdrożona.
+- **Weryfikacja:** przebudowa projektu (0 błędów).
 ## 2026-11-22 - Worker na JAPET: anulowanie statusem 6 i wspólne terminy harmonogramu
 
 - **Zgłoszenie:** wdrożenie zmian Workera z `eb5087c` (merge `0828e22`, master `f715e00`) na JAPET; od wdrożenia 16.11 Worker nie był aktualizowany.
