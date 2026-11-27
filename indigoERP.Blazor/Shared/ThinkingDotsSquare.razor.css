@@ -1,0 +1,35 @@
+﻿/* Kropki w kwadracie 2x2. Rozmiar i kolor sterowane zmiennymi --tdi-size i --tdi-color ustawianymi w znaczniku. */
+.thinking-dots {
+    --tdi-dot: calc(var(--tdi-size) * 0.36);
+    --tdi-gap: calc(var(--tdi-size) * 0.12);
+
+    width: var(--tdi-size);
+    height: var(--tdi-size);
+    display: grid;
+    grid-template-columns: repeat(2, var(--tdi-dot));
+    grid-template-rows: repeat(2, var(--tdi-dot));
+    gap: var(--tdi-gap);
+    align-content: center;
+    justify-content: center;
+}
+
+.thinking-dot {
+    width: var(--tdi-dot);
+    height: var(--tdi-dot);
+    border-radius: 50%;
+    background: var(--tdi-color, #EF7D00);
+    opacity: 0.2;
+    transform: scale(0.6);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.thinking-dot.is-on {
+    opacity: 1;
+    transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .thinking-dot {
+        transition: none;
+    }
+}

@@ -1,0 +1,80 @@
+﻿@implements IDisposable
+@using System.Threading
+
+<div class="thinking-dots" style="--tdi-size:@Size;--tdi-color:@Color" role="status" aria-label="Trwa przetwarzanie">
+    @for (int i = 0; i < _active.Length; i++)
+    {
+        var index = i;
+        <span class="thinking-dot @(_active[index] ? "is-on" : null)"></span>
+    }
+</div>
+
+@code {
+    /// <summary>Rozmiar kwadratu z kropkami, dowolna długość CSS (np. "2rem", "48px", "100%").</summary>
+    [Parameter]
+    public string Size { get; set; } = "2rem";
+
+    /// <summary>Kolor kropek.</summary>
+    [Parameter]
+    public string Color { get; set; } = "#EF7D00";
+
+    /// <summary>Czas między krokami animacji w milisekundach.</summary>
+    [Parameter]
+    public int IntervalMs { get; set; } = 300;
+
+    // Kolejność zapalania w kwadracie 2x2 (0 lewy-górny, 1 prawy-górny, 2 lewy-dolny, 3 prawy-dolny): zgodnie z ruchem wskazówek.
+    private static readonly int[] ClockwiseOrder = [0, 1, 3, 2];
+    private const int ClockwiseSteps = 8;
+    private const int TotalSteps = 16;
+
+    private readonly bool[] _active = new bool[4];
+    private int _step;
+    private CancellationTokenSource? _cts;
+
+    protected override void OnInitialized()
+    {
+        _cts = new CancellationTokenSource();
+        _ = RunAsync(_cts.Token);
+    }
+
+    private async Task RunAsync(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(IntervalMs));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                NextStep();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Komponent zniknął - zatrzymujemy animację.
+        }
+    }
+
+    private void NextStep()
+    {
+        if (_step < ClockwiseSteps)
+        {
+            // Faza 1: cztery kropki w kwadracie zapalają się po kolei.
+            Array.Fill(_active, false);
+            _active[ClockwiseOrder[_step % ClockwiseOrder.Length]] = true;
+        }
+        else
+        {
+            // Faza 2: trzy kropki świecą, czwarta gaśnie losowo.
+            Array.Fill(_active, true);
+            _active[Random.Shared.Next(_active.Length)] = false;
+        }
+
+        _step = (_step + 1) % TotalSteps;
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
+}
