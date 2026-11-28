@@ -71,7 +71,8 @@
                 <component type="typeof(indigoERP.Blazor.Pages.WiadomoscPubliczna.WiadomosciPanel)" render-mode="Server" />
             }
 
-            @if (Model.Wiadomosci.Count > 0)
+            @* Dla zarządzających (Gazeta / Administrator) lista powyżej zastępuje podgląd kafelków. *@
+            @if (!Model.MozeZarzadzac && Model.Wiadomosci.Count > 0)
             {
                 <div class="glos-grid">
                     @foreach (var wiadomosc in Model.Wiadomosci)

@@ -1,4 +1,13 @@
-﻿## 2026-11-27 - Kontakt: poprawna trasa usuwania (DELETE)
+﻿﻿## 2026-11-28 - Strona /wiadomosc (zarządzanie): pasek akcji, Szczegóły, bez kolumny Akcje i bez podglądu kafelków (wersja 3.26.1128.11455)
+
+- **Zgłoszenie:** poprawki układu strony /wiadomosc dla Gazety / Administratora (zgłoszenie Andrzeja).
+- **Zmiana:** `WiadomosciPanel.razor`: jedna linia — po lewej „Nowa wiadomość”, „Szczegóły” i Popraw / Usuń / Anuluj dla wybranego rekordu; po prawej rok (220 px, było 110) i filtr statusu (560 px, było 280). `ListaWiadomosci.razor`: usunięta kolumna Akcje, wybór wiersza przez `RowSelect`, fokus na siatce po pierwszym renderowaniu (`wiadomoscPubliczna.fokusListy`). Nowy `WiadomoscDetail.razor` (okno slide z prawej: adresaci, status, treść, załączniki). `WiadomoscZarzadzanie.razor`: parametry `ShowNowa` i `ShowListy`, żeby przycisk i listy były w różnych miejscach panelu. `WiadomoscPubliczna.cshtml`: dla zarządzających nie pokazujemy kafelków podglądu (`glos-grid`); zwykli użytkownicy widzą je bez zmian.
+- **Decyzja:** Radzen 13 nie ma parametru `Focused` dla `RadzenDataGrid` (sprawdzone w XML pakietu 13.0.0). Fokus ustawiamy na kontenerze siatki przez JS.
+- **Decyzja:** „panel podgląd” zinterpretowano jako kafelki `glos-grid` na /wiadomosc. Jeśli chodziło o coś innego, zmiana jest w jednym miejscu.
+- **Status wdrożenia:** commit na `developer`, cherry-pick na `master`, publikacja Blazora i API na DEIMOS (cykl `app_offline`, wersja 3.26.1128.11455).
+- **Weryfikacja:** build Blazor 0 błędów; testy: Api 131/131, Blazor 41/41, Services 17/17, Worker 46/46. Brak testu wizualnego w przeglądarce (strona wymaga logowania SSO i API).
+- **Testy:** `WiadomoscPublicznaPageTests` (bUnit): Szczegóły (adresaci, status, zakres, załączniki), zaznaczanie i podświetlanie wiersza, aktywność przycisków panelu wg statusu, okno Szczegóły.
+## 2026-11-27 - Kontakt: poprawna trasa usuwania (DELETE)
 
 - **Zgłoszenie:** `KontaktController.Delete` miał trasę `{id}`, a parametr metody to `kntID`, więc DELETE nie wiązał identyfikatora. Potrzebne do odpinania kontaktów z synchronizacji epicaHR i kaizenITSM.
 - **Zmiana:** `indigoERP.Api/Controllers/Wspolne/KontaktController.cs`: `[HttpDelete("{kntID}")]`. Test `indigoERP.Api.Tests/KontaktControllerRouteTests.cs`. Wersja `3.26.1127.11455`.

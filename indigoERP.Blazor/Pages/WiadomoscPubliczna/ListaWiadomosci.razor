@@ -1,62 +1,68 @@
 ﻿@using indigoERP.Domain.Dtos._Wspolne
+@inject IJSRuntime _js
 
-@* Lista wysłanych wiadomości ze statusem; dane i filtr roku/statusu podaje WiadomosciPanel.
-   Popraw i Usuń są dostępne, dopóki wysyłka się nie rozpoczęła (status 2); Anuluj zatrzymuje wysyłkę (status 2 i 3). *@
+@* Lista wysłanych wiadomości ze statusem. Wybór wiersza podaje WiadomosciPanel (przyciski akcji i Szczegóły są w jego pasku). *@
 
-<RadzenDataGrid Data="@Lista" TItem="WiadomoscPodsumowanieDto" AllowSorting="true" AllowFiltering="false" AllowPaging="true" PageSize="10"
-                Density="Density.Compact" EmptyText="Brak wiadomości dla wybranego filtru." Style="margin-top: 1rem; max-height: calc(100vh - 16rem);">
-    <Columns>
-        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaData" Title="Data" Width="160px" FormatString="{0:dd.MM.yyyy HH:mm}" />
-        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaTemat" Title="Temat" />
-        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Title="Wysłano" Width="120px" Sortable="false">
-            <Template Context="wiadomosc">
-                @wiadomosc.Wyslane / @wiadomosc.Razem
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="Bledy" Title="Błędy" Width="90px" />
-        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaStatus" Title="Status" Width="80px" Sortable="false" TextAlign="TextAlign.Center">
-            <Template Context="wiadomosc">
-                <img src="@GetStatusIcon(wiadomosc.wiaStatus)" alt="Status @wiadomosc.wiaStatus" title="Status @wiadomosc.wiaStatus" width="20" height="20" />
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Title="Akcje" Width="280px" Sortable="false" TextAlign="TextAlign.Left">
-            <Template Context="wiadomosc">
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem" Wrap="FlexWrap.Wrap">
-                    @if (MozeBycPoprawiona(wiadomosc))
-                    {
-                        <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light" Variant="Variant.Outlined"
-                                      Click="@(() => OnPopraw.InvokeAsync(wiadomosc))" />
-                        <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Outlined"
-                                      Click="@(() => OnUsun.InvokeAsync(wiadomosc))" />
-                    }
-                    @if (MozeBycAnulowana(wiadomosc))
-                    {
-                        <RadzenButton Text="Anuluj" Icon="cancel" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Outlined"
-                                      Click="@(() => OnAnuluj.InvokeAsync(wiadomosc))" />
-                    }
-                </RadzenStack>
-            </Template>
-        </RadzenDataGridColumn>
-    </Columns>
-</RadzenDataGrid>
+<div id="lista-wiadomosci" tabindex="0" class="lista-wiadomosci-fokus">
+    <RadzenDataGrid Data="@Lista" TItem="WiadomoscPodsumowanieDto" AllowSorting="true" AllowFiltering="false" AllowPaging="true" PageSize="10"
+                    Density="Density.Compact" EmptyText="Brak wiadomości dla wybranego filtru." Style="margin-top: 1rem; max-height: calc(100vh - 16rem);"
+                    AllowRowSelectOnRowClick="true" Value="@zaznaczone" RowSelect="@OnRowSelect" RowDeselect="@OnRowDeselect">
+        <Columns>
+            <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaData" Title="Data" Width="160px" FormatString="{0:dd.MM.yyyy HH:mm}" />
+            <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaTemat" Title="Temat" />
+            <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Title="Wysłano" Width="120px" Sortable="false">
+                <Template Context="wiadomosc">
+                    @wiadomosc.Wyslane / @wiadomosc.Razem
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="Bledy" Title="Błędy" Width="90px" />
+            <RadzenDataGridColumn TItem="WiadomoscPodsumowanieDto" Property="wiaStatus" Title="Status" Width="80px" Sortable="false" TextAlign="TextAlign.Center">
+                <Template Context="wiadomosc">
+                    <img src="@GetStatusIcon(wiadomosc.wiaStatus)" alt="Status @wiadomosc.wiaStatus" title="Status @wiadomosc.wiaStatus" width="20" height="20" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</div>
 
 @code {
     [Parameter]
     public IEnumerable<WiadomoscPodsumowanieDto> Lista { get; set; } = Enumerable.Empty<WiadomoscPodsumowanieDto>();
 
     [Parameter]
-    public EventCallback<WiadomoscPodsumowanieDto> OnPopraw { get; set; }
+    public WiadomoscPodsumowanieDto? Wybrana { get; set; }
 
     [Parameter]
-    public EventCallback<WiadomoscPodsumowanieDto> OnUsun { get; set; }
+    public EventCallback<WiadomoscPodsumowanieDto?> WybranaChanged { get; set; }
 
-    [Parameter]
-    public EventCallback<WiadomoscPodsumowanieDto> OnAnuluj { get; set; }
+    private List<WiadomoscPodsumowanieDto> zaznaczone = new();
 
-    // Status „2” = czeka na wysyłkę, „3” = w trakcie wysyłania, „4” = wysłana, „6” = anulowana.
-    private static bool MozeBycPoprawiona(WiadomoscPodsumowanieDto wiadomosc) => wiadomosc.wiaStatus == "2";
+    // Pierwsze wyrenderowanie: fokus na liście (Radzen 13 nie ma parametru Focused, więc fokus ustawiamy na kontenerze siatki).
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
 
-    private static bool MozeBycAnulowana(WiadomoscPodsumowanieDto wiadomosc) => wiadomosc.wiaStatus is "2" or "3";
+        try
+        {
+            await _js.InvokeVoidAsync("wiadomoscPubliczna.fokusListy", "lista-wiadomosci");
+        }
+        catch (JSException)
+        {
+            // Brak JS: lista działa bez fokusu.
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        zaznaczone = Wybrana is null ? new List<WiadomoscPodsumowanieDto>() : new List<WiadomoscPodsumowanieDto> { Wybrana };
+    }
+
+    private Task OnRowSelect(WiadomoscPodsumowanieDto wiadomosc) => WybranaChanged.InvokeAsync(wiadomosc);
+
+    private Task OnRowDeselect(WiadomoscPodsumowanieDto wiadomosc) => WybranaChanged.InvokeAsync(null);
 
     // Status „1” (robocza) pokazujemy ikoną „oczekujący na wysłanie” (2.png, jak w epicaHR).
     private static string GetStatusIcon(string? status) => status switch

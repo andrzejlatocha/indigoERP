@@ -204,4 +204,8 @@ body {
 .footer {
     position: static;
     flex: 0 0 auto;
+    /* Jak Footer.razor.css w indigoERP: scoped CSS nie działa na tej stronie, więc parametry są tutaj. */
+    text-align: center;
+    padding: .5rem;
+    line-height: inherit;
 }
