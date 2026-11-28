@@ -1,4 +1,14 @@
-﻿﻿## 2026-11-27 - Logowanie SSO: timeout bazy zamiast 404 i błąd gateway bez 500 (wersja 3.26.1127.11454)
+﻿﻿## 2026-11-28 - Strona /wiadomosc (zarządzanie): pasek akcji, Szczegóły, bez kolumny Akcje i bez podglądu kafelków (wersja 3.26.1128.11455)
+
+- **Zgłoszenie:** poprawki układu strony /wiadomosc dla Gazety / Administratora (zgłoszenie Andrzeja).
+- **Zmiana:** `WiadomosciPanel.razor`: jedna linia — po lewej „Nowa wiadomość”, „Szczegóły” i Popraw / Usuń / Anuluj dla wybranego rekordu; po prawej rok (220 px, było 110) i filtr statusu (560 px, było 280). `ListaWiadomosci.razor`: usunięta kolumna Akcje, wybór wiersza przez `RowSelect`, fokus na siatce po pierwszym renderowaniu (`wiadomoscPubliczna.fokusListy`). Nowy `WiadomoscDetail.razor` (okno slide z prawej: adresaci, status, treść, załączniki). `WiadomoscZarzadzanie.razor`: parametry `ShowNowa` i `ShowListy`, żeby przycisk i listy były w różnych miejscach panelu. `WiadomoscPubliczna.cshtml`: dla zarządzających nie pokazujemy kafelków podglądu (`glos-grid`); zwykli użytkownicy widzą je bez zmian.
+- **Decyzja:** Radzen 13 nie ma parametru `Focused` dla `RadzenDataGrid` (sprawdzone w XML pakietu 13.0.0). Fokus ustawiamy na kontenerze siatki przez JS.
+- **Decyzja:** „panel podgląd” zinterpretowano jako kafelki `glos-grid` na /wiadomosc. Jeśli chodziło o coś innego, zmiana jest w jednym miejscu.
+- **Status wdrożenia:** commit na `developer`, cherry-pick na `master`, publikacja Blazora i API na DEIMOS (cykl `app_offline`, wersja 3.26.1128.11455).
+- **Weryfikacja:** build Blazor 0 błędów; testy: Api 131/131, Blazor 41/41, Services 17/17, Worker 46/46. Brak testu wizualnego w przeglądarce (strona wymaga logowania SSO i API).
+- **Testy:** `WiadomoscPublicznaPageTests` (bUnit): Szczegóły (adresaci, status, zakres, załączniki), zaznaczanie i podświetlanie wiersza, aktywność przycisków panelu wg statusu, okno Szczegóły.
+
+## 2026-11-27 - Logowanie SSO: timeout bazy zamiast 404 i błąd gateway bez 500 (wersja 3.26.1127.11454)
 
 - **Zgłoszenie:** strona indigoERP zwracała 500 (wcześniej 404 „Nie znaleziono użytkownika”), mimo że konto istniało w tabeli `Uzytkownik`.
 - **Diagnoza:** zapytanie `uspGetUzytkownikSso` łączyło się z widokiem `rdb.vPracownikLista` (epicaHR) i przekraczało 30 s. API łapało `Execution Timeout Expired` w `AuthenticateSso` i zwracało `null`, co dawało 404. Blazor nie łapał błędu gateway w `ClaimsTransformation`, więc wyjątek kończył się 500. Blokady nie było: w SSMS została otwarta transakcja, którą wycofano.

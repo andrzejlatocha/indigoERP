@@ -1,0 +1,83 @@
+﻿@using indigoERP.Domain.Dtos._Wspolne
+@using indigoERP.Service.Interfaces._Wspolne
+
+@inject IWiadomoscDokumentService _wiadomoscDokumentService
+@inject IJSRuntime _jsRuntime
+@inject DialogService _dialogService
+@inject NotificationService _notificationService
+
+@* Okno szczegółów wiadomości (z prawej) dla Gazety / Administratora: adresaci, status wysyłki, treść i załączniki. *@
+<RadzenStack Gap="1rem" Class="p-3">
+    <RadzenText TextStyle="TextStyle.Caption">
+        @Model.wiaData?.ToString("g") &middot; Status @Model.wiaStatus &middot; Wysłano @Model.Wyslane z @Model.Razem &middot; Błędy: @Model.Bledy
+    </RadzenText>
+    <RadzenFormField Text="Adresaci" Style="width:100%">
+        @if (Model.wiaAdresy.Count > 0)
+        {
+            <RadzenText TextStyle="TextStyle.Body2">@string.Join(", ", Model.wiaAdresy)</RadzenText>
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Body2">Zakres pracowników (adresy z bazy).</RadzenText>
+        }
+    </RadzenFormField>
+    <div class="rz-border rz-p-3" style="min-height:200px;">
+        @((MarkupString)(Model.wiaTresc ?? string.Empty))
+    </div>
+    <RadzenFormField Text="Załączniki" Style="width:100%">
+        @if (dokumenty == null)
+        {
+            <Load />
+        }
+        else if (dokumenty.Count == 0)
+        {
+            <RadzenText TextStyle="TextStyle.Body2">Brak załączników.</RadzenText>
+        }
+        else
+        {
+            <RadzenStack Gap="0.25rem">
+                @foreach (var dokument in dokumenty)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenText TextStyle="TextStyle.Body2">@dokument.wdoNazwa</RadzenText>
+                        <RadzenButton Icon="download" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Small" Click="@(() => Download(dokument))" />
+                    </RadzenStack>
+                }
+            </RadzenStack>
+        }
+    </RadzenFormField>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+        <RadzenButton Text="Zamknij" Icon="close" ButtonStyle="ButtonStyle.Light" Click="@Close" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public WiadomoscPodsumowanieDto Model { get; set; } = new();
+
+    private List<WiadomoscDokumentDto>? dokumenty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dokumenty = (await _wiadomoscDokumentService.SelectByWiadomosc(Model.wiaID)).ToList();
+    }
+
+    private async Task Download(WiadomoscDokumentDto dokument)
+    {
+        var file = await _wiadomoscDokumentService.Download(dokument.wdoID);
+
+        if (file == null)
+        {
+            _notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd", Detail = "Nie udało się pobrać załącznika.", Duration = 5000 });
+            return;
+        }
+
+        using var streamRef = new DotNetStreamReference(file.Content);
+        await _jsRuntime.InvokeVoidAsync("downloadFileFromStream", file.FileName, streamRef);
+    }
+
+    private void Close()
+    {
+        _dialogService.CloseSide(null);
+    }
+}

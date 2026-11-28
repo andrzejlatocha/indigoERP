@@ -6,13 +6,35 @@
 @inject DialogService _dialogService
 @inject NotificationService _notificationService
 
-@* Panel zarządzania na publicznej stronie (/wiadomosc) tylko dla ról Gazeta / Administrator: rok, filtr statusu, przycisk nowego numeru i lista. *@
+@* Panel zarządzania na publicznej stronie (/wiadomosc) tylko dla ról Gazeta / Administrator.
+   Jedna linia: po lewej Nowa wiadomość i akcje dla wybranego rekordu, po prawej filtr statusu i rok. *@
 
-<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-    <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="rok" Style="width: 110px;" />
-    <RadzenDropDown TValue="int" Data="@filtry" TextProperty="Tekst" ValueProperty="Wartosc" @bind-Value="filtrStatusu" Style="width: 280px;" />
-    <WiadomoscZarzadzanie />
+<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center"
+             Wrap="FlexWrap.Wrap" Gap="0.5rem" Class="w-100">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+        <WiadomoscZarzadzanie ShowListy="false" />
+        <RadzenButton Text="Szczegóły" Icon="visibility" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Variant="Variant.Outlined"
+                      Disabled="@(wybrana == null)" Click="@OtworzSzczegolyAsync" />
+        @if (wybrana != null && MozeBycPoprawiona(wybrana))
+        {
+            <RadzenButton Text="Popraw" Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Variant="Variant.Outlined"
+                          Click="@(() => OtworzPoprawkeAsync(wybrana!))" />
+            <RadzenButton Text="Usuń" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Outlined"
+                          Click="@(() => UsunAsync(wybrana!))" />
+        }
+        @if (wybrana != null && MozeBycAnulowana(wybrana))
+        {
+            <RadzenButton Text="Anuluj" Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Outlined"
+                          Click="@(() => AnulujAsync(wybrana!))" />
+        }
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+        <RadzenDropDown TValue="int" Data="@Lata" @bind-Value="rok" Style="width: 220px;" />
+        <RadzenDropDown TValue="int" Data="@filtry" TextProperty="Tekst" ValueProperty="Wartosc" @bind-Value="filtrStatusu" Style="width: 560px;" />
+    </RadzenStack>
 </RadzenStack>
+
+<WiadomoscZarzadzanie ShowNowa="false" />
 
 @if (ladowanie)
 {
@@ -20,7 +42,7 @@
 }
 else
 {
-    <ListaWiadomosci Lista="@WiadomosciRoku" OnPopraw="OtworzPoprawkeAsync" OnUsun="UsunAsync" OnAnuluj="AnulujAsync" />
+    <ListaWiadomosci Lista="@WiadomosciRoku" Wybrana="@wybrana" WybranaChanged="@(w => wybrana = w)" />
 }
 
 @code {
@@ -39,6 +61,7 @@ else
 
     private List<WiadomoscPodsumowanieDto> wszystkie = new();
     private bool ladowanie = true;
+    private WiadomoscPodsumowanieDto? wybrana;
 
     private int rok = DateTime.Now.Year;
     private int filtrStatusu = 0;
@@ -68,6 +91,11 @@ else
         _ => true
     };
 
+    // Poprawka i usunięcie tylko przed rozpoczęciem wysyłki (status „2”); anulowanie także w trakcie (status „3”).
+    private static bool MozeBycPoprawiona(WiadomoscPodsumowanieDto wiadomosc) => wiadomosc.wiaStatus == "2";
+
+    private static bool MozeBycAnulowana(WiadomoscPodsumowanieDto wiadomosc) => wiadomosc.wiaStatus is "2" or "3";
+
     protected override async Task OnInitializedAsync()
     {
         await OdswiezAsync();
@@ -76,6 +104,7 @@ else
     private async Task OdswiezAsync()
     {
         ladowanie = true;
+        wybrana = null;
 
         try
         {
@@ -85,6 +114,18 @@ else
         {
             ladowanie = false;
         }
+    }
+
+    private async Task OtworzSzczegolyAsync()
+    {
+        if (wybrana is null)
+        {
+            return;
+        }
+
+        await _dialogService.OpenSideAsync<WiadomoscDetail>(wybrana.wiaTemat ?? "Wiadomość",
+            new Dictionary<string, object?> { ["Model"] = wybrana },
+            new SideDialogOptions { Position = DialogPosition.Right, Width = "760px", CloseDialogOnOverlayClick = false, ShowTitle = true, ShowClose = true });
     }
 
     // Poprawka tylko dla wiadomości, której wysyłka się nie rozpoczęła (status „2”); API sprawdza to samo.

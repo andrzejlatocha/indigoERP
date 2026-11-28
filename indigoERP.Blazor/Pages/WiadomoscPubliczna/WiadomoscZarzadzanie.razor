@@ -12,13 +12,21 @@
 @inject IConfiguration _configuration
 
 @* Osadzone w publicznej stronie Razor (/wiadomosc) tylko dla ról Gazeta / Administrator. Okna wysyłki otwierają się na środku. *@
+@if (ShowListy)
+{
 <RadzenDialog />
 <RadzenNotification />
+}
 
+@if (ShowNowa)
+{
 <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
     <RadzenButton Text="Nowa wiadomość" Icon="add" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@OtworzNowy" />
 </RadzenStack>
+}
 
+@if (ShowListy)
+{
 @if (zaplanowane.Count > 0)
 {
     <RadzenStack Orientation="Orientation.Vertical" Gap="0.25rem" Class="w-100 mt-2">
@@ -63,8 +71,16 @@ else if (robocze is { Count: > 0 })
         }
     </RadzenStack>
 }
+}
 
 @code {
+    // ShowNowa: przycisk „Nowa wiadomość”. ShowListy: robocze, zaplanowane, okno dialogowe i komunikaty (jedna instancja na stronie).
+    [Parameter]
+    public bool ShowNowa { get; set; } = true;
+
+    [Parameter]
+    public bool ShowListy { get; set; } = true;
+
     private List<WiadomoscDto>? robocze;
     private bool ladowanie = true;
     private List<WiadomoscHarmonogramViewModel> zaplanowane = new();
@@ -73,6 +89,12 @@ else if (robocze is { Count: > 0 })
 
     protected override async Task OnInitializedAsync()
     {
+        if (!ShowListy)
+        {
+            ladowanie = false;
+            return;
+        }
+
         await OdswiezRobocze();
         await OdswiezZaplanowane();
     }
@@ -80,7 +102,7 @@ else if (robocze is { Count: > 0 })
     // Po przeładowaniu strony (patrz PrzeladujZKomunikatem) pokazujemy komunikat z adresu i usuwamy go z adresu, żeby nie wracał przy F5.
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!firstRender || !ShowListy)
         {
             return;
         }
